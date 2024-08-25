@@ -16,6 +16,10 @@ const Navbar: React.FC = () => {
 
     const [showHamburgerMenu, setShowHamburgerMenu] = useState<boolean>(false);
 
+    const closehamburgerMenu = () => {
+        setShowHamburgerMenu(false);
+    }
+
     return (
         <>
             <nav className="flex fixed w-full py-5 justify-between pl-3 pr-3 md:pl-0 md:pr-0  md:justify-around top-0 bg-inherit z-30 font-Montserrat text-white text-lg items-center">
@@ -60,7 +64,7 @@ const Navbar: React.FC = () => {
                         </button>
                     )}
                 </ol>
-                {showHamburgerMenu && <HamburerMenu isOpen={showHamburgerMenu} />}
+                {showHamburgerMenu && <HamburerMenu isOpen={showHamburgerMenu} closeMenu={closehamburgerMenu} />}
             </nav>
         </>
     )

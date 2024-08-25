@@ -9,12 +9,18 @@ import LoginIcon from '@mui/icons-material/Login';
 
 interface props {
     isOpen: boolean
+    closeMenu: () => void
 }
 
 
-const HamburerMenu: React.FC<props> = ({ isOpen }) => {
+const HamburerMenu: React.FC<props> = ({ isOpen, closeMenu }) => {
 
     const [showMenu, setShowMenu] = useState<boolean>(isOpen);
+
+    const handleClosehambergerMenu = () => {
+        closeMenu();
+        setShowMenu(false);
+    }
 
     return (
         <>
@@ -27,19 +33,19 @@ const HamburerMenu: React.FC<props> = ({ isOpen }) => {
                             <span>user</span>
                         </li>
                         <Link href={"/"} >
-                            <li onClick={() => setShowMenu(false)} className="space-x-2 hover:text-blue-600">
+                            <li onClick={() => handleClosehambergerMenu()} className="space-x-2 hover:text-blue-600">
                                 <HomeIcon />
                                 <span>Home</span>
                             </li>
                         </Link>
                         <Link href={"/music"}>
-                            <li onClick={() => setShowMenu(false)} className="space-x-2 hover:text-blue-600">
+                            <li onClick={() => handleClosehambergerMenu()} className="space-x-2 hover:text-blue-600">
                                 <MusicNoteIcon />
                                 <span>Music</span>
                             </li>
                         </Link>
                         <Link href={"/news"}>
-                            <li onClick={() => setShowMenu(false)} className="space-x-2 hover:text-blue-600">
+                            <li onClick={() => handleClosehambergerMenu()} className="space-x-2 hover:text-blue-600">
                                 <ArticleIcon />
                                 <span>News</span>
                             </li>
