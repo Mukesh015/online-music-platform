@@ -9,12 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@emotion/react": "^11.13.3",
-    "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
     "@reduxjs/toolkit": "^2.2.7",
     "clsx": "^2.1.1",
+    "firebase": "^10.13.0",
     "flubber": "^0.4.2",
     "framer-motion": "^11.3.28",
     "lottie-react": "^2.4.0",
