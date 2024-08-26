@@ -13,9 +13,10 @@ import FastForwardIcon from '@mui/icons-material/FastForward';
 import FastRewindIcon from '@mui/icons-material/FastRewind';
 import Slider from '@mui/material/Slider';
 import VolumeUp from '@mui/icons-material/VolumeUp';
-const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import musicWave from "@/lottie/Animation - 1724571535854.json";
 import RepeatOneIcon from '@mui/icons-material/RepeatOne';
+import Tooltip from '@mui/material/Tooltip';
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 
 interface Props {
@@ -95,21 +96,27 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
                     <h2 className="text-sm text-slate-500 max-w-96">Sanam Teri Kasam (Lofi)</h2>
                 </section>
                 <section className=" w-[30vw] flex flex-row gap-10">
-                    <IconButton color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
-                        {isLooping ? (
-                            <RepeatIcon fontSize="large" color="primary" />
-                        ) : (
-                            <RepeatOneIcon fontSize="large" color="primary" />
-                        )}
-                    </IconButton>
+                    <Tooltip title="toggle loop">
+                        <IconButton color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
+                            {isLooping ? (
+                                <RepeatIcon fontSize="large" color="primary" />
+                            ) : (
+                                <RepeatOneIcon fontSize="large" color="primary" />
+                            )}
+                        </IconButton>
+                    </Tooltip>
                     <section
                         className="flex flex-row items-center gap-2 relative"
                         onMouseEnter={() => setShowVolumeSlider(true)}
                         onMouseLeave={() => setShowVolumeSlider(false)}
                     >
-                        <IconButton color="primary" aria-label="volume">
-                            <VolumeUp />
-                        </IconButton>
+                        <Tooltip title="volume">
+
+                            <IconButton color="primary" aria-label="volume">
+                                <VolumeUp />
+                            </IconButton>
+                        </Tooltip>
+
                         <div className={`absolute left-10 ${showVolumeSlider ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 items-center flex`}>
                             <Slider
                                 className="w-[10vw]"
@@ -124,9 +131,11 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
                             />
                         </div>
                     </section>
-                    <IconButton className="ml-56" color="primary" aria-label="favorite" onClick={toggleFavorite}>
-                        {isFavorite ? <FavoriteIcon fontSize="large" color="secondary" /> : <FavoriteBorderIcon fontSize="large" />}
-                    </IconButton>
+                    <Tooltip title="Add to favorite">
+                        <IconButton className="ml-56" color="primary" aria-label="favorite" onClick={toggleFavorite}>
+                            {isFavorite ? <FavoriteIcon fontSize="large" color="secondary" /> : <FavoriteBorderIcon fontSize="large" />}
+                        </IconButton>
+                    </Tooltip>
                 </section>
                 <audio ref={musicRef} src={musicLink} />
                 <section className="flex flex-row items-center gap-3">
@@ -144,23 +153,33 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
                     <span>{formatTime(duration)}</span>
                 </section>
                 <section className="flex flex-row justify-around w-[30vw]">
-                    <IconButton color="primary" aria-label="previous">
-                        <SkipPreviousIcon fontSize="large" />
-                    </IconButton>
+                    <Tooltip title="previous">
+                        <IconButton color="primary" aria-label="previous">
+                            <SkipPreviousIcon fontSize="large" />
+                        </IconButton>
+                    </Tooltip>
                     <section className="flex flex-row gap-4">
-                        <IconButton color="primary" aria-label="fastrewind" onClick={() => handleSkip(-10)}>
-                            <FastRewindIcon fontSize="large" />
-                        </IconButton>
-                        <IconButton color="primary" aria-label="play" onClick={togglePlayPause}>
-                            {isPlaying ? <PauseCircleIcon fontSize="large" /> : <PlayCircleIcon fontSize="large" />}
-                        </IconButton>
-                        <IconButton color="primary" aria-label="fastforward" onClick={() => handleSkip(10)}>
-                            <FastForwardIcon fontSize="large" />
-                        </IconButton>
+                        <Tooltip title="-10 sec">
+                            <IconButton color="primary" aria-label="fastrewind" onClick={() => handleSkip(-10)}>
+                                <FastRewindIcon fontSize="large" />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="play/pause">
+                            <IconButton color="primary" aria-label="play" onClick={togglePlayPause}>
+                                {isPlaying ? <PauseCircleIcon fontSize="large" /> : <PlayCircleIcon fontSize="large" />}
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="+10 sec">
+                            <IconButton color="primary" aria-label="fastforward" onClick={() => handleSkip(10)}>
+                                <FastForwardIcon fontSize="large" />
+                            </IconButton>
+                        </Tooltip>
                     </section>
-                    <IconButton color="primary" aria-label="next">
-                        <SkipNextIcon fontSize="large" />
-                    </IconButton>
+                    <Tooltip title="next">
+                        <IconButton color="primary" aria-label="next">
+                            <SkipNextIcon fontSize="large" />
+                        </IconButton>
+                    </Tooltip>
                 </section>
             </div>
         </>

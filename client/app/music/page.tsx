@@ -1,8 +1,14 @@
 "use client"
-
+import Tooltip from '@mui/material/Tooltip';
 import React from "react";
 import SearchIcon from '@mui/icons-material/Search';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import AddIcon from '@mui/icons-material/Add';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import WebMusicPlayer from "@/components/webmusicplayer";
+import IconButton from '@mui/material/IconButton';
+import TextField from '@mui/material/TextField';
+
 
 const MusicPage: React.FC = () => {
 
@@ -12,9 +18,31 @@ const MusicPage: React.FC = () => {
             <div className="relative min-h-screen max-w-screen md:flex md:flex-row z-20 bg-slate-950 font-Montserrat">
                 <div className="pt-20 p-5 md:pt-28">
                     <div className="flex flex-col gap-7 md:w-[55vw] md:overflow-x-auto">
-                        <section className="flex flex-row justify-between text-white text-xl">
+                        <section className="flex flex-row justify-between text-white text-xl items-center">
                             <h1>Recent Songs</h1>
-                            <SearchIcon className="" fontSize="medium" />
+                            <section className="flex gap-10 flex-row items-center">
+                                <TextField className='w-60' color='secondary' id="standard-basic" label="Enter song name" variant="standard" />
+                                <Tooltip title="search">
+                                    <IconButton color="secondary" aria-label="search-icon">
+                                        <SearchIcon fontSize="medium" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="upload songs">
+                                    <IconButton color="secondary" aria-label="upload">
+                                        <CloudUploadIcon fontSize="medium" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="favorite songs">
+                                    <IconButton color="secondary" aria-label="favorite">
+                                        <FavoriteIcon fontSize="medium" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="create new playlist">
+                                    <IconButton color="secondary" aria-label="add">
+                                        <AddIcon fontSize="medium" />
+                                    </IconButton>
+                                </Tooltip>
+                            </section>
                         </section>
                         <section className="flex flex-col w-full md:w-auto ">
                             <div className="flex flex-row gap-3 w-full hover:bg-slate-800 md:px-10 md:py-3 cursor-pointer rounded-sm">

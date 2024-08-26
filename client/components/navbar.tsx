@@ -1,5 +1,6 @@
 "use client"
-import React, { useState, useEffect, useRef, useCallback } from "react";
+
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,8 +19,8 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
-import { Box, IconButton, ListItemIcon, Tooltip, Typography } from "@mui/material";
-import { Logout, PersonAdd, Settings } from "@mui/icons-material";
+import { IconButton, ListItemIcon, Tooltip } from "@mui/material";
+import { Logout } from "@mui/icons-material";
 
 const Navbar: React.FC = () => {
 
@@ -66,6 +67,43 @@ const Navbar: React.FC = () => {
             setisLoggedin(false)
         }
     }, [user])
+
+    useEffect(() => {
+        const sendPatchRequest = async () => {
+            try {
+                // Get the ID token
+                const idToken = await auth.currentUser?.getIdToken();
+                console.log("Idtoken", idToken);
+
+                // Define the request payload
+                const requestBody = {
+                    url: "https://www.youtube.com/watch?v=UCkSfavBpTY&t=6s",
+                    title: "Sanam Teri Kasam (Lofi)",
+                    duration: 225
+                };
+
+                const response = await fetch('http://localhost:8080/api/music', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`,
+                    },
+                    body: JSON.stringify(requestBody),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Response:', result);
+                } else {
+                    console.error('Failed to send PATCH request:', response.statusText);
+                }
+            } catch (err) {
+                console.error("Error during request:", err);
+            }
+        };
+
+        sendPatchRequest();
+    }, [auth]);
 
     useEffect(() => {
         checkLogin();

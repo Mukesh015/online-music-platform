@@ -13,6 +13,7 @@ const LoginForm: React.FC = () => {
         setLoadingGoogle(true);
         const res = await signInWithGoogle();
         setLoadingGoogle(false);
+        console.log(res)
     }
 
     return (
