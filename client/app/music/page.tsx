@@ -6,8 +6,6 @@ import WebMusicPlayer from "@/components/webmusicplayer";
 
 const MusicPage: React.FC = () => {
 
-    const path = "../../music/sanam.mp3"
-
     return (
         <>
 
@@ -43,7 +41,7 @@ const MusicPage: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <WebMusicPlayer musicLink={"https://pagalfree.com/musics/128-Sanam%20Teri%20Kasam%20-%20Sanam%20Teri%20Kasam%20128%20Kbps.mp3"} />
+                    <WebMusicPlayer musicLink={"https://dj4x.in/upload_file/18/1810/Main%20Agar%20-%20Lofi%20Song%20(Slowed%20Reverb)%20Atif%20Aslam%20-%20Tubelight.mp3"} />
                 </div>
             </div>
         </>

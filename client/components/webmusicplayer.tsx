@@ -15,6 +15,8 @@ import Slider from '@mui/material/Slider';
 import VolumeUp from '@mui/icons-material/VolumeUp';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import musicWave from "@/lottie/Animation - 1724571535854.json";
+import RepeatOneIcon from '@mui/icons-material/RepeatOne';
+
 
 interface Props {
     musicLink: string;
@@ -60,6 +62,7 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
     const toggleFavorite = () => setIsFavorite(!isFavorite);
 
     const formatTime = (time: number) => {
+        console.log(time);
         const minutes = Math.floor(time / 60);
         const seconds = Math.floor(time % 60);
         return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
@@ -93,7 +96,11 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
                 </section>
                 <section className=" w-[30vw] flex flex-row gap-10">
                     <IconButton color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
-                        <RepeatIcon fontSize="large" color={isLooping ? "secondary" : "inherit"} />
+                        {isLooping ? (
+                            <RepeatIcon fontSize="large" color="primary" />
+                        ) : (
+                            <RepeatOneIcon fontSize="large" color="primary" />
+                        )}
                     </IconButton>
                     <section
                         className="flex flex-row items-center gap-2 relative"
