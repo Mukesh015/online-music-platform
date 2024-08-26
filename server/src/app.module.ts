@@ -6,6 +6,7 @@ import { MyLoggerModule } from './my-logger/my-logger.module';
 import { MusicModule } from './music/music.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { MiddlewareModule } from './middleware/middleware.module';
 
 @Module({
   imports: [DatabaseModule, MyLoggerModule, MusicModule, ThrottlerModule.forRoot([{
@@ -17,7 +18,7 @@ import { APP_GUARD } from '@nestjs/core';
     name: 'long',
     ttl: 60000,
     limit: 100
-  }]),],
+  }]), MiddlewareModule,],
   controllers: [AppController],
   providers: [AppService, {
     provide: APP_GUARD,

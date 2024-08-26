@@ -27,7 +27,7 @@ model Music {
   id         Int      @id @default(autoincrement()) 
   userId     Int      
   url        String   
-  isFavourite Boolean 
+  isFavourite Boolean  @default(false)
   user       User     @relation(fields: [userId], references: [userId]) 
 
   @@unique([userId, url]) 
