@@ -25,6 +25,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/throttler": "^6.2.1",
     "@prisma/client": "^5.18.0",
+    "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "firebase-admin": "^12.4.0",
     "reflect-metadata": "^0.2.0",

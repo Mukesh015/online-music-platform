@@ -9,6 +9,9 @@
 # testing
 /coverage
 
+# musics
+/client/music
+
 # next.js
 /client/.next/
 /out/

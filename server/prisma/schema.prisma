@@ -17,18 +17,23 @@ datasource db {
 
 
 model User {
-  userId Int    @id @unique
-  email  String @unique
+  userId String  @id @unique
+  email  String  @unique
   name   String
-  music  Music[] 
+  music  Music[] // One-to-many relation with Music
 }
 
 model Music {
-  id         Int      @id @default(autoincrement()) 
-  userId     Int      
-  url        String   
-  isFavourite Boolean  @default(false)
-  user       User     @relation(fields: [userId], references: [userId]) 
+  id        Int      @id @default(autoincrement())
+  userId    String
+  url       String
+  isFavorite Boolean @default(false)
+  title     String
+  duration  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([userId, url]) 
+  user User @relation(fields: [userId], references: [userId])
+
+  @@unique([userId, url]) // Composite unique constraint
 }

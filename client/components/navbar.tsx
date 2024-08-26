@@ -11,6 +11,8 @@ import LoginIcon from '@mui/icons-material/Login';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import HamburerMenu from "./hamburgermenu";
+import LoginForm from "./loginform";
+import { auth } from "@/config/firebase/config";
 
 const Navbar: React.FC = () => {
 
@@ -19,6 +21,43 @@ const Navbar: React.FC = () => {
     const closehamburgerMenu = () => {
         setShowHamburgerMenu(false);
     }
+    useEffect(() => {
+        const sendPatchRequest = async () => {
+          try {
+            // Get the ID token
+            const idToken = await auth.currentUser?.getIdToken();
+            console.log("Idtoken", idToken);
+      
+            // Define the request payload
+            const requestBody = {
+              url: "https://www.youtube.com/watch?v=UCkSfavBpTY&t=6s",
+              title: "Sanam Teri Kasam (Lofi)",         
+              duration: 225
+            };
+      
+            const response = await fetch('http://localhost:8080/api/music', {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`,  
+              },
+              body: JSON.stringify(requestBody),
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              console.log('Response:', result);
+            } else {
+              console.error('Failed to send PATCH request:', response.statusText);
+            }
+          } catch (err) {
+            console.error("Error during request:", err);
+          }
+        };
+      
+        sendPatchRequest();
+      }, [auth]);
+
 
     return (
         <>
@@ -66,6 +105,7 @@ const Navbar: React.FC = () => {
                 </ol>
                 {showHamburgerMenu && <HamburerMenu isOpen={showHamburgerMenu} closeMenu={closehamburgerMenu} />}
             </nav>
+            <LoginForm />
         </>
     )
 }
