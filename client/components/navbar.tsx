@@ -11,6 +11,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import HamburerMenu from "./hamburgermenu";
+import LoginForm from "./loginform";
 
 const Navbar: React.FC = () => {
 
@@ -66,6 +67,7 @@ const Navbar: React.FC = () => {
                 </ol>
                 {showHamburgerMenu && <HamburerMenu isOpen={showHamburgerMenu} closeMenu={closehamburgerMenu} />}
             </nav>
+            <LoginForm />
         </>
     )
 }
