@@ -1,5 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client';
+import { Prisma } from 'prisma/generated/client';
+
 import { DatabaseService } from '../database/database.service';
 
 @Injectable()

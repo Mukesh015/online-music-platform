@@ -1,6 +1,8 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Prisma } from '@prisma/client';
+// import { Prisma } from '@prisma/client';
+import { Prisma } from 'prisma/generated/client';
+
 
 @Injectable()
 export class MusicService {
