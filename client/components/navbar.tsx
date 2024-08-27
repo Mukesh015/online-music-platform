@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
             };
       
             const response = await fetch('http://localhost:8080/api/music', {
-              method: 'PATCH',
+              method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${idToken}`,  

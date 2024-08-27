@@ -15,6 +15,6 @@ export class MusicModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(MiddlewareService)
-      .forRoutes({ path: 'music', method: RequestMethod.PATCH });
+      .forRoutes({ path: 'music', method: RequestMethod.POST });
   }
 }
