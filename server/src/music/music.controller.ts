@@ -1,8 +1,8 @@
 import { Body, Controller, Patch, Req,Post } from '@nestjs/common';
 import { Request } from 'express';
 import { MusicService } from './music.service';
-// import { Prisma } from '@prisma/client';
-import { Prisma } from '../../prisma/generated/client';
+import { Prisma } from '@prisma/client';
+// import { Prisma } from '../../prisma/generated/client';
 
 
 
