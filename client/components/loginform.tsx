@@ -4,7 +4,11 @@ import IconButton from '@mui/material/IconButton';
 import { useSignInWithGoogle } from "react-firebase-hooks/auth";
 import { auth } from "@/config/firebase/config";
 
-const LoginForm: React.FC = () => {
+interface Props {
+    closeForm: () => void;
+}
+
+const LoginForm: React.FC<Props> = ({ closeForm }) => {
 
     const [signInWithGoogle] = useSignInWithGoogle(auth);
     const [loadingGoogle, setLoadingGoogle] = useState<boolean>(false);
@@ -13,7 +17,7 @@ const LoginForm: React.FC = () => {
         setLoadingGoogle(true);
         const res = await signInWithGoogle();
         setLoadingGoogle(false);
-        console.log(res)
+        closeForm();
     }
 
     return (
@@ -22,7 +26,7 @@ const LoginForm: React.FC = () => {
                 <header className="text-neutral-500 flex flex-row items-center gap-2 justify-between">
                     <img className="h-6 w-6" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="" />
                     <span>Sign in to Musically with google.com</span>
-                    <IconButton color="primary" aria-label="close">
+                    <IconButton onClick={() => closeForm()} color="primary" aria-label="close">
                         <CloseIcon fontSize="small" />
                     </IconButton>
                 </header>

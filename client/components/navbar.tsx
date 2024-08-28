@@ -21,6 +21,8 @@ import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import { IconButton, ListItemIcon, Tooltip } from "@mui/material";
 import { Logout } from "@mui/icons-material";
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
 
 const Navbar: React.FC = () => {
 
@@ -44,6 +46,10 @@ const Navbar: React.FC = () => {
             console.log("firebase error", error);
         }
     };
+
+    const closeloginForm = () => {
+        setShowLoginForm(false);
+    }
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -172,7 +178,7 @@ const Navbar: React.FC = () => {
                 </ol>
                 {showHamburgerMenu && <HamburerMenu isOpen={showHamburgerMenu} closeMenu={closehamburgerMenu} />}
             </nav >
-            {showLoginForm && <LoginForm />}
+            {showLoginForm && <LoginForm closeForm={closeloginForm} />}
 
             <Menu
                 anchorEl={anchorEl}
@@ -209,15 +215,16 @@ const Navbar: React.FC = () => {
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-                <MenuItem onClick={handleClose}>
-                    {name}
+                <MenuItem className="space-x-2">
+                    <PersonIcon fontSize="small" />
+                    <span>{name}</span>
                 </MenuItem>
-                <MenuItem onClick={handleClose}>
-                    {email}
+                <MenuItem className="space-x-2">
+                    <EmailIcon fontSize="small" />
+                    <span>{email}</span>
                 </MenuItem>
                 <Divider />
-
-                <MenuItem onClick={handleClose}>
+                <MenuItem onClick={handleLogout}>
                     <ListItemIcon>
                         <Logout fontSize="small" />
                     </ListItemIcon>
