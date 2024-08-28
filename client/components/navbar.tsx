@@ -88,7 +88,7 @@ const Navbar: React.FC = () => {
                     duration: 225
                 };
 
-                const response = await fetch('http://localhost:8080/api/music', {
+                const response = await fetch('https://musicly-brown.vercel.app/api/music', {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
