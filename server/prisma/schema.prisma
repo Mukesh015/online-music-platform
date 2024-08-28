@@ -35,5 +35,5 @@ model Music {
 
   user User @relation(fields: [userId], references: [userId])
 
-  @@unique([userId, url]) // Composite unique constraint
+  @@unique([userId, url]) 
 }
