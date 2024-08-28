@@ -28,10 +28,7 @@ CREATE UNIQUE INDEX "User_userId_key" ON "User"("userId");
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Music_userId_key" ON "Music"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Music_url_key" ON "Music"("url");
+CREATE UNIQUE INDEX "Music_userId_url_key" ON "Music"("userId", "url");
 
 -- AddForeignKey
 ALTER TABLE "Music" ADD CONSTRAINT "Music_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("userId") ON DELETE RESTRICT ON UPDATE CASCADE;

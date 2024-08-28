@@ -8,6 +8,9 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { MiddlewareModule } from './middleware/middleware.module';
 
+import { SignupService } from './signup/signup.service';
+import { SignupModule } from './signup/signup.module';
+
 @Module({
   imports: [DatabaseModule, MyLoggerModule, MusicModule, ThrottlerModule.forRoot([{
     name: 'short',
@@ -18,12 +21,12 @@ import { MiddlewareModule } from './middleware/middleware.module';
     name: 'long',
     ttl: 60000,
     limit: 100
-  }]), MiddlewareModule,],
+  }]), MiddlewareModule, SignupModule,],
   controllers: [AppController],
   providers: [AppService, {
     provide: APP_GUARD,
     useClass: ThrottlerGuard,
 
-  }],
+  }, SignupService],
 })
 export class AppModule { }

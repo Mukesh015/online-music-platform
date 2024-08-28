@@ -1,7 +1,7 @@
 import { Module,MiddlewareConsumer,RequestMethod  } from '@nestjs/common';
 import { MusicService } from './music.service';
 import { MusicController } from './music.controller';
-import { DatabaseModule } from 'src/database/database.module';
+import { DatabaseModule } from '../database/database.module';
 import { MiddlewareService } from '../middleware/middleware.service'
 
 
@@ -15,6 +15,6 @@ export class MusicModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(MiddlewareService)
-      .forRoutes({ path: 'music', method: RequestMethod.PATCH });
+      .forRoutes({ path: 'music', method: RequestMethod.POST });
   }
 }
