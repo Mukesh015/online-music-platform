@@ -93,7 +93,7 @@ const Navbar: React.FC = () => {
                     mode: "no-cors",
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${idToken}`,
+                        'authorization': `Bearer ${idToken}`,
                     },
                     body: JSON.stringify(requestBody),
                 });
