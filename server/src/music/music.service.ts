@@ -11,11 +11,16 @@ export class MusicService {
 
     async upload(updateMusicDtos: Prisma.MusicCreateInput, userId: string) {
 
-        const userExists = await this.dbService.user.findUnique({
-            where: { userId },
-        });
+        try {
 
-        if (userExists) {
+            const userExists = await this.dbService.user.findUnique({
+                where: { userId },
+            });
+
+            if (!userExists) {
+                return { message: "User does not exist", statusCode: 404 };
+            }
+
 
             const musicExists = await this.dbService.music.findUnique({
                 where: {
@@ -26,23 +31,26 @@ export class MusicService {
                 },
             });
 
-            if (!musicExists) {
-
-                const newMusic = await this.dbService.music.create({
-                    data: {
-                        userId,
-                        url: updateMusicDtos.url,
-                        title: updateMusicDtos.title,
-
-                        duration: updateMusicDtos.duration,
-                    },
-                });
-                return newMusic;
-            } else {
-                throw new Error("Music with this URL already exists for this user");
+            if (musicExists) {
+                return { message: "Music with this URL already exists for this user", statusCode: 409 };
             }
-        } else {
-            throw new Error("User does not exist");
+
+
+            const newMusic = await this.dbService.music.create({
+                data: {
+                    userId,
+                    url: updateMusicDtos.url,
+                    title: updateMusicDtos.title,
+                    duration: updateMusicDtos.duration,
+                },
+            });
+
+            return { message: "Music uploaded successfully", statusCode: 201, newMusic: newMusic };
+
+        } catch (error) {
+
+            console.error("Error uploading music:", error);
+            return { message: "An error occurred while uploading music", statusCode: 500, error: error.message };
         }
     }
 
@@ -82,12 +90,12 @@ export class MusicService {
             const musicEntry = await this.dbService.music.findUnique({
                 where: { id: musicId },
             });
-    
+
             // Check if the music entry exists
             if (!musicEntry) {
                 return { message: "Music not found", statusCode: 404 };
             }
-    
+
             // Check if the user ID matches
             if (musicEntry.userId === userId) {
                 // Proceed with the deletion

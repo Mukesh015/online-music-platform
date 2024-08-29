@@ -11,6 +11,9 @@ import { MiddlewareModule } from './middleware/middleware.module';
 import { SignupService } from './signup/signup.service';
 import { SignupModule } from './signup/signup.module';
 
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+
 @Module({
   imports: [DatabaseModule, MyLoggerModule, MusicModule, ThrottlerModule.forRoot([{
     name: 'short',
@@ -21,7 +24,12 @@ import { SignupModule } from './signup/signup.module';
     name: 'long',
     ttl: 60000,
     limit: 100
-  }]), MiddlewareModule, SignupModule,],
+  }]), MiddlewareModule, SignupModule,
+  //   GraphQLModule.forRoot<ApolloDriverConfig>({
+  //     driver: ApolloDriver,
+  //     playground: false,
+  //   }),
+  ],
   controllers: [AppController],
   providers: [AppService, {
     provide: APP_GUARD,
