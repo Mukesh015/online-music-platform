@@ -10,11 +10,32 @@ import IconButton from '@mui/material/IconButton';
 import TextField from '@mui/material/TextField';
 import FileInput from '@/components/fileInput';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 const MusicPage: React.FC = () => {
 
     const [isOpenFileInput, setIsOpenFileInput] = useState<boolean>(false);
     const [showMobilemenu, setShowMobileMenu] = useState<boolean>(false);
+    const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
+    const [fileInputVisibleProps, setFileInputVisibleProps] = useState<string>("")
+
+    const handleToggleFileInputPopup = () => {
+        setIsOpenFileInput(!isOpenFileInput);
+        setFileInputVisibleProps("fileInput");
+    }
+
+    const handleOpenCreatePlaylistPopup = () => {
+        setIsOpenFileInput(!isOpenFileInput);
+        setFileInputVisibleProps("createPlaylist");
+    }
+
+    const toggleFavoriteSongs = () => {
+        setShowFavoriteSongs(!showFavoriteSongs);
+    }
+
+    const closeUploadPopup = () => {
+        setIsOpenFileInput(false);
+    }
 
     const handleToggleMobileMenu = () => {
         setShowMobileMenu(!showMobilemenu); // Corrected typo in showMobileMenu
@@ -36,7 +57,7 @@ const MusicPage: React.FC = () => {
             <div className="relative min-h-screen max-w-screen md:flex md:flex-row z-20 bg-slate-950 font-Montserrat">
                 <div className="pt-20 p-5 md:pt-28">
                     <div className="flex flex-col gap-7 md:w-[55vw] md:overflow-x-auto">
-                        <section className="hidden md:flex flex-row justify-between text-white text-xl items-center">
+                        <section id='dekstop-view' className="hidden md:flex flex-row justify-between text-white text-xl items-center">
                             <h1>Recent Songs</h1>
                             <section className="flex gap-10 flex-row items-center">
                                 <TextField className='w-60' color='secondary' id="standard-basic" label="Enter song name" variant="standard" />
@@ -46,36 +67,46 @@ const MusicPage: React.FC = () => {
                                     </IconButton>
                                 </Tooltip>
                                 <Tooltip title="upload songs">
-                                    <IconButton color="secondary" aria-label="upload">
+                                    <IconButton onClick={() => handleToggleFileInputPopup()} color="secondary" aria-label="upload">
                                         <CloudUploadIcon fontSize="medium" />
                                     </IconButton>
                                 </Tooltip>
                                 <Tooltip title="favorite songs">
-                                    <IconButton color="secondary" aria-label="favorite">
-                                        <FavoriteIcon fontSize="medium" />
-                                    </IconButton>
+                                    {showFavoriteSongs ? (
+                                        <IconButton onClick={toggleFavoriteSongs} color="secondary">
+                                            <FavoriteIcon fontSize="medium" />
+                                        </IconButton>
+                                    ) : (
+                                        <IconButton onClick={toggleFavoriteSongs} color="secondary">
+                                            <FavoriteBorderIcon color='secondary' fontSize="medium" />
+                                        </IconButton>
+                                    )}
                                 </Tooltip>
                                 <Tooltip title="create new playlist">
-                                    <IconButton color="secondary" aria-label="add">
+                                    <IconButton onClick={() => handleOpenCreatePlaylistPopup()} color="secondary" aria-label="add">
                                         <AddIcon fontSize="medium" />
                                     </IconButton>
                                 </Tooltip>
                             </section>
                         </section>
-                        <section className='md:hidden flex flex-row items-center justify-between'>
+                        <section id='mobile-view' className='md:hidden flex flex-row items-center justify-between'>
                             <h1 className='text-md text-white'>Recent Songs</h1>
                             {showMobilemenu &&
                                 <section className='items-center flex-row flex space-x-2'>
                                     <IconButton color="secondary" aria-label="search-icon">
                                         <SearchIcon fontSize="small" />
                                     </IconButton>
-                                    <IconButton color="secondary" aria-label="upload">
+                                    <IconButton onClick={() => handleToggleFileInputPopup()} color="secondary" aria-label="upload">
                                         <CloudUploadIcon fontSize="small" />
                                     </IconButton>
-                                    <IconButton color="secondary" aria-label="favorite">
-                                        <FavoriteIcon fontSize="small" />
+                                    <IconButton onClick={toggleFavoriteSongs} color="secondary" aria-label="favorite">
+                                        {showFavoriteSongs ? (
+                                            <FavoriteIcon fontSize="small" />
+                                        ) : (
+                                            <FavoriteBorderIcon fontSize="small" />
+                                        )}
                                     </IconButton>
-                                    <IconButton color="secondary" aria-label="add">
+                                    <IconButton onClick={() => handleOpenCreatePlaylistPopup()} color="secondary" aria-label="add">
                                         <AddIcon fontSize="small" />
                                     </IconButton>
                                 </section>
@@ -112,7 +143,7 @@ const MusicPage: React.FC = () => {
                     <WebMusicPlayer musicLink={"https://dj4x.in/upload_file/18/1810/Main%20Agar%20-%20Lofi%20Song%20(Slowed%20Reverb)%20Atif%20Aslam%20-%20Tubelight.mp3"} />
                 </div>
             </div>
-            <FileInput isOpen={isOpenFileInput} />
+            <FileInput isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
         </>
     );
 };
