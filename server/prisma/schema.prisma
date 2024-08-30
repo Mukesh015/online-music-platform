@@ -20,13 +20,14 @@ model User {
   userId String  @id @unique
   email  String  @unique
   name   String
-  music  Music[] // One-to-many relation with Music
+  music  Music[]
 }
 
 model Music {
   id        Int      @id @default(autoincrement())
   userId    String
   url       String
+  
   isFavorite Boolean @default(false)
   title     String
   duration  Int
@@ -35,5 +36,5 @@ model Music {
 
   user User @relation(fields: [userId], references: [userId])
 
-  @@unique([userId, url]) // Composite unique constraint
+  @@unique([userId, url]) 
 }

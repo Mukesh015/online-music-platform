@@ -88,11 +88,12 @@ const Navbar: React.FC = () => {
                     duration: 225
                 };
 
-                const response = await fetch('http://localhost:8080/api/music', {
-                    method: 'PATCH',
+                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/music`, {
+                    method: 'POST',
+                    mode: "no-cors",
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${idToken}`,
+                        'authorization': `Bearer ${idToken}`,
                     },
                     body: JSON.stringify(requestBody),
                 });
