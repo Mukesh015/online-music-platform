@@ -72,15 +72,13 @@ const Navbar: React.FC = () => {
         } else {
             setisLoggedin(false)
         }
-    }, [user])
+    }, [user]);
 
     useEffect(() => {
         const sendPatchRequest = async () => {
             try {
                 // Get the ID token
                 const idToken = await auth.currentUser?.getIdToken();
-                console.log("Idtoken", idToken);
-
                 // Define the request payload
                 const requestBody = {
                     url: "https://www.youtube.com/watch?v=UCkSfavBpTY&t=6s",
@@ -100,7 +98,6 @@ const Navbar: React.FC = () => {
 
                 if (response.ok) {
                     const result = await response.json();
-                    console.log('Response:', result);
                 } else {
                     console.error('Failed to send PATCH request:', response.statusText);
                 }

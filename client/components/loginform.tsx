@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import { useSignInWithGoogle } from "react-firebase-hooks/auth";
 import { auth } from "@/config/firebase/config";
+import Image from "next/image";
 
 interface Props {
     closeForm: () => void;
@@ -13,18 +14,41 @@ const LoginForm: React.FC<Props> = ({ closeForm }) => {
     const [signInWithGoogle] = useSignInWithGoogle(auth);
     const [loadingGoogle, setLoadingGoogle] = useState<boolean>(false);
 
-    const handleGoogleLogin = async () => {
+    const handleGoogleLogin = useCallback(async () => {
         setLoadingGoogle(true);
         const res = await signInWithGoogle();
         setLoadingGoogle(false);
         closeForm();
-    }
+        if (res?.user) {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: res.user.uid,
+                        email: res.user.email,
+                        name: res.user.displayName
+                    }),
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    console.error("Failed to sign up user");
+                }
+            } catch (e) {
+                console.error("Error signing up user:", e);
+            }
+        }
+    }, [closeForm, signInWithGoogle]);
 
     return (
         <>
             <div className="fixed font-Montserrat top-20 right-10 flex flex-col gap-3 z-50 bg-black px-5 py-5 rounded-lg">
                 <header className="text-neutral-500 flex flex-row items-center gap-2 justify-between">
-                    <img className="h-6 w-6" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="" />
+                    <Image height={20} width={20} src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="" />
                     <span>Sign in to Musically with google.com</span>
                     <IconButton onClick={() => closeForm()} color="primary" aria-label="close">
                         <CloseIcon fontSize="small" />

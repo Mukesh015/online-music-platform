@@ -11,6 +11,7 @@ import TextField from '@mui/material/TextField';
 import FileInput from '@/components/fileInput';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import Image from 'next/image';
 
 const MusicPage: React.FC = () => {
 
@@ -116,12 +117,16 @@ const MusicPage: React.FC = () => {
                             </IconButton>
                         </section>
                         <section className="flex flex-col w-full md:w-auto ">
-                            <div className="flex flex-row gap-3 w-full hover:bg-slate-800 md:px-10 md:py-3 cursor-pointer rounded-sm">
-                                <img
-                                    className="w-12 h-12 rounded-full"
-                                    src="https://imgv3.fotor.com/images/blog-richtext-image/born-to-die-music-album-cover.png"
-                                    alt="album cover"
-                                />
+                            <div className="flex flex-row gap-3 w-full hover:bg-slate-800 md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
+                                <div>
+                                    <Image
+                                        className='rounded-full'
+                                        height={50}
+                                        width={50}
+                                        src="https://imgv3.fotor.com/images/blog-richtext-image/born-to-die-music-album-cover.png"
+                                        alt="album cover"
+                                    />
+                                </div>
                                 <div className="text-slate-500 w-full overflow-hidden">
                                     <p className="whitespace-nowrap">
                                         Bol do na zara slowrd+reverbed lofi

@@ -40,31 +40,29 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                             </section>
                         </div>
                     ) : (
-                        <div className="font-Montserrat rounded-md fixed left-1/2 top-60 z-50 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center my-20 bg-white w-[85vw] sm:rounded-lg sm:shadow-xl
-                        md:left-[26rem] md:top-5 md:translate-x-0 md:translate-y-0 md:w-[45vw]">
+                        <div className="font-Montserrat rounded-md fixed left-1/2 top-72 z-50 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center my-20 bg-white w-[85vw] sm:rounded-lg sm:shadow-xl md:left-[26rem] md:top-5 md:translate-x-0 md:translate-y-0 md:w-[45vw]">
                             <div className="mt-10 mb-10 text-center">
                                 <h2 className="text-2xl font-semibold mb-2">Create new playlist</h2>
-                                <p className="text-xs text-gray-500">File should be of format .mp4, .avi, .mov or .mkv</p>
+                                <p className="text-xs text-gray-500">Folder name must be unique</p>
                             </div>
                             <section className="flex flex-row gap-10">
                                 <TextField id="outlined-basic" label="Album name" variant="outlined" />
                             </section>
-                            <section className="max-w-[75vw] mt-5 flex flex-col h-[40vh]">
+                            <section className="max-w-[75vw] overflow-y-auto mt-5 flex flex-col bg-gray-100 md:w-[40vw] rounded-md h-[40vh] p-1.5">
                                 <h3 className="text-red-500 text-sm mb-3">wanna add some music</h3>
-                                <div className="flex flex-row gap-2 items-center">
+                                <div className="flex flex-row gap-2 items-center justify-between">
                                     <p className="max-w-[60vw] overflow-hidden whitespace-nowrap ">Sanam teri kasam slowed + reverbed</p>
                                     <IconButton color="primary" aria-label="add">
                                         <AddIcon fontSize="small" />
                                     </IconButton>
                                 </div>
                             </section>
-                            <section className="flex flex-row justify-end gap-5 pb-10 w-full pr-5">
+                            <section className="flex flex-row justify-end gap-5 pt-5 pb-10 w-full pr-5">
                                 <Button onClick={onClose} variant="text">Close</Button>
                                 <Button variant="contained">CREATE</Button>
                             </section>
                         </div>
                     )}
-
                 </>
             }
         </>
