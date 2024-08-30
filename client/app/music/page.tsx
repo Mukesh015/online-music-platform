@@ -61,7 +61,6 @@ const MusicPage: React.FC = () => {
                         <section id='dekstop-view' className="hidden md:flex flex-row justify-between text-white text-xl items-center">
                             <h1>Recent Songs</h1>
                             <section className="flex gap-10 flex-row items-center">
-                                <TextField className='w-60' color='secondary' id="standard-basic" label="Enter song name" variant="standard" />
                                 <Tooltip title="search">
                                     <IconButton color="secondary" aria-label="search-icon">
                                         <SearchIcon fontSize="medium" />
@@ -145,7 +144,7 @@ const MusicPage: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <WebMusicPlayer musicLink={"https://dj4x.in/upload_file/18/1810/Main%20Agar%20-%20Lofi%20Song%20(Slowed%20Reverb)%20Atif%20Aslam%20-%20Tubelight.mp3"} />
+                    <WebMusicPlayer musicLink={"https://firebasestorage.googleapis.com/v0/b/musically-76a5d.appspot.com/o/Musics%2Fsanam.mp3?alt=media&token=7b18d86a-cea3-4828-831d-6b49b3574104"} />
                 </div>
             </div>
             <FileInput isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />

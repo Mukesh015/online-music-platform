@@ -1,6 +1,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getStorage, ref, uploadBytes, getDownloadURL, UploadResult } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,7 +13,19 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
+const storage = getStorage(app, process.env.NEXT_PUBLIC_FIREBASE_MUSIC_UPLOAD_URI);
 
+const uploadMusic = async (music: File): Promise<UploadResult> => {
+  const musicRef = ref(storage, `Musics/${music.name}_${Date.now()}`);
+  const uploadUrl = await uploadBytes(musicRef, music);
+  return uploadUrl;
+};
+
+const getDownloadLink = async (path: string): Promise<string> => {
+  return await getDownloadURL(ref(storage, path));
+};
+
+export { app, auth, uploadMusic, getDownloadLink }

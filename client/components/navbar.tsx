@@ -75,41 +75,6 @@ const Navbar: React.FC = () => {
     }, [user]);
 
     useEffect(() => {
-        const sendPatchRequest = async () => {
-            try {
-                // Get the ID token
-                const idToken = await auth.currentUser?.getIdToken();
-                // Define the request payload
-                const requestBody = {
-                    url: "https://www.youtube.com/watch?v=UCkSfavBpTY&t=6s",
-                    title: "Sanam Teri Kasam (Lofi)",
-                    duration: 225
-                };
-
-                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/music`, {
-                    method: 'POST',
-                    mode: "no-cors",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'authorization': `Bearer ${idToken}`,
-                    },
-                    body: JSON.stringify(requestBody),
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                } else {
-                    console.error('Failed to send PATCH request:', response.statusText);
-                }
-            } catch (err) {
-                console.error("Error during request:", err);
-            }
-        };
-
-        sendPatchRequest();
-    }, []);
-
-    useEffect(() => {
         checkLogin();
     }, [checkLogin])
 

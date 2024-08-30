@@ -1,8 +1,10 @@
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
+import { uploadMusic, getDownloadLink, auth } from "@/config/firebase/config";
+import { duration } from "@mui/material";
 
 interface Props {
     isOpen: boolean;
@@ -11,6 +13,72 @@ interface Props {
 }
 
 const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
+
+    const [uploadFile, setUploadFile] = useState<File | null>(null);
+    const [musicLink, setMusicLink] = useState<string | null>(null);
+
+    const handleClosePopup = () => {
+        onClose();
+        clearFileCache();
+    }
+
+    const handleSetUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setUploadFile(e.target.files[0]);
+        }
+    };
+
+    const handleSentMusicDetails = useCallback(async () => {
+        const idToken = await auth.currentUser?.getIdToken();
+        if (musicLink && uploadFile) {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'authorization': `Bearer ${idToken}`,
+                    },
+                    body: JSON.stringify({
+                        url: musicLink,
+                        title: uploadFile?.name,
+                        duration: uploadFile?.size
+
+                    }),
+                });
+                if (response.ok) {
+                    console.log("Music details syncing successfully");
+                    clearFileCache();
+                } else {
+                    console.error("Failed to sync music details, please try again");
+                    clearFileCache();
+                }
+            } catch (e) {
+                console.error("failed to send details, server error", e)
+            }
+        }
+    }, [musicLink, uploadFile]);
+
+    const handleMusicUpload = useCallback(async () => {
+        try {
+            if (uploadFile) {
+                const result = await uploadMusic(uploadFile);
+                const musicPath = result.ref.fullPath;
+                const musicLink = await getDownloadLink(musicPath);
+                console.log("Music uploaded successfully", musicLink);
+                setMusicLink(musicLink);
+                // handleSentMusicDetails();
+            }
+        } catch (e) {
+            console.error("File uploading failed", e);
+        }
+    }, [uploadFile]);
+
+
+    const clearFileCache = (): void => {
+        setUploadFile(null);
+        setMusicLink(null);
+    };
+
     return (
         <>
             {isOpen &&
@@ -26,17 +94,18 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                                 <p className="text-xs text-gray-500">File should be of format .mp4, .avi, .mov or .mkv</p>
                             </div>
                             <form action="#" className="relative w-4/5 h-32 max-w-xs mb-10 bg-gray-100 rounded-lg shadow-inner">
-                                <input type="file" id="file-upload" className="hidden" />
+                                <input onChange={handleSetUploadFile} type="file" id="file-upload" className="hidden" />
                                 <label htmlFor="file-upload" className="z-20 flex flex-col-reverse items-center justify-center w-full h-full cursor-pointer">
                                     <p className="z-10 text-xs font-light text-center text-gray-500">Drag & Drop your files here</p>
                                     <svg className="z-10 w-8 h-8 text-indigo-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
                                     </svg>
                                 </label>
+                                {uploadFile && <span className="pt-2">{`${uploadFile.name}`}</span>}
                             </form>
                             <section className="flex flex-row justify-end gap-5 pb-10 w-full pr-5">
-                                <Button onClick={onClose} variant="text">Close</Button>
-                                <Button variant="contained">Upload</Button>
+                                <Button onClick={() => handleClosePopup()} variant="text">Close</Button>
+                                <Button onClick={() => handleMusicUpload()} variant="contained">Upload</Button>
                             </section>
                         </div>
                     ) : (
