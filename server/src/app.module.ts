@@ -10,12 +10,13 @@ import { MusicModule } from './music/music.module';
 import { SignupModule } from './signup/signup.module';
 import { MyLoggerModule } from './my-logger/my-logger.module';
 import { MiddlewareModule } from './middleware/middleware.module';
-
+const schema = process.env.NODE_ENV === 'production' ? require('schema.gql') :false;
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'schema.gql'), // Adjust the path if needed
+      autoSchemaFile: process.env.NODE_ENV === 'production'?false:join(process.cwd(), 'schema.gql') ,
+      schema: schema,
       playground: process.env.NODE_ENV !== 'production',
       context: ({ req }) => ({ req }),
     }),
@@ -32,3 +33,5 @@ import { MiddlewareModule } from './middleware/middleware.module';
   ],
 })
 export class AppModule {}
+
+
