@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.11.5",
+    "@apollo/experimental-nextjs-app-support": "^0.11.2",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^5.16.7",
@@ -17,6 +19,7 @@
     "firebase": "^10.13.0",
     "flubber": "^0.4.2",
     "framer-motion": "^11.3.30",
+    "graphql": "^16.9.0",
     "jsmediatags-web": "^0.0.4",
     "lottie-react": "^2.4.0",
     "next": "14.2.6",
