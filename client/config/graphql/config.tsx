@@ -1,31 +1,51 @@
-"use client"
+"use client";
+import React, { ReactNode, useEffect, useState } from "react";
+import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink, ApolloLink, from } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import { auth } from "../firebase/config"; // Assuming you're using Firebase for authentication
 
-import React, { createContext, useContext, ReactNode } from 'react';
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+export const Provider = ({ children }: { children: ReactNode }) => {
+  const [client, setClient] = useState<ApolloClient<any> | null>(null);
 
-// Step 2: Create ApolloClient
-const createApolloClient = () => {
-  return new ApolloClient({
-    uri: `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/graphql`,
-    cache: new InMemoryCache(),
-  });
-};
+  useEffect(() => {
+    const setupClient = async () => {
+      // Function to get the token from Firebase
+      const getToken = async (): Promise<string> => {
+        const idToken = await auth.currentUser?.getIdToken();
+        return idToken ?? "";
+      };
 
-const client = createApolloClient();
+      // Auth Link: Adds the token to the request headers
+      const authLink = setContext(async (_, { headers }) => {
+        const token = await getToken();
+        return {
+          headers: {
+            ...headers,
+            authorization: token ? `Bearer ${token}` : "",
+          },
+        };
+      });
 
-// Step 3: Create a context
-const ApolloContext = createContext<ApolloClient<any> | null>(null);
+      // HttpLink: Connects to your GraphQL endpoint
+      const httpLink = new HttpLink({
+        uri: "http://localhost:8080/graphql",
+      });
 
-// Step 4: Create a provider component
-export const ApolloProvider = ({ children }: { children: ReactNode }) => {
-  return <ApolloContext.Provider value={client}>{children}</ApolloContext.Provider>;
-};
+      // Create Apollo Client with auth link
+      const apolloClient = new ApolloClient({
+        link: from([authLink, httpLink]),
+        cache: new InMemoryCache(),
+      });
 
-// Step 5: Create a hook to use the Apollo Client
-export const useApolloClient = () => {
-  const context = useContext(ApolloContext);
-  if (!context) {
-    throw new Error("useApolloClient must be used within an ApolloProvider");
-  }
-  return context;
+      // Set the client in the state
+      setClient(apolloClient);
+    };
+
+    setupClient();
+  }, []);
+
+  // Render the ApolloProvider only when the client is ready
+  if (!client) return <div>Loading...</div>;
+
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
 };
