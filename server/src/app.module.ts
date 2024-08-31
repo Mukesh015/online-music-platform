@@ -18,7 +18,7 @@ import { MiddlewareService } from './middleware/middleware.service';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: true,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      autoSchemaFile: join(process.cwd(), './src/schema.gql'),
       context: ({ req }) => ({ req }),
     }),
     DatabaseModule,
