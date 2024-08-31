@@ -14,7 +14,17 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import Image from 'next/image';
 
 const TEST_QUERY = gql`
-    {index}
+    
+    {
+        musics{
+            id
+        }
+        index
+        getMusicByUserId{
+        id
+        }
+    }
+    
 `;
 
 const MusicPage: React.FC = () => {

@@ -11,15 +11,15 @@ export class MusicService {
     return this.dbService.music.findUnique({ where: { id } });
   }
 
-  async findAll(): Promise<Music[]> {
-    return this.dbService.music.findMany();
-  }
-
-  async create(createMusicInput: CreateMusicInput, userId: string): Promise<Music> {
-    return this.dbService.music.create({
-      data: {
-        ...createMusicInput,
-        userId,
+  async findAll(): Promise<Partial<Music>[]> {
+    return this.dbService.music.findMany({
+      select: {
+        id: true,
+        musicUrl: true,
+        thumbnailUrl: true,
+        musicTitle: true,
+        musicArtist: true,
+        createdAt: true,
       },
     });
   }
@@ -48,11 +48,14 @@ export class MusicService {
         return { message: "Music with this URL already exists for this user", statusCode: 409 };
       }
 
-      if (!updateMusicDtos ||
-        updateMusicDtos.musicUrl ||
-        updateMusicDtos.musicTitle ||
-        updateMusicDtos.musicArtist ||
-        updateMusicDtos.thumbnailUrl) {
+
+      if (
+        !updateMusicDtos ||
+        !updateMusicDtos.musicUrl ||
+        !updateMusicDtos.musicTitle ||
+        !updateMusicDtos.musicArtist ||
+        !updateMusicDtos.thumbnailUrl
+      ) {
         return { message: "Missing required fields", statusCode: 400 };
       }
 
@@ -62,7 +65,7 @@ export class MusicService {
           musicUrl: updateMusicDtos.musicUrl,
           musicTitle: updateMusicDtos.musicTitle,
           musicArtist: updateMusicDtos.musicArtist,
-          thumbnailUrl: updateMusicDtos.thumbnailUrl
+          thumbnailUrl: updateMusicDtos.thumbnailUrl,
         },
       });
 
@@ -71,6 +74,15 @@ export class MusicService {
     } catch (error) {
 
       console.error("Error uploading music:", error);
+
+
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          return { message: "Music with this URL already exists", statusCode: 409 };
+        }
+
+      }
+
       return { message: "An error occurred while uploading music", statusCode: 500, error: error.message };
     }
   }
@@ -122,10 +134,10 @@ export class MusicService {
         await this.dbService.music.delete({
           where: { id: musicId },
         });
-        return { message: "Music removed successfully", statusCode: 200 };
+        return { message: "Music removed successfully", statusCode: 200, musicDetails: musicEntry };
       } else {
 
-        return { message: "You cannot delete this music", statusCode: 403 };
+        return { message: "You cannot delete this music", statusCode: 403, musicDetails: musicEntry };
       }
     } catch (error) {
 
@@ -133,6 +145,20 @@ export class MusicService {
       return { message: "An error occurred while removing music", statusCode: 500, error: error.message };
     }
 
+  }
+
+  async findByUserId(userId: string): Promise<Partial<Music>[]> {
+    return this.dbService.music.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        musicUrl: true,
+        thumbnailUrl: true,
+        musicTitle: true,
+        musicArtist: true,
+        createdAt: true,
+      },
+    });
   }
 
 }

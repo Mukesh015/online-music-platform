@@ -4,10 +4,11 @@ import { MusicResolver } from './music.resolver';
 import { DatabaseModule } from '../database/database.module';
 import { MusicController } from './music.controller';
 import { MiddlewareService } from '../middleware/middleware.service';
+import {AuthGuard} from '../authguard/authguard.service'
 
 @Module({
   imports: [DatabaseModule],
-  providers: [MusicResolver, MusicService],
+  providers: [MusicResolver, MusicService, AuthGuard],
   controllers: [MusicController],
 
 })
@@ -18,7 +19,8 @@ export class MusicModule {
       .forRoutes(
         { path: 'music', method: RequestMethod.POST },
         { path: 'music/:id', method: RequestMethod.PATCH },
-        { path: 'music/:id', method: RequestMethod.DELETE }
+        { path: 'music/:id', method: RequestMethod.DELETE },
+        
       );
   }
 }

@@ -7,8 +7,8 @@ type Music {
   musicUrl: String!
   musicTitle: String!
   thumbnailUrl: String!
-  musicArtist: Int!
-  updatedAt: DateTime!
+  musicArtist: String!
+  createdAt: DateTime!
 }
 
 """
@@ -24,19 +24,11 @@ type SignupResponse {
 type Query {
   index: String!
   musics: [Music!]!
+  getMusicByUserId: [Music!]!
 }
 
 type Mutation {
-  createMusic(createMusicInput: CreateMusicInput!): Music!
   create(createSignupInput: CreateSignupInput!): SignupResponse!
-}
-
-input CreateMusicInput {
-  musicUrl: String!
-  musicTitle: String!
-  thumbnailUrl: String!
-  musicArtist: Int!
-  isFavorite: Boolean
 }
 
 input CreateSignupInput {
