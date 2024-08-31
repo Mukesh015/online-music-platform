@@ -15,7 +15,7 @@ import { MiddlewareModule } from './middleware/middleware.module';
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      playground: true,
+      playground: process.env.NODE_ENV !== 'production', // Disable Playground in production
       autoSchemaFile: process.env.NODE_ENV === 'production' ? false : join(process.cwd(), 'schema.gql'),
       context: ({ req }) => ({ req }),
     }),
