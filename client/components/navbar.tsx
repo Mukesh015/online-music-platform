@@ -85,12 +85,13 @@ const Navbar: React.FC = () => {
                 const requestBody = {
                     url: "https://www.youtube.com/watch?v=UCkSfavBpTY&t=6s",
                     title: "Sanam Teri Kasam (Lofi)",
-                    duration: 225
+                    duration: 225,
+                    thumbnail:"http://localhost:8080/graphql"
                 };
 
                 const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/music`, {
                     method: 'POST',
-                    mode: "no-cors",
+                    // mode: "no-cors",
                     headers: {
                         'Content-Type': 'application/json',
                         'authorization': `Bearer ${idToken}`,

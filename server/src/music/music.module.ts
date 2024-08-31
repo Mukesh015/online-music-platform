@@ -1,13 +1,15 @@
-import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { MusicService } from './music.service';
-import { MusicController } from './music.controller';
+import { MusicResolver } from './music.resolver';
 import { DatabaseModule } from '../database/database.module';
+import { MusicController } from './music.controller';
 import { MiddlewareService } from '../middleware/middleware.service';
 
 @Module({
   imports: [DatabaseModule],
-  providers: [MusicService],
+  providers: [MusicResolver, MusicService],
   controllers: [MusicController],
+
 })
 export class MusicModule {
   configure(consumer: MiddlewareConsumer) {

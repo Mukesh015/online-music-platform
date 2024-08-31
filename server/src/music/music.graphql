@@ -1,0 +1,24 @@
+
+
+type Music {
+  id: Int!
+  userId: String!
+  url: String!
+  title: String!
+  isFavorite:Boolean!
+  duration:Int!
+  createdAt:Date!
+  updatedAt: Date!
+}
+
+input CreateMusicInput {
+  url: String!
+  title: String!
+  duration: Int!
+  isFavorite: Boolean
+}
+
+
+type Mutation {
+  createMusic(createMusicInput: CreateMusicInput): Music!
+}

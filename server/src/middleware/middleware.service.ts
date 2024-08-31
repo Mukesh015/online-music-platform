@@ -1,9 +1,10 @@
-import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NestMiddleware, HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { firebaseAdmin } from '../firebase-admin.validation';
-
 @Injectable()
 export class MiddlewareService implements NestMiddleware {
+
+
   async use(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
 
@@ -21,4 +22,5 @@ export class MiddlewareService implements NestMiddleware {
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
+
 }
