@@ -4,9 +4,7 @@ import React, { useCallback, useState } from "react";
 import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
 import { uploadMusic, getDownloadLink, auth } from "@/config/firebase/config";
-import { decodeMetaData } from "@/lib/musicMetadata";
-import { converBase64ToImage } from 'convert-base64-to-image'
-
+import { decodeMetaData, decodeMetaDataToBlob } from "@/lib/musicMetadata";
 interface Props {
     isOpen: boolean;
     visible: string;
@@ -16,7 +14,6 @@ interface Props {
 const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
 
     const [uploadFile, setUploadFile] = useState<File | null>(null);
-    const [base64Url, setBase64Url] = useState<string | null>(null);
 
     const handleClosePopup = () => {
         onClose();
@@ -26,17 +23,14 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
     const handleSetUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setUploadFile(e.target.files[0]);
-            const url = await decodeMetaData(e.target.files[0]);
-            setBase64Url(url);
-            // const pathToSave = "../../public/image.png"
-            // const path = converBase64ToImage(url, pathToSave);
-            // console.log(path);
         }
     };
 
     const handleSentMusicDetails = useCallback(async (link: string) => {
         const idToken = await auth.currentUser?.getIdToken();
         if (uploadFile) {
+            const data = await decodeMetaData(uploadFile);
+            const blob = await decodeMetaDataToBlob(uploadFile);
             try {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
                     method: 'POST',
@@ -45,9 +39,10 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                         'authorization': `Bearer ${idToken}`,
                     },
                     body: JSON.stringify({
-                        url: link,
-                        title: uploadFile?.name,
-                        duration: uploadFile?.size
+                        musicUrl: link,
+                        title: data?.title,
+                        imageUrl: blob,
+                        artist: data?.artist
                     }),
                 });
                 if (response.ok) {
@@ -67,7 +62,7 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
 
     const handleMusicUpload = useCallback(async () => {
         try {
-            if (uploadFile && base64Url) {
+            if (uploadFile) {
                 const result = await uploadMusic(uploadFile);
                 const musicPath = result.ref.fullPath;
                 const musicLink = await getDownloadLink(musicPath);
@@ -77,7 +72,7 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
         } catch (e) {
             console.error("File uploading failed", e);
         }
-    }, [base64Url, handleSentMusicDetails, uploadFile]);
+    }, [handleSentMusicDetails, uploadFile]);
 
     return (
         <>

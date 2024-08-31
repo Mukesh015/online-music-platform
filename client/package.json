@@ -14,7 +14,6 @@
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
     "clsx": "^2.1.1",
-    "convert-base64-to-image": "^0.0.16",
     "firebase": "^10.13.0",
     "flubber": "^0.4.2",
     "framer-motion": "^11.3.30",

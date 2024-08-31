@@ -13,6 +13,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "imgv3.fotor.com",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
       }
     ],
   },

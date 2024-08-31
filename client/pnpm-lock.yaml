@@ -23,9 +23,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      convert-base64-to-image:
-        specifier: ^0.0.16
-        version: 0.0.16
       firebase:
         specifier: ^10.13.0
         version: 10.13.0
@@ -893,9 +890,6 @@ packages:
 
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
-
-  convert-base64-to-image@0.0.16:
-    resolution: {integrity: sha512-k9Z/nh6rUqx50hace2hv4ohS9/qR4Y7Pocatw35OZUUlxHE5Nl+rCPWOQq+OjU8eAsoXYoTfotfL8da74AuzWQ==}
 
   convert-source-map@1.9.0:
     resolution: {integrity: sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==}
@@ -3273,8 +3267,6 @@ snapshots:
   commander@4.1.1: {}
 
   concat-map@0.0.1: {}
-
-  convert-base64-to-image@0.0.16: {}
 
   convert-source-map@1.9.0: {}
 
