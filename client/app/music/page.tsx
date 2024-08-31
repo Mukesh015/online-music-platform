@@ -1,17 +1,31 @@
 "use client"
 import Tooltip from '@mui/material/Tooltip';
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import WebMusicPlayer from "@/components/webmusicplayer";
 import IconButton from '@mui/material/IconButton';
-import TextField from '@mui/material/TextField';
+import { gql, useQuery } from '@apollo/client';
 import FileInput from '@/components/fileInput';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import Image from 'next/image';
+
+const TEST_QUERY = gql`
+    
+    {
+        musics{
+            id
+        }
+        index
+        getMusicByUserId{
+        id
+        }
+    }
+    
+`;
 
 const MusicPage: React.FC = () => {
 
@@ -52,6 +66,15 @@ const MusicPage: React.FC = () => {
             menu.style.transition = "transform 0.3s ease"; // Smooth transition for rotation
         }
     };
+
+    const { loading, error, data, refetch } = useQuery(TEST_QUERY);
+
+    useEffect(() => {
+        console.log(data);
+        if (error) {
+            console.error('Error fetching data', error);
+        }
+    }, [data, error]);
 
     return (
         <>

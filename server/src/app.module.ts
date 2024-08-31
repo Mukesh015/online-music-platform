@@ -10,6 +10,7 @@ import { MusicModule } from './music/music.module';
 import { SignupModule } from './signup/signup.module';
 import { MyLoggerModule } from './my-logger/my-logger.module';
 import { MiddlewareModule } from './middleware/middleware.module';
+import { AuthguardModule } from './authguard/authguard.module';
 
 // Determine schema file path and load schema if in production
 const schemaFilePath = process.env.NODE_ENV === 'production'
@@ -34,6 +35,7 @@ const schema = schemaFilePath ? makeExecutableSchema({
     SignupModule,
     MyLoggerModule,
     MiddlewareModule,
+    AuthguardModule,
   ],
   providers: [
     AppResolver,

@@ -2,13 +2,15 @@
 
 type Music {
   id: Int!
-  userId: String!
-  url: String!
+  
+  musicUrl: String!
   title: String!
-  isFavorite:Boolean!
-  duration:Int!
+  musicTitle:String!
+  thumbnailUrl: String!
+  musicArtist: String!
+
   createdAt:Date!
-  updatedAt: Date!
+
 }
 
 input CreateMusicInput {
@@ -21,4 +23,8 @@ input CreateMusicInput {
 
 type Mutation {
   createMusic(createMusicInput: CreateMusicInput): Music!
+}
+type Query {
+  musics: [Music!]!
+  getMusicByUserId: [Music!]!
 }
