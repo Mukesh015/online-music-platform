@@ -1,16 +1,12 @@
 import * as admin from 'firebase-admin';
-
-const firebaseKeyBase64 = process.env.FIREBASE_PRIVATE_KEY;
-if (!firebaseKeyBase64) {
-  throw new Error('Firebase private key is not set in environment variables');
-}
+import * as path from 'path';
 
 
-const firebaseKeyJson = Buffer.from(firebaseKeyBase64, 'base64').toString('utf-8');
-const serviceAccount = JSON.parse(firebaseKeyJson);
+const serviceAccountPath = path.resolve(__dirname, '../firebase-musicly.json');
+
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(serviceAccountPath),
 });
 
 export const firebaseAdmin = admin;
