@@ -23,6 +23,8 @@ const MusicPage: React.FC = () => {
     const [showMobilemenu, setShowMobileMenu] = useState<boolean>(false);
     const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
     const [fileInputVisibleProps, setFileInputVisibleProps] = useState<string>("")
+    const { loading, error, data, refetch } = useQuery(TEST_QUERY);
+
 
     const handleToggleFileInputPopup = () => {
         setIsOpenFileInput(!isOpenFileInput);
@@ -56,8 +58,6 @@ const MusicPage: React.FC = () => {
             menu.style.transition = "transform 0.3s ease"; // Smooth transition for rotation
         }
     };
-
-    const { loading, error, data, refetch } = useQuery(TEST_QUERY);
 
     useEffect(() => {
         console.log(data);

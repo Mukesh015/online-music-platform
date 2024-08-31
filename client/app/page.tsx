@@ -9,6 +9,7 @@ import musicAnimation from "@/lottie/Animation - 1724250266064.json"
 import Link from "next/link";
 
 export default function Home() {
+
   return (
     <>
       <div className="pt-32 md:pt-10 h-screen overflow-hidden md:pl-14 md:pr-10 md:space-x-16 font-Montserrat relative w-full bg-slate-900 flex-col flex md:flex-row items-center">

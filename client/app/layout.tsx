@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
 import { Provider } from "@/config/graphql/config";
+import { AuthTokenProvider } from "@/providers/authTokenProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,10 +20,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Provider >
-          <Navbar />
-          {children}
-        </Provider>
+        <AuthTokenProvider>
+          <Provider >
+            <Navbar />
+            {children}
+          </Provider>
+        </AuthTokenProvider>
       </body>
     </html>
   );
