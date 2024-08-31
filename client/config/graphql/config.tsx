@@ -22,7 +22,7 @@ export const Provider = ({ children }: { children: ReactNode }) => {
       });
 
       const httpLink = new HttpLink({
-        uri: `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}`,
+        uri: `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/graphql`,
       });
 
       const apolloClient = new ApolloClient({
