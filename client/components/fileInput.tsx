@@ -4,7 +4,8 @@ import React, { useCallback, useState } from "react";
 import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
 import { uploadMusic, getDownloadLink, auth } from "@/config/firebase/config";
-import { duration } from "@mui/material";
+import { decodeMetaData } from "@/lib/musicMetadata";
+import { converBase64ToImage } from 'convert-base64-to-image'
 
 interface Props {
     isOpen: boolean;
@@ -15,22 +16,27 @@ interface Props {
 const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
 
     const [uploadFile, setUploadFile] = useState<File | null>(null);
-    const [musicLink, setMusicLink] = useState<string | null>(null);
+    const [base64Url, setBase64Url] = useState<string | null>(null);
 
     const handleClosePopup = () => {
         onClose();
-        clearFileCache();
+        setUploadFile(null);
     }
 
-    const handleSetUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSetUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setUploadFile(e.target.files[0]);
+            const url = await decodeMetaData(e.target.files[0]);
+            setBase64Url(url);
+            // const pathToSave = "../../public/image.png"
+            // const path = converBase64ToImage(url, pathToSave);
+            // console.log(path);
         }
     };
 
-    const handleSentMusicDetails = useCallback(async () => {
+    const handleSentMusicDetails = useCallback(async (link: string) => {
         const idToken = await auth.currentUser?.getIdToken();
-        if (musicLink && uploadFile) {
+        if (uploadFile) {
             try {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
                     method: 'POST',
@@ -39,45 +45,39 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                         'authorization': `Bearer ${idToken}`,
                     },
                     body: JSON.stringify({
-                        url: musicLink,
+                        url: link,
                         title: uploadFile?.name,
                         duration: uploadFile?.size
-
                     }),
                 });
                 if (response.ok) {
                     console.log("Music details syncing successfully");
-                    clearFileCache();
+                    setUploadFile(null);
+
                 } else {
                     console.error("Failed to sync music details, please try again");
-                    clearFileCache();
+                    setUploadFile(null);
+
                 }
             } catch (e) {
                 console.error("failed to send details, server error", e)
             }
         }
-    }, [musicLink, uploadFile]);
+    }, [uploadFile]);
 
     const handleMusicUpload = useCallback(async () => {
         try {
-            if (uploadFile) {
+            if (uploadFile && base64Url) {
                 const result = await uploadMusic(uploadFile);
                 const musicPath = result.ref.fullPath;
                 const musicLink = await getDownloadLink(musicPath);
                 console.log("Music uploaded successfully", musicLink);
-                setMusicLink(musicLink);
-                // handleSentMusicDetails();
+                handleSentMusicDetails(musicLink);
             }
         } catch (e) {
             console.error("File uploading failed", e);
         }
-    }, [uploadFile]);
-
-
-    const clearFileCache = (): void => {
-        setUploadFile(null);
-        setMusicLink(null);
-    };
+    }, [base64Url, handleSentMusicDetails, uploadFile]);
 
     return (
         <>
