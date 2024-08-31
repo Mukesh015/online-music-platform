@@ -9,7 +9,7 @@ export class AuthGuard implements CanActivate {
     const { req } = ctx.getContext();
 
     const authHeader = req.headers.authorization;
-    console.log('Authorization Header:', authHeader);  // Debugging line
+    // console.log('Authorization Header:', authHeader);  // Debugging line
 
     if (!authHeader) {
      
@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
-      console.log('Decoded Token:', decodedToken);  // Debugging line
+      // console.log('Decoded Token:', decodedToken);  // Debugging line
       req['firebaseUserId'] = decodedToken.uid;
       return true;
     } catch (error) {

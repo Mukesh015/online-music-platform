@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql';
 import { MusicService } from './music.service';
 import { CreateMusicInput } from './dto/create-music.input';
 import { Music } from './entities/music.entity';
@@ -18,9 +18,11 @@ export class MusicResolver {
 
   @Query(returns => [Music])
   @UseGuards(AuthGuard) 
-  async getMusicByUserId(@Req() req:Request ): Promise<Partial<Music>[]> {
-    const userId = "req['firebaseUserId']";
+  async getMusicByUserId(@Context() context): Promise<Partial<Music>[]> {
+    const userId = context.req['firebaseUserId'];
+    console.log(userId);
     if (!userId) {
+    
       throw new Error('User ID not found in request');
     }
     return this.musicService.findByUserId(userId)
