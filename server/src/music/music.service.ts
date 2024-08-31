@@ -1,119 +1,138 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { Prisma } from '@prisma/client';
-// import { Prisma } from '../../prisma/generated/client';
-
+import { CreateMusicInput } from './dto/create-music.input';
+import { Prisma, Music } from '@prisma/client';
 
 @Injectable()
 export class MusicService {
-    constructor(private readonly dbService: DatabaseService) { }
+  constructor(private readonly dbService: DatabaseService) { }
+
+  async findOne(id: number): Promise<Music | null> {
+    return this.dbService.music.findUnique({ where: { id } });
+  }
+
+  async findAll(): Promise<Music[]> {
+    return this.dbService.music.findMany();
+  }
+
+  async create(createMusicInput: CreateMusicInput, userId: string): Promise<Music> {
+    return this.dbService.music.create({
+      data: {
+        ...createMusicInput,
+        userId,
+      },
+    });
+  }
+  async upload(updateMusicDtos: Prisma.MusicCreateInput, userId: string) {
+    try {
+
+      const userExists = await this.dbService.user.findUnique({
+        where: { userId },
+      });
+
+      if (!userExists) {
+        return { message: "User does not exist", statusCode: 404 };
+      }
 
 
-    async upload(updateMusicDtos: Prisma.MusicCreateInput, userId: string) {
+      const musicExists = await this.dbService.music.findUnique({
+        where: {
+          userId_musicUrl: {
+            userId,
+            musicUrl: updateMusicDtos.musicUrl,
+          },
+        },
+      });
 
-        try {
+      if (musicExists) {
+        return { message: "Music with this URL already exists for this user", statusCode: 409 };
+      }
 
-            const userExists = await this.dbService.user.findUnique({
-                where: { userId },
-            });
+      if (!updateMusicDtos ||
+        updateMusicDtos.musicUrl ||
+        updateMusicDtos.musicTitle ||
+        updateMusicDtos.musicArtist ||
+        updateMusicDtos.thumbnailUrl) {
+        return { message: "Missing required fields", statusCode: 400 };
+      }
 
-            if (!userExists) {
-                return { message: "User does not exist", statusCode: 404 };
-            }
+      const newMusic = await this.dbService.music.create({
+        data: {
+          userId,
+          musicUrl: updateMusicDtos.musicUrl,
+          musicTitle: updateMusicDtos.musicTitle,
+          musicArtist: updateMusicDtos.musicArtist,
+          thumbnailUrl: updateMusicDtos.thumbnailUrl
+        },
+      });
+
+      return { message: "Music uploaded successfully", statusCode: 201, newMusic: newMusic };
+
+    } catch (error) {
+
+      console.error("Error uploading music:", error);
+      return { message: "An error occurred while uploading music", statusCode: 500, error: error.message };
+    }
+  }
+  async update(updateMusicDtos: Prisma.MusicUpdateInput, userId: string, musicId: number) {
+    try {
+
+      const musicEntry = await this.dbService.music.findUnique({
+        where: { id: musicId },
+      });
+
+      if (!musicEntry) {
+        return { message: "Music not found", statusCode: 404 };
+      }
 
 
-            const musicExists = await this.dbService.music.findUnique({
-                where: {
-                    userId_url: {
-                        userId,
-                        url: updateMusicDtos.url,
-                    },
-                },
-            });
+      if (musicEntry.userId === userId) {
 
-            if (musicExists) {
-                return { message: "Music with this URL already exists for this user", statusCode: 409 };
-            }
+        const updatedMusic = await this.dbService.music.update({
+          where: { id: musicId },
+          data: updateMusicDtos,
+        });
+        return { message: "Music updated successfully", statusCode: 200, updatedMusic: updatedMusic };
+      } else {
 
+        return { message: "You cannot update this music", statusCode: 403, musicDetails: updateMusicDtos };
+      }
+    } catch (error) {
 
-            const newMusic = await this.dbService.music.create({
-                data: {
-                    userId,
-                    url: updateMusicDtos.url,
-                    title: updateMusicDtos.title,
-                    duration: updateMusicDtos.duration,
-                },
-            });
-
-            return { message: "Music uploaded successfully", statusCode: 201, newMusic: newMusic };
-
-        } catch (error) {
-
-            console.error("Error uploading music:", error);
-            return { message: "An error occurred while uploading music", statusCode: 500, error: error.message };
-        }
+      console.error("Error updating music:", error);
+      return { message: "An error occurred while updating music", statusCode: 500, error: error.message };
     }
 
-    async update(updateMusicDtos: Prisma.MusicUpdateInput, userId: string, musicId: number) {
-        try {
+  }
+  async remove(musicId: number, userId: string) {
+    try {
 
-            const musicEntry = await this.dbService.music.findUnique({
-                where: { id: musicId },
-            });
-
-            if (!musicEntry) {
-                return { message: "Music not found", statusCode: 404 };
-            }
+      const musicEntry = await this.dbService.music.findUnique({
+        where: { id: musicId },
+      });
 
 
-            if (musicEntry.userId === userId) {
+      if (!musicEntry) {
+        return { message: "Music not found", statusCode: 404 };
+      }
 
-                const updatedMusic = await this.dbService.music.update({
-                    where: { id: musicId },
-                    data: updateMusicDtos,
-                });
-                return { message: "Music updated successfully", statusCode: 200, updatedMusic: updatedMusic };
-            } else {
 
-                return { message: "You cannot update this music", statusCode: 403, musicDetails: updateMusicDtos };
-            }
-        } catch (error) {
+      if (musicEntry.userId === userId) {
 
-            console.error("Error updating music:", error);
-            return { message: "An error occurred while updating music", statusCode: 500, error: error.message };
-        }
+        await this.dbService.music.delete({
+          where: { id: musicId },
+        });
+        return { message: "Music removed successfully", statusCode: 200 };
+      } else {
 
+        return { message: "You cannot delete this music", statusCode: 403 };
+      }
+    } catch (error) {
+
+      console.error("Error removing music:", error);
+      return { message: "An error occurred while removing music", statusCode: 500, error: error.message };
     }
-    async remove(musicId: number, userId: string) {
-        try {
-            // Find the music entry by its ID
-            const musicEntry = await this.dbService.music.findUnique({
-                where: { id: musicId },
-            });
 
-            // Check if the music entry exists
-            if (!musicEntry) {
-                return { message: "Music not found", statusCode: 404 };
-            }
+  }
 
-            // Check if the user ID matches
-            if (musicEntry.userId === userId) {
-                // Proceed with the deletion
-                await this.dbService.music.delete({
-                    where: { id: musicId },
-                });
-                return { message: "Music removed successfully", statusCode: 200 };
-            } else {
-                // User is not authorized to delete this music
-                return { message: "You cannot delete this music", statusCode: 403 };
-            }
-        } catch (error) {
-            // Handle unexpected errors
-            console.error("Error removing music:", error);
-            return { message: "An error occurred while removing music", statusCode: 500, error: error.message };
-        }
-
-    }
 }
-
-

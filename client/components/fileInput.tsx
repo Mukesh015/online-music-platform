@@ -29,36 +29,38 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
     const handleSentMusicDetails = useCallback(async (link: string) => {
         const idToken = await auth.currentUser?.getIdToken();
         if (uploadFile) {
-            const data = await decodeMetaData(uploadFile);
-            const blob = await decodeMetaDataToBlob(uploadFile);
             try {
+                const metadata = await decodeMetaData(uploadFile); // Get metadata like title and artist
+                const blob = await decodeMetaDataToBlob(uploadFile); // Get the thumbnail Blob
+
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('musicUrl', link);
+                formData.append('musicTitle', metadata?.title || '');
+                formData.append('musicArtist', metadata?.artist || '');
+                formData.append('thumbnailUrl', blob, 'thumbnail.png'); // Append Blob as file
+
                 const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'authorization': `Bearer ${idToken}`,
                     },
-                    body: JSON.stringify({
-                        musicUrl: link,
-                        title: data?.title,
-                        imageUrl: blob,
-                        artist: data?.artist
-                    }),
+                    body: formData, // Use formData instead of JSON.stringify
                 });
-                if (response.ok) {
-                    console.log("Music details syncing successfully");
-                    setUploadFile(null);
 
+                if (response.ok) {
+                    console.log("Music details synced successfully", response);
+                    setUploadFile(null);
                 } else {
                     console.error("Failed to sync music details, please try again");
                     setUploadFile(null);
-
                 }
             } catch (e) {
-                console.error("failed to send details, server error", e)
+                console.error("Failed to send details, server error", e);
             }
         }
     }, [uploadFile]);
+
 
     const handleMusicUpload = useCallback(async () => {
         try {

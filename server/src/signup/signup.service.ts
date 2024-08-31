@@ -1,32 +1,63 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-// import { Prisma } from '../../prisma/generated/client';
-
-
 import { DatabaseService } from '../database/database.service';
-
+import { CreateSignupInput } from './dto/create-signup.input'
+import { SignupResponse } from './entities/signup.entity';
+import { Prisma } from '@prisma/client';
 @Injectable()
 export class SignupService {
-    constructor(private readonly dbService: DatabaseService) { }
+  constructor(private readonly dbService: DatabaseService) { }
+  async create(createUserDto: CreateSignupInput): Promise<SignupResponse> {
+    const { userId } = createUserDto;
 
-    async signup(createUserDto: Prisma.UserCreateInput) {
-        const { userId } = createUserDto;
+    const existingUser = await this.dbService.user.findUnique({
+      where: { userId },
+    });
 
-        const existingUser = await this.dbService.user.findUnique({
-            where: { userId },
-        });
-
-        if (existingUser) {
-            return { status: 0, message: "User already exists" };
-        }
-
-        try {
-            await this.dbService.user.create({
-                data: createUserDto,
-            });
-            return { status: 1, message: "User created successfully" };
-        } catch (error) {
-            throw new ConflictException('Failed to create user');
-        }
+    if (existingUser) {
+      return { status: 0, message: "User already exists" };
     }
+
+    try {
+      await this.dbService.user.create({
+        data: createUserDto,
+      });
+      return { status: 1, message: "User created successfully" };
+    } catch (error) {
+      throw new ConflictException('Failed to create user');
+    }
+  }
+  async signup(createUserDto: Prisma.UserCreateInput) {
+    const { userId } = createUserDto;
+
+    const existingUser = await this.dbService.user.findUnique({
+      where: { userId },
+    });
+
+    if (existingUser) {
+
+      return { status: 409, message: "User already exists" };
+    }
+
+    try {
+
+      await this.dbService.user.create({
+        data: createUserDto,
+      });
+
+      return { status: 201, message: "User created successfully" };
+    } catch (error) {
+
+      console.error("Error creating user:", error);
+
+
+      if (error.code === 'P2002') {
+
+        return { status: 409, message: "User with this ID already exists" };
+      } else {
+
+        return { status: 500, message: "An error occurred while creating the user", error: error.message };
+      }
+    }
+  }
+
 }

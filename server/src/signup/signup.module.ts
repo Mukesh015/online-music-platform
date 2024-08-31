@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { SignupService } from './signup.service';
-import { SignupController } from './signup.controller';
+import { SignupResolver } from './signup.resolver';
 import { DatabaseModule } from '../database/database.module';
+import { SignupController } from './signup.controller';
 
 @Module({
-  imports: [DatabaseModule],
-
-  providers: [SignupService],
-  controllers: [SignupController]
+  imports:[DatabaseModule],
+  providers: [SignupResolver, SignupService],
+  controllers: [SignupController],
 })
 export class SignupModule {}

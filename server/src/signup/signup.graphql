@@ -1,0 +1,24 @@
+type Signup {
+  # Example field (placeholder)
+  exampleField: Int
+}
+
+input CreateSignupInput {
+  # Example field (placeholder)
+  exampleField: Int
+}
+
+input UpdateSignupInput {
+  id: Int!
+}
+
+type Query {
+  signup: [Signup]!
+  signup(id: Int!): Signup
+}
+
+type Mutation {
+  createSignup(createSignupInput: CreateSignupInput!): Signup!
+  updateSignup(updateSignupInput: UpdateSignupInput!): Signup!
+  removeSignup(id: Int!): Signup
+}

@@ -1,14 +1,10 @@
-import { Body, Controller, Patch, Req,Post, Param, ParseIntPipe, Delete } from '@nestjs/common';
-import { Request } from 'express';
+import { Body, Controller, Delete, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
 import { MusicService } from './music.service';
 import { Prisma } from '@prisma/client';
 
-
-
-
 @Controller('music')
 export class MusicController {
-  constructor(private readonly musicservice: MusicService) {}
+    constructor(private readonly musicservice: MusicService) {}
 
   @Post()
   upload(@Body() createMusicDto: Prisma.MusicCreateInput, @Req() req: Request) {
