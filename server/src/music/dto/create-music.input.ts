@@ -2,19 +2,19 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 
 @InputType()
 export class CreateMusicInput {
-    
-  @Field()
-  url: string;
 
   @Field()
-  title: string;
-  
+  musicUrl: string;
+
   @Field()
-  thumbnail: string;
+  musicTitle: string;
+
+  @Field()
+  thumbnailUrl: string;
 
   @Field(() => Int)
-  duration: number;
-
+  musicArtist:string;
+  
   @Field({ nullable: true })
   isFavorite?: boolean;
 }

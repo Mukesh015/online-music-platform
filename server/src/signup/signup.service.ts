@@ -39,23 +39,23 @@ export class SignupService {
     }
 
     try {
-   
+
       await this.dbService.user.create({
         data: createUserDto,
       });
 
-      return { status: 201, message: "User created successfully" };
+      return { statusCode: 201, message: "User created successfully",user: createUserDto};
     } catch (error) {
 
       console.error("Error creating user:", error);
 
- 
+
       if (error.code === 'P2002') {
-     
-        return { status: 409, message: "User with this ID already exists" };
+
+        return { statusCode: 409, message: "User with this ID already exists",user: createUserDto };
       } else {
-    
-        return { status: 500, message: "An error occurred while creating the user", error: error.message };
+
+        return { statusCode: 500, message: "An error occurred while creating the user", error: error.message };
       }
     }
   }

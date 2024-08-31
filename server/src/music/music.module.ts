@@ -18,7 +18,8 @@ export class MusicModule {
       .forRoutes(
         { path: 'music', method: RequestMethod.POST },
         { path: 'music/:id', method: RequestMethod.PATCH },
-        { path: 'music/:id', method: RequestMethod.DELETE }
+        { path: 'music/:id', method: RequestMethod.DELETE },
+        
       );
   }
 }

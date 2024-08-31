@@ -72,46 +72,7 @@ const Navbar: React.FC = () => {
         } else {
             setisLoggedin(false)
         }
-    }, [user])
-
-    useEffect(() => {
-        const sendPatchRequest = async () => {
-            try {
-                // Get the ID token
-                const idToken = await auth.currentUser?.getIdToken();
-                console.log("Idtoken", idToken);
-
-                // Define the request payload
-                const requestBody = {
-                    url: "https://www.youtube.com/watch?v=UCkSfavBpTY&t=6s",
-                    title: "Sanam Teri Kasam (Lofi)",
-                    duration: 225,
-                    thumbnail:"http://localhost:8080/graphql"
-                };
-
-                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/music`, {
-                    method: 'POST',
-                    // mode: "no-cors",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'authorization': `Bearer ${idToken}`,
-                    },
-                    body: JSON.stringify(requestBody),
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Response:', result);
-                } else {
-                    console.error('Failed to send PATCH request:', response.statusText);
-                }
-            } catch (err) {
-                console.error("Error during request:", err);
-            }
-        };
-
-        sendPatchRequest();
-    }, [auth]);
+    }, [user]);
 
     useEffect(() => {
         checkLogin();
@@ -121,7 +82,7 @@ const Navbar: React.FC = () => {
         <>
             <nav className="flex fixed w-full py-5 justify-between pl-3 pr-3 md:pl-0 md:pr-0  md:justify-around top-0 bg-inherit z-30 font-Montserrat text-white text-lg items-center">
                 <ol className="flex items-center space-x-3 cursor-pointer">
-                    <Image className="h-8 w-8 rounded-full" src={logo} alt={"logo"} ></Image>
+                    <Image className="h-8 w-8 rounded-full" src={logo} alt={"logo"} />
                     <span className="font-bold">MUSICALLY</span>
                 </ol>
                 <ol className="hidden md:flex md:flex-row md:gap-16 md:py-5">

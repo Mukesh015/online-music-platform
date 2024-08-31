@@ -3,21 +3,23 @@ import { MusicService } from './music.service';
 import { CreateMusicInput } from './dto/create-music.input';
 import { Music } from './entities/music.entity';
 import { Prisma } from '@prisma/client';
+import { Req } from '@nestjs/common';
 
 @Resolver(() => Music)
 export class MusicResolver {
-  constructor(private readonly musicService: MusicService) {}
+  constructor(private readonly musicService: MusicService) { }
 
-  @Mutation(() => Music)
-  async createMusic(
-    @Args('createMusicInput') createMusicInput: CreateMusicInput,
-  ): Promise<Music> {
-    const userId="vsfdtn"
-    return this.musicService.create(createMusicInput,userId);
+
+  @Query(returns => [Music])
+  async musics(): Promise<Partial<Music>[]> {
+    return this.musicService.findAll();
   }
 
   @Query(returns => [Music])
-  async musics(): Promise<Music[]> {
-    return this.musicService.findAll();
+  async getMusicByUserId(@Req() req:Request ): Promise<Partial<Music>[]> {
+    const userId = req['firebaseUserId'];
+
+    return this.musicService.findByUserId(userId)
   }
+    
 }

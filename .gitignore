@@ -9,6 +9,8 @@
 # testing
 /coverage
 
+/server/firebase-musicly.json
+
 # musics
 /client/music
 

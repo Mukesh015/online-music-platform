@@ -16,6 +16,7 @@ import VolumeUp from '@mui/icons-material/VolumeUp';
 import musicWave from "@/lottie/Animation - 1724571535854.json";
 import RepeatOneIcon from '@mui/icons-material/RepeatOne';
 import Tooltip from '@mui/material/Tooltip';
+import Image from "next/image";
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 
@@ -63,7 +64,6 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
     const toggleFavorite = () => setIsFavorite(!isFavorite);
 
     const formatTime = (time: number) => {
-        console.log(time);
         const minutes = Math.floor(time / 60);
         const seconds = Math.floor(time % 60);
         return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
@@ -90,7 +90,7 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
     return (
         <>
             <div className="hidden md:flex text-white pt-28 gap-7 p-5 md:flex-col md:items-center md:w-full">
-                <img className="h-60 rounded-md" src="https://i.ytimg.com/vi/htwtV6qsSVo/maxresdefault.jpg" alt="" />
+                <Image height={450} width={450} className="rounded-md" src="https://i.ytimg.com/vi/htwtV6qsSVo/maxresdefault.jpg" alt="" />
                 <section className="mt-5 flex flex-row items-center space-x-2 justify-between">
                     <Lottie className="w-10 h-10" animationData={musicWave} />
                     <h2 className="text-sm text-slate-500 max-w-96">Sanam Teri Kasam (Lofi)</h2>
