@@ -1,4 +1,4 @@
-// src/app.module.ts
+
 import { Module, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -18,7 +18,7 @@ import { MiddlewareService } from './middleware/middleware.service';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: true,
-      autoSchemaFile: join(process.cwd(), './src/schema.gql'),
+      autoSchemaFile: join(process.cwd(), 'schema.gql'),
       context: ({ req }) => ({ req }),
     }),
     DatabaseModule,
