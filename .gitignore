@@ -6,6 +6,8 @@
 /client/.pnp.js
 /client/.yarn/install-state.gz
 
+/server/docker-compose.yml
+
 # testing
 /coverage
 
