@@ -14,7 +14,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useLogger(logger);
 
-  // Apply the exception filter globally
+
   app.useGlobalFilters(new AllExceptionsFilter(logger));
 
   app.enableCors({

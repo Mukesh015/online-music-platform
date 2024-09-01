@@ -21,7 +21,7 @@ export class MiddlewareService implements NestMiddleware {
       next();
     } catch (error) {
       console.error(error);
-      res.status(error.status).json({ error: error.message });
+      res.status(401).json({ error: error.message });
     }
   }
 

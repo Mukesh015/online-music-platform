@@ -27,11 +27,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       response: 'Internal Server Error',
     };
 
-    // Check for missing authorization headers
     if (exception instanceof HttpException) {
       const exceptionResponse = exception.getResponse();
       
-      // Check if the exception is due to missing authorization
+    
       if (exception.getStatus() === HttpStatus.UNAUTHORIZED) {
         myResponseObj.statusCode = HttpStatus.UNAUTHORIZED;
         myResponseObj.response = 'Unauthorized. Please log in.';
@@ -46,17 +45,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       myResponseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       myResponseObj.response = exception.message;
     }
-
-    // Ensure the status code is valid
     if (!HttpStatus[myResponseObj.statusCode]) {
       myResponseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       myResponseObj.response = 'Invalid status code';
     }
 
-    // Send the JSON response
+   
     response.status(myResponseObj.statusCode).json(myResponseObj);
 
-    // Log the error details
     this.logger.error(
       `Error occurred: ${myResponseObj.response} - ${exception instanceof Error ? exception.stack : ''}`,
       AllExceptionsFilter.name
