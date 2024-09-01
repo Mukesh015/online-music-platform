@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
-import { Provider } from "@/config/graphql/config";
+import { ApolloWrapper } from "@/config/graphql/config";
 import { AuthTokenProvider } from "@/providers/authTokenProvider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,10 +21,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthTokenProvider>
-          <Provider >
+          <ApolloWrapper >
             <Navbar />
             {children}
-          </Provider>
+          </ApolloWrapper>
         </AuthTokenProvider>
       </body>
     </html>
