@@ -4,7 +4,6 @@ import { Request, Response } from 'express';
 import { MyLoggerService } from './my-logger/my-logger.service'; // Ensure the correct path
 import { PrismaClientValidationError } from '@prisma/client/runtime/library';
 
-// Define the response structure
 type MyResponseObj = {
   statusCode: number;
   timestamp: string;
@@ -28,10 +27,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
       response: 'Internal Server Error',
     };
 
-    // Check for specific error types and customize the response
+    // Check for missing authorization headers
     if (exception instanceof HttpException) {
-      myResponseObj.statusCode = exception.getStatus() || HttpStatus.INTERNAL_SERVER_ERROR;
-      myResponseObj.response = exception.getResponse();
+      const exceptionResponse = exception.getResponse();
+      
+      // Check if the exception is due to missing authorization
+      if (exception.getStatus() === HttpStatus.UNAUTHORIZED) {
+        myResponseObj.statusCode = HttpStatus.UNAUTHORIZED;
+        myResponseObj.response = 'Unauthorized. Please log in.';
+      } else {
+        myResponseObj.statusCode = exception.getStatus() || HttpStatus.INTERNAL_SERVER_ERROR;
+        myResponseObj.response = exceptionResponse;
+      }
     } else if (exception instanceof PrismaClientValidationError) {
       myResponseObj.statusCode = HttpStatus.UNPROCESSABLE_ENTITY; // 422
       myResponseObj.response = exception.message.replace(/\n/g, ' ');

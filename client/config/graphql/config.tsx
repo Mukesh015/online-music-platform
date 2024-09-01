@@ -1,43 +1,56 @@
 "use client";
-import React, { ReactNode, useEffect, useState } from "react";
-import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink, ApolloLink, from } from "@apollo/client";
-import { setContext } from "@apollo/client/link/context";
-import { useAuthToken } from "@/providers/authTokenProvider"
+"use strict"
+import React from "react";
+import { ApolloLink, HttpLink, concat } from "@apollo/client";
+import { ApolloNextAppProvider, InMemoryCache, ApolloClient, SSRMultipartLink } from "@apollo/experimental-nextjs-app-support";
+import { useAuthToken } from "@/providers/authTokenProvider";
 
-
-export const Provider = ({ children }: { children: ReactNode }) => {
-  const [client, setClient] = useState<ApolloClient<any> | null>(null);
+export function ApolloWrapper({ children }: React.PropsWithChildren) {
   const { token } = useAuthToken();
 
-  useEffect(() => {
-    const setupClient = async () => {
-      const authLink = setContext(async (_, { headers }) => {
-        console.log(token)
-        return {
+  // Define the makeClient function inside the component so it can access the token
+  const makeClient = () => {
+    // Create the HTTP link to your GraphQL server
+    const httpLink = new HttpLink({
+      uri: `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/graphql`,
+    });
+
+    // Create a middleware link to inject the Authorization header with the token
+    const authLink = new ApolloLink((operation, forward) => {
+      if (token) {
+        operation.setContext(({ headers = {} }) => ({
           headers: {
             ...headers,
-            'authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
-        };
-      });
+        }));
+      }
+      return forward(operation);
+    });
 
-      const httpLink = new HttpLink({
-        uri: `${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/graphql`,
-      });
+    // Build the complete link chain for SSR and client-side requests
+    const link =
+      typeof window === "undefined"
+        ? ApolloLink.from([
+            new SSRMultipartLink({
+              stripDefer: true,
+            }),
+            authLink, // Add authLink here
+            httpLink,
+          ])
+        : concat(authLink, httpLink); // Combine authLink with httpLink on the client side
 
-      const apolloClient = new ApolloClient({
-        link: from([authLink, httpLink]),
-        cache: new InMemoryCache(),
-      });
+    // Create the Apollo client instance
+    return new ApolloClient({
+      cache: new InMemoryCache(),
+      link,
+    });
+  };
 
-      setClient(apolloClient);
-    };
-    if (token) {
-      setupClient();
-    }
-  }, [token]);
-
-  if (!client) return <div>Loading...</div>;
-
-  return <ApolloProvider client={client}>{children}</ApolloProvider>;
-};
+  // Pass makeClient to ApolloNextAppProvider instead of the client directly
+  return (
+    <ApolloNextAppProvider makeClient={makeClient}>
+      {children}
+    </ApolloNextAppProvider>
+  );
+}

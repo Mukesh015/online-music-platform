@@ -14,7 +14,6 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import Image from 'next/image';
 
 const TEST_QUERY = gql`
-    
     {
         musics{
             id
@@ -24,7 +23,6 @@ const TEST_QUERY = gql`
         id
         }
     }
-    
 `;
 
 const MusicPage: React.FC = () => {

@@ -3,6 +3,7 @@ import { MusicService } from './music.service';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
 import { error } from 'console';
+import { json } from 'node:stream/consumers';
 
 @Controller('music')
 export class MusicController {
@@ -15,8 +16,9 @@ export class MusicController {
     @Res() res: Response
   ) {
     const userId = req['firebaseUserId'];
-    console.log('userId: ' + userId);
+    
 
+  
     try {
 
       const serviceResponse = await this.musicservice.upload(createMusicDto, userId);
@@ -28,11 +30,13 @@ export class MusicController {
         });
 
       }
+      else {
       res.status(serviceResponse.statusCode).json({
         message: serviceResponse.message,
         newMusic: serviceResponse.newMusic,
-        error: serviceResponse.error,
+
       });
+    }
     } catch (error) {
       console.error('Error in upload controller:', error);
       res.status(500).json({
