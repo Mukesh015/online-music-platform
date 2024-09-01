@@ -4,7 +4,7 @@ import { CreateMusicInput } from './dto/create-music.input';
 import { Music } from './entities/music.entity';
 import { Prisma } from '@prisma/client';
 import { Req, UseGuards } from '@nestjs/common';
-import {AuthGuard } from '../authguard/authguard.service'
+import { AuthGuard } from '../authguard/authguard.service'
 
 @Resolver(() => Music)
 export class MusicResolver {
@@ -12,20 +12,34 @@ export class MusicResolver {
 
 
   @Query(returns => [Music])
-  async musics(): Promise<Partial<Music>[]> {
-    return this.musicService.findAll();
+  @UseGuards(AuthGuard)
+  async musics(@Context() context): Promise<Partial<Music>[]> {
+    const userId = context.req['firebaseUserId'];
+    return this.musicService.findAll(userId);
   }
 
   @Query(returns => [Music])
-  @UseGuards(AuthGuard) 
+  @UseGuards(AuthGuard)
   async getMusicByUserId(@Context() context): Promise<Partial<Music>[]> {
     const userId = context.req['firebaseUserId'];
-    console.log(userId);
-    if (!userId) {
-    
-      throw new Error('User ID not found in request');
+    if (userId === "null"||userId === "invalid") {
+      return [];
     }
-    return this.musicService.findByUserId(userId)
+   return this.musicService.findByUserId(userId)
   }
-    
+
+
+  @Query(returns => [Music])
+  @UseGuards(AuthGuard)
+  async getFavoriteMusicByUserId(@Context() context): Promise<Partial<Music>[]> {
+    const userId = context.req['firebaseUserId'];
+    if (userId === "null"||userId === "invalid") {
+      return [];
+    }
+    return this.musicService.findFouriteByUserId(userId)
+
+  }
+
 }
+
+
