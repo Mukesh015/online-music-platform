@@ -4,7 +4,6 @@ import React, { useCallback, useState } from "react";
 import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
 import { uploadMusic, getDownloadLink, auth } from "@/config/firebase/config";
-import { decodeMetaData, decodeMetaDataToBlob } from "@/lib/musicMetadata";
 import { useAuthToken } from "@/providers/authTokenProvider";
 
 interface Props {
@@ -28,39 +27,38 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
         }
     };
 
-    const handleSentMusicDetails = useCallback(async (link: string) => {
-        if (uploadFile) {
-            try {
-                const metadata = await decodeMetaData(uploadFile); // Get metadata like title and artist
-                const blob = await decodeMetaDataToBlob(uploadFile); // Get the thumbnail Blob
+    // const handleSentMusicDetails = useCallback(async (link: string) => {
+    //     if (uploadFile) {
+    //         try {
+    //             const metadata = await decodeMetaData(uploadFile); // Get metadata like title and artist
 
-                // Prepare form data
-                const formData = new FormData();
-                formData.append('musicUrl', link);
-                formData.append('musicTitle', metadata?.title || '');
-                formData.append('musicArtist', metadata?.artist || '');
-                formData.append('thumbnailUrl', blob, 'thumbnail.png'); // Append Blob as file
+    //             // Prepare form data
+    //             const formData = new FormData();
+    //             formData.append('musicUrl', link);
+    //             formData.append('musicTitle', metadata?.title || '');
+    //             formData.append('musicArtist', metadata?.artist || '');
+    //             formData.append('thumbnailUrl', blob, 'thumbnail.png'); // Append Blob as file
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
-                    method: 'POST',
-                    headers: {
-                        'authorization': `Bearer ${token}`,
-                    },
-                    body: formData, // Use formData instead of JSON.stringify
-                });
+    //             const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'authorization': `Bearer ${token}`,
+    //                 },
+    //                 body: formData, // Use formData instead of JSON.stringify
+    //             });
 
-                if (response.ok) {
-                    console.log("Music details synced successfully", response);
-                    setUploadFile(null);
-                } else {
-                    console.error("Failed to sync music details, please try again");
-                    setUploadFile(null);
-                }
-            } catch (e) {
-                console.error("Failed to send details, server error", e);
-            }
-        }
-    }, [token, uploadFile]);
+    //             if (response.ok) {
+    //                 console.log("Music details synced successfully", response);
+    //                 setUploadFile(null);
+    //             } else {
+    //                 console.error("Failed to sync music details, please try again");
+    //                 setUploadFile(null);
+    //             }
+    //         } catch (e) {
+    //             console.error("Failed to send details, server error", e);
+    //         }
+    //     }
+    // }, [token, uploadFile]);
 
 
     const handleMusicUpload = useCallback(async () => {
@@ -70,12 +68,12 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                 const musicPath = result.ref.fullPath;
                 const musicLink = await getDownloadLink(musicPath);
                 console.log("Music uploaded successfully", musicLink);
-                handleSentMusicDetails(musicLink);
+                // handleSentMusicDetails(musicLink);
             }
         } catch (e) {
             console.error("File uploading failed", e);
         }
-    }, [handleSentMusicDetails, uploadFile]);
+    }, [ uploadFile]);
 
     return (
         <>
@@ -92,7 +90,7 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                                 <p className="text-xs text-gray-500">File should be of format .mp4, .avi, .mov or .mkv</p>
                             </div>
                             <form action="#" className="relative w-4/5 h-32 max-w-xs mb-10 bg-gray-100 rounded-lg shadow-inner">
-                                <input onChange={handleSetUploadFile} type="file" id="file-upload" className="hidden" />
+                                <input onChange={handleSetUploadFile} accept=".mp3" type="file" id="file-upload" className="hidden" />
                                 <label htmlFor="file-upload" className="z-20 flex flex-col-reverse items-center justify-center w-full h-full cursor-pointer">
                                     <p className="z-10 text-xs font-light text-center text-gray-500">Drag & Drop your files here</p>
                                     <svg className="z-10 w-8 h-8 text-indigo-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">

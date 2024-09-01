@@ -17,6 +17,7 @@ import musicWave from "@/lottie/Animation - 1724571535854.json";
 import RepeatOneIcon from '@mui/icons-material/RepeatOne';
 import Tooltip from '@mui/material/Tooltip';
 import Image from "next/image";
+import { showImageFromFirebase } from "@/lib/musicMetadata";
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 
@@ -87,12 +88,13 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
             };
         }
     }, [isPlaying, volume, isLooping]);
+
     return (
         <>
             <div className="hidden md:flex text-white pt-28 gap-7 p-5 md:flex-col md:items-center md:w-full">
-                <Image height={450} width={450} className="rounded-md" src="https://i.ytimg.com/vi/htwtV6qsSVo/maxresdefault.jpg" alt="" />
+                <Image id="player-thumbnail" height={350} width={350} className="rounded-md" src={"https://filmfare.wwmindia.com/content/2022/jun/bollywood-films-that-had-to-change-their-titles-goliyon-ki-raasleela-ram-leela.jpg"} alt="" />
                 <section className="mt-5 flex flex-row items-center space-x-2 justify-between">
-                    <Lottie className="w-10 h-10" animationData={musicWave} />
+                    <Lottie className="w-10 h-10" animationData={musicWave} />  
                     <h2 className="text-sm text-slate-500 max-w-96">Sanam Teri Kasam (Lofi)</h2>
                 </section>
                 <section className=" w-[30vw] flex flex-row gap-10">

@@ -5,6 +5,7 @@
 type Music {
   id: Int!
   musicUrl: String!
+  isFavourite: String!
   musicTitle: String!
   thumbnailUrl: String!
   musicArtist: String!
@@ -25,6 +26,7 @@ type Query {
   index: String!
   musics: [Music!]!
   getMusicByUserId: [Music!]!
+  getFavoriteMusicByUserId: [Music!]!
 }
 
 type Mutation {
