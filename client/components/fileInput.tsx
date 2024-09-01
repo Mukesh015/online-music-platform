@@ -5,6 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
 import { uploadMusic, getDownloadLink, auth } from "@/config/firebase/config";
 import { decodeMetaData, decodeMetaDataToBlob } from "@/lib/musicMetadata";
+import { useAuthToken } from "@/providers/authTokenProvider";
 
 interface Props {
     isOpen: boolean;
@@ -13,7 +14,7 @@ interface Props {
 }
 
 const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
-
+    const { token } = useAuthToken();
     const [uploadFile, setUploadFile] = useState<File | null>(null);
 
     const handleClosePopup = () => {
@@ -28,7 +29,6 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
     };
 
     const handleSentMusicDetails = useCallback(async (link: string) => {
-        const idToken = await auth.currentUser?.getIdToken();
         if (uploadFile) {
             try {
                 const metadata = await decodeMetaData(uploadFile); // Get metadata like title and artist
@@ -44,7 +44,7 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
                     method: 'POST',
                     headers: {
-                        'authorization': `Bearer ${idToken}`,
+                        'authorization': `Bearer ${token}`,
                     },
                     body: formData, // Use formData instead of JSON.stringify
                 });
@@ -60,7 +60,7 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                 console.error("Failed to send details, server error", e);
             }
         }
-    }, [uploadFile]);
+    }, [token, uploadFile]);
 
 
     const handleMusicUpload = useCallback(async () => {
