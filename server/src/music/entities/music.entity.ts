@@ -8,6 +8,11 @@ export class Music {
   @Field()
   musicUrl: string;
 
+
+  @Field()
+  isFavourite: string;
+
+
   @Field()
   musicTitle: string;
 

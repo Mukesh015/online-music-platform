@@ -3,11 +3,11 @@ import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
 import { SignupService } from './signup.service'; // Import your SignupService
 
-@Controller('auth')
+@Controller('signup')
 export class SignupController {
   constructor(private readonly signupService: SignupService) {}
 
-  @Post('signup') // Endpoint for user signup
+  @Post() 
   async signup(
     @Body() createUserDto: Prisma.UserCreateInput, 
     @Res() res: Response
@@ -15,11 +15,17 @@ export class SignupController {
     try {
       const serviceResponse = await this.signupService.signup(createUserDto);
 
-      // Send response based on the status code returned by the service
+      if (serviceResponse.statusCode==500){
+        return res.status(serviceResponse.statusCode).json({
+          message: serviceResponse.message,
+          error: serviceResponse.error,
+        });
+      }
       return res.status(serviceResponse.statusCode).json({
         message: serviceResponse.message,
         user: serviceResponse.user,
       });
+     
     } catch (error) {
       console.error('Error during signup:', error);
       return res.status(500).json({

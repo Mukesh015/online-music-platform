@@ -11,18 +11,7 @@ export class MusicService {
     return this.dbService.music.findUnique({ where: { id } });
   }
 
-  async findAll(): Promise<Partial<Music>[]> {
-    return this.dbService.music.findMany({
-      select: {
-        id: true,
-        musicUrl: true,
-        thumbnailUrl: true,
-        musicTitle: true,
-        musicArtist: true,
-        createdAt: true,
-      },
-    });
-  }
+
   async upload(updateMusicDtos: Prisma.MusicCreateInput, userId: string) {
     try {
 
@@ -147,8 +136,119 @@ export class MusicService {
 
   }
 
+
+  async addToFavorite(id: number, userId: string) {
+    try {
+
+      const music = await this.dbService.music.findUnique({
+        where: { id },
+      });
+      if (!music) {
+        return { message: "Music not found", statusCode: 404, musicDetails: music };
+      }
+
+
+      const existingFavorite = await this.dbService.isFavourite.findUnique({
+        where: { userId_id: { userId, id: id } },
+      });
+
+      if (existingFavorite) {
+
+        await this.dbService.isFavourite.update({
+          where: { userId_id: { userId, id } },
+          data: { isFavourite: !existingFavorite.isFavourite },
+        });
+        return {
+          message: existingFavorite.isFavourite ? "Music removed from favorites" : "Music added to favorites",
+          statusCode: 200,
+          musicDetails: music,
+        };
+      } else {
+
+        await this.dbService.isFavourite.create({
+          data: {
+            userId,
+            id,
+            isFavourite: true,
+          },
+        });
+        return {
+          message: "Music added to favorites",
+          statusCode: 200,
+          musicDetails: music,
+        };
+      }
+    } catch (error) {
+      console.error("Error adding music to favorites:", error);
+      return {
+        message: "An error occurred while adding music to favorites",
+        statusCode: 500,
+        error: error.message,
+      };
+    }
+  }
+
+
+
+  async findAll(userId: string): Promise<Partial<Music>[]> {
+    if (userId === "null" || userId === "invalid") {
+
+      const musicList = await this.dbService.music.findMany({
+        select: {
+          id: true,
+          musicUrl: true,
+          thumbnailUrl: true,
+          musicTitle: true,
+          musicArtist: true,
+          createdAt: true,
+        },
+      });
+
+      return musicList.map(music => ({
+        ...music,
+        isFavourite: 'false',
+      }));
+    } else {
+
+      const musicList = await this.dbService.music.findMany({
+        select: {
+          id: true,
+          musicUrl: true,
+          thumbnailUrl: true,
+          musicTitle: true,
+          musicArtist: true,
+          createdAt: true,
+        },
+      });
+
+
+      const favourites = await this.dbService.isFavourite.findMany({
+        where: {
+          userId: userId,
+          id: { in: musicList.map(music => music.id) },
+        },
+      });
+
+
+      const favouritesMap = new Map<number, string>(
+        favourites.map(fav => [fav.id, fav.isFavourite.toString()])
+      );
+
+
+      return musicList.map(music => ({
+        ...music,
+        isFavourite: favouritesMap.get(music.id) ?? 'false',
+      }));
+    }
+  }
+
+
+
+
+
   async findByUserId(userId: string): Promise<Partial<Music>[]> {
-    return this.dbService.music.findMany({
+
+    const musicList = await this.dbService.music.findMany({
       where: { userId },
       select: {
         id: true,
@@ -159,6 +259,52 @@ export class MusicService {
         createdAt: true,
       },
     });
+
+
+    const favourites = await this.dbService.isFavourite.findMany({
+      where: {
+        userId,
+        id: { in: musicList.map(music => music.id) },
+      },
+    });
+
+    const favouritesMap = new Map<number, string>(
+      favourites.map(fav => [fav.id, fav.isFavourite.toString()])
+    );
+
+
+    return musicList.map(music => ({
+      ...music,
+      isFavourite: favouritesMap.get(music.id) ?? 'false',
+    }));
   }
 
-}
+
+  async findFouriteByUserId(userId: string): Promise<Partial<Music>[]> {
+
+    const favouriteIds = await this.dbService.isFavourite.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+
+
+    const ids = favouriteIds.map(fav => fav.id);
+
+
+    const musicList = await this.dbService.music.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        musicUrl: true,
+        thumbnailUrl: true,
+        musicTitle: true,
+        musicArtist: true,
+        createdAt: true,
+     
+      },
+    });
+
+
+    return musicList;
+  }
+}  

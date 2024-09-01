@@ -26,7 +26,7 @@ model Music {
   userId       String
   musicUrl     String
   thumbnailUrl String
-  isFavorite   Boolean  @default(false)
+  isfavourite   IsFavourite[]
   musicTitle   String
   musicArtist  String
   createdAt    DateTime @default(now())
@@ -35,4 +35,16 @@ model Music {
   user User @relation(fields: [userId], references: [userId])
 
   @@unique([userId, musicUrl])
+}
+
+
+model IsFavourite {
+
+  userId   String
+  id Int
+  isFavourite   Boolean
+
+
+  music Music @relation(fields: [id], references: [id])
+  @@id([userId, id])
 }

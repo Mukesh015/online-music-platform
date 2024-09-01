@@ -9,7 +9,8 @@ export class MiddlewareService implements NestMiddleware {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      throw new UnauthorizedException('No token provided');
+      console.error("No token Provided")
+      res.send(404).json({ message: "No token Provided"})
     }
 
     const token = authHeader.split(' ')[1];
@@ -19,7 +20,8 @@ export class MiddlewareService implements NestMiddleware {
       req['firebaseUserId'] = decodedToken.uid;
       next();
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      console.error(error);
+      res.status(error.status).json({ error: error.message });
     }
   }
 

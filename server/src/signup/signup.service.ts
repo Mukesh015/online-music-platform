@@ -35,7 +35,7 @@ export class SignupService {
 
     if (existingUser) {
 
-      return { status: 409, message: "User already exists" };
+      return { statusCode: 409, message: "User already exists",user: createUserDto};
     }
 
     try {

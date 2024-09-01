@@ -9,23 +9,28 @@ export class AuthGuard implements CanActivate {
     const { req } = ctx.getContext();
 
     const authHeader = req.headers.authorization;
-    // console.log('Authorization Header:', authHeader);  // Debugging line
 
+    // Handle missing Authorization header
     if (!authHeader) {
-     
-      throw new UnauthorizedException('No token provided');
+      req['firebaseUserId'] = "null";
+      return true; // Allow request to proceed but set firebaseUserId to "null"
     }
 
     const token = authHeader.split(' ')[1];
+    
+    if (!token) {
+      req['firebaseUserId'] = "null";
+      return true; // Allow request to proceed but set firebaseUserId to "null"
+    }
 
     try {
       const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
-      // console.log('Decoded Token:', decodedToken);  // Debugging line
       req['firebaseUserId'] = decodedToken.uid;
       return true;
     } catch (error) {
-      console.error('Error verifying token:', error);  // Debugging line
-      throw new UnauthorizedException('Invalid or expired token');
+      console.error('Error verifying token:', error);
+      req['firebaseUserId'] = "invalid"; // Set firebaseUserId to "null" on error
+      return true; // Allow request to proceed but set firebaseUserId to "null"
     }
   }
 }
