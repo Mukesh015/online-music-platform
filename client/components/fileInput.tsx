@@ -44,7 +44,7 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        // musicUrl: link,
+                        musicUrl: link,
                         musicTitle: metadata?.title || '',
                         musicArtist: metadata?.artist || '',
                         thumbnailUrl: thumbnailLink,

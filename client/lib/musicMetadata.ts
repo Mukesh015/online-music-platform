@@ -16,7 +16,6 @@ const base64ToBlob = (base64: string, contentType = '', sliceSize = 512) => {
     const byteArray = new Uint8Array(byteNumbers);
     byteArrays.push(byteArray);
   }
-
   // Return a Blob with the correct content type (e.g., 'image/png')
   return new Blob(byteArrays, { type: contentType });
 };

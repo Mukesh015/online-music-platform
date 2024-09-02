@@ -4,11 +4,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com",
+        hostname: "filmfare.wwmindia.com",
       },
       {
         protocol: "https",
-        hostname: "upload.wikimedia.org",
+        hostname: "lh3.googleusercontent.com",
       },
       {
         protocol: "https",
@@ -21,6 +21,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "static.vecteezy.com",
+      },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
       }
     ],
   },

@@ -12,6 +12,8 @@ import FileInput from '@/components/fileInput';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import Image from 'next/image';
+import { RootState } from '@/lib/store';
+import { useSelector } from 'react-redux';
 
 const TEST_QUERY = gql`
     {
@@ -33,6 +35,7 @@ const MusicPage: React.FC = () => {
     const [fileInputVisibleProps, setFileInputVisibleProps] = useState<string>("")
     const { loading, error, data, refetch } = useQuery(TEST_QUERY);
 
+    const token = useSelector((state: RootState) => state.authToken.token);
 
     const handleToggleFileInputPopup = () => {
         setIsOpenFileInput(!isOpenFileInput);
@@ -72,7 +75,11 @@ const MusicPage: React.FC = () => {
         if (error) {
             console.error('Error fetching data', error);
         }
-    }, [data, error]);
+        if(token) {
+            console.log("token getting token", token);
+            refetch(); 
+        }
+    }, [data, error,token]);
 
     return (
         <>
