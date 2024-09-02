@@ -17,7 +17,6 @@ import musicWave from "@/lottie/Animation - 1724571535854.json";
 import RepeatOneIcon from '@mui/icons-material/RepeatOne';
 import Tooltip from '@mui/material/Tooltip';
 import Image from "next/image";
-import { showImageFromFirebase } from "@/lib/musicMetadata";
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 
