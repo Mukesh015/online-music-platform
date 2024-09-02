@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { CreateMusicInput } from './dto/create-music.input';
-import { Prisma, Music } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { Music} from './entities/music.entity'
 
 @Injectable()
 export class MusicService {
   constructor(private readonly dbService: DatabaseService) { }
 
-  async findOne(id: number): Promise<Music | null> {
-    return this.dbService.music.findUnique({ where: { id } });
-  }
+  // async findOne(id: number): Promise<Music | null> {
+  //   return this.dbService.music.findUnique({ where: { id } });
+  // }
 
 
-  async upload(updateMusicDtos: Prisma.MusicCreateInput, userId: string) {
+  async upload(createMusicDto: Prisma.MusicCreateInput, userId: string) {
     try {
 
       const userExists = await this.dbService.user.findUnique({
@@ -28,7 +29,7 @@ export class MusicService {
         where: {
           userId_musicUrl: {
             userId,
-            musicUrl: updateMusicDtos.musicUrl,
+            musicUrl: createMusicDto.musicUrl,
           },
         },
       });
@@ -38,23 +39,14 @@ export class MusicService {
       }
 
 
-      if (
-        !updateMusicDtos ||
-        !updateMusicDtos.musicUrl ||
-        !updateMusicDtos.musicTitle ||
-        !updateMusicDtos.musicArtist ||
-        !updateMusicDtos.thumbnailUrl
-      ) {
-        return { message: "Missing required fields", statusCode: 400 };
-      }
 
       const newMusic = await this.dbService.music.create({
         data: {
           userId,
-          musicUrl: updateMusicDtos.musicUrl,
-          musicTitle: updateMusicDtos.musicTitle,
-          musicArtist: updateMusicDtos.musicArtist,
-          thumbnailUrl: updateMusicDtos.thumbnailUrl,
+          musicUrl: createMusicDto.musicUrl,
+          musicTitle: createMusicDto.musicTitle,
+          musicArtist: createMusicDto.musicArtist,
+          thumbnailUrl: createMusicDto.thumbnailUrl,
         },
       });
 

@@ -1,14 +1,15 @@
 "use client";
-"use strict"
+"use strict";
 import React from "react";
 import { ApolloLink, HttpLink, concat } from "@apollo/client";
 import { ApolloNextAppProvider, InMemoryCache, ApolloClient, SSRMultipartLink } from "@apollo/experimental-nextjs-app-support";
-import { useAuthToken } from "@/providers/authTokenProvider";
+import { useSelector } from 'react-redux';
+import { RootState } from "@/lib/store";
 
 export function ApolloWrapper({ children }: React.PropsWithChildren) {
-  const { token } = useAuthToken();
 
-  // Define the makeClient function inside the component so it can access the token
+  const token = useSelector((state: RootState) => state.authToken.token);
+
   const makeClient = () => {
     // Create the HTTP link to your GraphQL server
     const httpLink = new HttpLink({
@@ -17,28 +18,29 @@ export function ApolloWrapper({ children }: React.PropsWithChildren) {
 
     // Create a middleware link to inject the Authorization header with the token
     const authLink = new ApolloLink((operation, forward) => {
-      if (token) {
-        operation.setContext(({ headers = {} }) => ({
-          headers: {
-            ...headers,
-            Authorization: `Bearer ${token}`,
-          },
-        }));
-      }
+      console.log("Token available: ", token);
+
+      operation.setContext(({ headers = {} }) => ({
+        headers: {
+          ...headers,
+          Authorization: token ? `Bearer ${token}` : "fuckingIdiot",
+        },
+      }));
+
       return forward(operation);
     });
 
-    // Build the complete link chain for SSR and client-side requests
+    // Combine the authLink with the httpLink
     const link =
       typeof window === "undefined"
         ? ApolloLink.from([
-            new SSRMultipartLink({
-              stripDefer: true,
-            }),
-            authLink, // Add authLink here
-            httpLink,
-          ])
-        : concat(authLink, httpLink); // Combine authLink with httpLink on the client side
+          new SSRMultipartLink({
+            stripDefer: true,
+          }),
+          authLink,
+          httpLink,
+        ])
+        : concat(authLink, httpLink);
 
     // Create the Apollo client instance
     return new ApolloClient({
@@ -47,7 +49,6 @@ export function ApolloWrapper({ children }: React.PropsWithChildren) {
     });
   };
 
-  // Pass makeClient to ApolloNextAppProvider instead of the client directly
   return (
     <ApolloNextAppProvider makeClient={makeClient}>
       {children}

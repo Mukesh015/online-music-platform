@@ -25,7 +25,7 @@ const uploadMusic = async (music: File): Promise<UploadResult> => {
   return uploadUrl;
 };
 
-const uploadMusicThumbnail = async (thumbnail: File): Promise<UploadResult> => {
+const uploadMusicThumbnail = async (thumbnail: Blob): Promise<UploadResult> => {
   const urlRef = ref(storage, `Musics/${Date.now()}`);
   const uploadUrl = await uploadBytes(urlRef, thumbnail);
   return uploadUrl;

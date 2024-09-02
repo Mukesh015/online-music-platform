@@ -3,8 +3,10 @@ import TextField from "@mui/material/TextField";
 import React, { useCallback, useState } from "react";
 import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
-import { uploadMusic, getDownloadLink, auth } from "@/config/firebase/config";
+import { uploadMusic, getDownloadLink, auth, uploadMusicThumbnail } from "@/config/firebase/config";
+import { decodeMetaData, decodeMetaDataToBlob } from "@/lib/musicMetadata";
 import { useAuthToken } from "@/providers/authTokenProvider";
+
 
 interface Props {
     isOpen: boolean;
@@ -15,7 +17,7 @@ interface Props {
 const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
     const { token } = useAuthToken();
     const [uploadFile, setUploadFile] = useState<File | null>(null);
-
+    const [imageBlob, setImageBlob] = useState<Blob | null>(null);
     const handleClosePopup = () => {
         onClose();
         setUploadFile(null);
@@ -24,56 +26,64 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
     const handleSetUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setUploadFile(e.target.files[0]);
+            const blob = await decodeMetaDataToBlob(e.target.files[0]);
+            setImageBlob(blob);
         }
     };
 
-    // const handleSentMusicDetails = useCallback(async (link: string) => {
-    //     if (uploadFile) {
-    //         try {
-    //             const metadata = await decodeMetaData(uploadFile); // Get metadata like title and artist
+    const handleSentMusicDetails = useCallback(async (link: string, thumbnailLink: string) => {
+        if (uploadFile && imageBlob) {
+            try {
+                const metadata = await decodeMetaData(uploadFile);
 
-    //             // Prepare form data
-    //             const formData = new FormData();
-    //             formData.append('musicUrl', link);
-    //             formData.append('musicTitle', metadata?.title || '');
-    //             formData.append('musicArtist', metadata?.artist || '');
-    //             formData.append('thumbnailUrl', blob, 'thumbnail.png'); // Append Blob as file
 
-    //             const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'authorization': `Bearer ${token}`,
-    //                 },
-    //                 body: formData, // Use formData instead of JSON.stringify
-    //             });
-
-    //             if (response.ok) {
-    //                 console.log("Music details synced successfully", response);
-    //                 setUploadFile(null);
-    //             } else {
-    //                 console.error("Failed to sync music details, please try again");
-    //                 setUploadFile(null);
-    //             }
-    //         } catch (e) {
-    //             console.error("Failed to send details, server error", e);
-    //         }
-    //     }
-    // }, [token, uploadFile]);
+                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        musicUrl: link,
+                        musicTitle: metadata?.title || '',
+                        musicArtist: metadata?.artist || '',
+                        thumbnailUrl: thumbnailLink,
+                    }),
+                });
+                const responseData = await response.json();
+                if (response.ok) {
+                    console.log("Music details synced successfully", responseData);
+                    setUploadFile(null);
+                } else {
+                    console.error("Failed to sync music details, please try again",responseData);
+                    setUploadFile(null);
+                }
+            } catch (e) {
+                console.error("Failed to send details, server error", e);
+            }
+        }
+    }, [token, uploadFile,imageBlob]);
 
 
     const handleMusicUpload = useCallback(async () => {
         try {
-            if (uploadFile) {
+            if (uploadFile && imageBlob) {
+                console.log("Uploading")
                 const result = await uploadMusic(uploadFile);
                 const musicPath = result.ref.fullPath;
                 const musicLink = await getDownloadLink(musicPath);
                 console.log("Music uploaded successfully", musicLink);
-                // handleSentMusicDetails(musicLink);
+                const thumbnail = await uploadMusicThumbnail(imageBlob)
+                console.log("Thumbnail uploaded successfully", thumbnail);
+                const thumbnailPath = thumbnail.ref.fullPath;
+                const thumbnailLink = await getDownloadLink(thumbnailPath);
+                console.log("Thumbnail uploaded successfully", thumbnailLink)
+                handleSentMusicDetails(musicLink, thumbnailLink);
             }
         } catch (e) {
             console.error("File uploading failed", e);
         }
-    }, [ uploadFile]);
+    }, [handleSentMusicDetails, uploadFile,imageBlob]);
 
     return (
         <>
@@ -90,7 +100,7 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                                 <p className="text-xs text-gray-500">File should be of format .mp4, .avi, .mov or .mkv</p>
                             </div>
                             <form action="#" className="relative w-4/5 h-32 max-w-xs mb-10 bg-gray-100 rounded-lg shadow-inner">
-                                <input onChange={handleSetUploadFile} accept=".mp3" type="file" id="file-upload" className="hidden" />
+                                <input onChange={handleSetUploadFile} type="file" id="file-upload" className="hidden" />
                                 <label htmlFor="file-upload" className="z-20 flex flex-col-reverse items-center justify-center w-full h-full cursor-pointer">
                                     <p className="z-10 text-xs font-light text-center text-gray-500">Drag & Drop your files here</p>
                                     <svg className="z-10 w-8 h-8 text-indigo-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">

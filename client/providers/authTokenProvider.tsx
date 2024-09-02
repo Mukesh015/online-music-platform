@@ -1,8 +1,9 @@
 "use client";
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { auth } from "@/config/firebase/config";
+import { useDispatch } from 'react-redux';
+import { setToken } from "@/lib/resolvers/auth";
 
-// Define the shape of the context
 interface AuthTokenContextType {
     token: string | null;
 }
@@ -12,35 +13,38 @@ const AuthTokenContext = createContext<AuthTokenContextType | undefined>(undefin
 
 // Create the provider component
 export const AuthTokenProvider = ({ children }: { children: ReactNode }) => {
-    const [token, setToken] = useState<string | null>(null);
+    const dispatch = useDispatch();
+    const [token, setLocalToken] = useState<string | null>(null);
 
-    // Fetch the token when the component mounts
     useEffect(() => {
         const fetchToken = async () => {
-            if (auth.currentUser) {
-                const idToken = await auth.currentUser.getIdToken();
-                setToken(idToken);
-                console.log("Token fetched: ", idToken);
-            }
+            // Firebase auth state listener
+            const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    try {
+                        const idToken = await user.getIdToken();
+                        setLocalToken(idToken); // Update local state
+                        dispatch(setToken(idToken)); // Update Redux store
+                        console.log("Token fetched: ", idToken);
+                    } catch (error) {
+                        console.error("Error fetching token: ", error);
+                        setLocalToken(""); // Update local state
+                        dispatch(setToken("")); // Update Redux store
+                    }
+                } else {
+                    // User is signed out
+                    setLocalToken(""); // Update local state
+                    dispatch(setToken("")); // Update Redux store
+                }
+            });
+
+            // Cleanup listener on unmount
+            return () => unsubscribe();
         };
 
         fetchToken();
+    }, [dispatch]); // Empty dependency array to run only once when the component mounts
 
-        // Optionally, you can listen for auth state changes
-        const unsubscribe = auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                const idToken = await user.getIdToken();
-                setToken(idToken);
-            } else {
-                setToken(null);
-            }
-        });
-
-        // Clean up the listener
-        return () => unsubscribe();
-    }, []);
-
-    // Provide the token and refresh function
     return (
         <AuthTokenContext.Provider value={{ token }}>
             {children}
