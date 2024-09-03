@@ -11,6 +11,8 @@ import { SignupModule } from './signup/signup.module';
 import { MyLoggerModule } from './my-logger/my-logger.module';
 import { MiddlewareModule } from './middleware/middleware.module';
 import { AuthguardModule } from './authguard/authguard.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 // Determine schema file path and load schema if in production
 const schemaFilePath = process.env.NODE_ENV === 'production'
@@ -39,6 +41,10 @@ const schema = schemaFilePath ? makeExecutableSchema({
   ],
   providers: [
     AppResolver,
+    AppService
   ],
+  controllers:[
+    AppController
+  ]
 })
 export class AppModule {}
