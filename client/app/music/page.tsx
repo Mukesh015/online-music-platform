@@ -6,14 +6,20 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import WebMusicPlayer from "@/components/webmusicplayer";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import { gql, useQuery } from '@apollo/client';
 import FileInput from '@/components/fileInput';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Image from 'next/image';
 import { RootState } from '@/lib/store';
 import { useSelector } from 'react-redux';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const TEST_QUERY = gql`
     {
@@ -29,6 +35,7 @@ const TEST_QUERY = gql`
 
 const MusicPage: React.FC = () => {
 
+    const [showMenu, setshowMenu] = React.useState<null | HTMLElement>(null);
     const [isOpenFileInput, setIsOpenFileInput] = useState<boolean>(false);
     const [showMobilemenu, setShowMobileMenu] = useState<boolean>(false);
     const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
@@ -36,6 +43,15 @@ const MusicPage: React.FC = () => {
     const { loading, error, data, refetch } = useQuery(TEST_QUERY);
 
     const token = useSelector((state: RootState) => state.authToken.token);
+
+    const open = Boolean(showMenu);
+
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setshowMenu(event.currentTarget);
+    };
+    const handleClose = () => {
+        setshowMenu(null);
+    };
 
     const handleToggleFileInputPopup = () => {
         setIsOpenFileInput(!isOpenFileInput);
@@ -75,19 +91,19 @@ const MusicPage: React.FC = () => {
         if (error) {
             console.error('Error fetching data', error);
         }
-        if(token) {
+        if (token) {
             console.log("token getting token", token);
-            refetch(); 
+            refetch();
         }
-    }, [data, error,token]);
+    }, [data, error, refetch, token]);
 
     return (
         <>
             <div className="relative min-h-screen max-w-screen md:flex md:flex-row z-20 bg-slate-950 font-Montserrat">
-                <div className="pt-20 p-5 md:pt-28">
-                    <div className="flex flex-col gap-7 md:w-[55vw] md:overflow-x-auto">
+                <div className="pt-20 p-5 md:pt-28 md:pl-10 md:pr-10">
+                    <div className="flex flex-col gap-7 md:w-[90vw] md:overflow-x-auto">
                         <section id='dekstop-view' className="hidden md:flex flex-row justify-between text-white text-xl items-center">
-                            <h1>Recent Songs</h1>
+                            <h1 className='ml-10'>Recent Songs</h1>
                             <section className="flex gap-10 flex-row items-center">
                                 <Tooltip title="search">
                                     <IconButton color="secondary" aria-label="search-icon">
@@ -144,7 +160,7 @@ const MusicPage: React.FC = () => {
                             </IconButton>
                         </section>
                         <section className="flex flex-col w-full md:w-auto ">
-                            <div className="flex flex-row gap-3 w-full hover:bg-slate-800 md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
+                            <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
                                 <div>
                                     <Image
                                         className='rounded-full'
@@ -159,12 +175,53 @@ const MusicPage: React.FC = () => {
                                         Bol do na zara slowrd+reverbed lofi
                                     </p>
                                     <p className="justify-between flex flex-row">
-                                        <span className="space-x-2">
-                                            <span>Artist :</span>
-                                            <span>Arijit Singh</span>
-                                        </span>
-                                        <span className="text-blue-500">2:30</span>
+                                        <span className="space-x-2">Artist : Arijit Singh</span>
                                     </p>
+                                </div>
+                                <div>
+                                    <IconButton
+                                    color='primary'
+                                        aria-label="more"
+                                        id="long-button"
+                                        aria-controls={open ? 'long-menu' : undefined}
+                                        aria-expanded={open ? 'true' : undefined}
+                                        aria-haspopup="true"
+                                        onClick={handleClick}
+                                    >
+                                        <MoreVertIcon />
+                                    </IconButton>
+                                    <Menu
+                                        id="long-menu"
+                                        MenuListProps={{
+                                            'aria-labelledby': 'long-button',
+                                        }}
+                                        anchorEl={showMenu}
+                                        open={open}
+                                        onClose={handleClose}
+                                        sx={{
+                                            '& .MuiPaper-root': {
+                                                backgroundColor: '#2d2d2d', // Set background color to black
+                                                color: '#ffffff', // Set text color to white for contrast
+                                            },
+                                        }}
+                                    >
+                                        <MenuItem className='flex flex-row gap-2 items-center'>
+                                            <PlayArrowIcon />
+                                            <span>Play</span>
+                                        </MenuItem>
+                                        <MenuItem className='flex flex-row gap-2 items-center'>
+                                            <FavoriteIcon />
+                                            <span>Add to Favorite</span>
+                                        </MenuItem>
+                                        <MenuItem className='flex flex-row gap-2 items-center'>
+                                            <FileDownloadIcon />
+                                            <span>Download</span>
+                                        </MenuItem>
+                                        <MenuItem className='flex flex-row gap-2 items-center'>
+                                            <DeleteIcon />
+                                            <span>Delete</span>
+                                        </MenuItem>
+                                    </Menu>
                                 </div>
                             </div>
                             <div className="border border-slate-800"></div>
@@ -172,7 +229,7 @@ const MusicPage: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <WebMusicPlayer musicLink={"https://firebasestorage.googleapis.com/v0/b/musically-76a5d.appspot.com/o/Musics%2Fsanam.mp3?alt=media&token=7b18d86a-cea3-4828-831d-6b49b3574104"} />
+                    <WebMusicPlayer musicLink={"https://firebasestorage.googleapis.com/v0/b/musically-76a5d.appspot.com/o/Musics%2FAasa%20Kooda%20Sai%20Abhyankkar%20128%20Kbps.mp3_1725310478040?alt=media&token=9e695c52-55b3-4bad-aec3-af12600a3999"} />
                 </div>
             </div>
             <FileInput isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />

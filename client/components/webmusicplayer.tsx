@@ -90,101 +90,12 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
 
     return (
         <>
-            <div className="hidden md:flex text-white pt-28 gap-7 p-5 md:flex-col md:items-center md:w-full">
-                <Image id="player-thumbnail" height={350} width={350} className="rounded-md" src={"https://filmfare.wwmindia.com/content/2022/jun/bollywood-films-that-had-to-change-their-titles-goliyon-ki-raasleela-ram-leela.jpg"} alt="" />
-                <section className="mt-5 flex flex-row items-center space-x-2 justify-between">
-                    <Lottie className="w-10 h-10" animationData={musicWave} />  
-                    <h2 className="text-sm text-slate-500 max-w-96">Sanam Teri Kasam (Lofi)</h2>
-                </section>
-                <section className=" w-[30vw] flex flex-row gap-10">
-                    <Tooltip title="toggle loop">
-                        <IconButton color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
-                            {isLooping ? (
-                                <RepeatIcon fontSize="large" color="primary" />
-                            ) : (
-                                <RepeatOneIcon fontSize="large" color="primary" />
-                            )}
-                        </IconButton>
-                    </Tooltip>
-                    <section
-                        className="flex flex-row items-center gap-2 relative"
-                        onMouseEnter={() => setShowVolumeSlider(true)}
-                        onMouseLeave={() => setShowVolumeSlider(false)}
-                    >
-                        <Tooltip title="volume">
-
-                            <IconButton color="primary" aria-label="volume">
-                                <VolumeUp />
-                            </IconButton>
-                        </Tooltip>
-
-                        <div className={`absolute left-10 ${showVolumeSlider ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 items-center flex`}>
-                            <Slider
-                                className="w-[10vw]"
-                                size="small"
-                                value={volume}
-                                min={0}
-                                max={100}
-                                step={1}
-                                onChange={(event, newValue) => setVolume(typeof newValue === "number" ? newValue : 50)}
-                                aria-label="Volume"
-                                valueLabelDisplay="auto"
-                            />
-                        </div>
-                    </section>
-                    <Tooltip title="Add to favorite">
-                        <IconButton className="ml-56" color="primary" aria-label="favorite" onClick={toggleFavorite}>
-                            {isFavorite ? <FavoriteIcon fontSize="large" color="secondary" /> : <FavoriteBorderIcon fontSize="large" />}
-                        </IconButton>
-                    </Tooltip>
-                </section>
-                <audio ref={musicRef} src={musicLink} />
-                <section className="flex flex-row items-center gap-3">
-                    <span>{formatTime(currentTime)}</span>
-                    <Slider
-                        className="w-[22vw]"
-                        size="small"
-                        value={currentTime}
-                        min={0}
-                        max={duration}
-                        onChange={handleSeek}
-                        aria-label="Time"
-                        valueLabelDisplay="auto"
-                    />
-                    <span>{formatTime(duration)}</span>
-                </section>
-                <section className="flex flex-row justify-around w-[30vw]">
-                    <Tooltip title="previous">
-                        <IconButton color="primary" aria-label="previous">
-                            <SkipPreviousIcon fontSize="large" />
-                        </IconButton>
-                    </Tooltip>
-                    <section className="flex flex-row gap-4">
-                        <Tooltip title="-10 sec">
-                            <IconButton color="primary" aria-label="fastrewind" onClick={() => handleSkip(-10)}>
-                                <FastRewindIcon fontSize="large" />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="play/pause">
-                            <IconButton color="primary" aria-label="play" onClick={togglePlayPause}>
-                                {isPlaying ? <PauseCircleIcon fontSize="large" /> : <PlayCircleIcon fontSize="large" />}
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="+10 sec">
-                            <IconButton color="primary" aria-label="fastforward" onClick={() => handleSkip(10)}>
-                                <FastForwardIcon fontSize="large" />
-                            </IconButton>
-                        </Tooltip>
-                    </section>
-                    <Tooltip title="next">
-                        <IconButton color="primary" aria-label="next">
-                            <SkipNextIcon fontSize="large" />
-                        </IconButton>
-                    </Tooltip>
-                </section>
+            <div className="fixed border bottom-1 w-full right-0 h-16">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Maiores, quia?
             </div>
         </>
     );
 };
 
 export default WebMusicPlayer;
+
