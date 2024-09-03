@@ -104,9 +104,17 @@ const MusicPage: React.FC = () => {
                     <div className="flex flex-col gap-7 md:w-[90vw] md:overflow-x-auto">
                         <section id='dekstop-view' className="hidden md:flex flex-row justify-between text-white text-xl items-center">
                             <h1 className='ml-10'>Recent Songs</h1>
+                            <Tooltip title="search songs">
+                                <section className='flex'>
+                                    <input className='w-[40rem] hidden md:flex bg-inherit border border-slate-500 rounded-3xl text-white text-sm py-2 px-4' placeholder='Enter song name here ...' type="text" />
+                                    <IconButton className='fixed right-[31rem]' color="secondary" aria-label="search-icon">
+                                        <SearchIcon fontSize="medium" />
+                                    </IconButton>
+                                </section>
+                            </Tooltip>
                             <section className="flex gap-10 flex-row items-center">
                                 <Tooltip title="search">
-                                    <IconButton color="secondary" aria-label="search-icon">
+                                    <IconButton className='md:hidden' color="secondary" aria-label="search-icon">
                                         <SearchIcon fontSize="medium" />
                                     </IconButton>
                                 </Tooltip>
@@ -172,7 +180,7 @@ const MusicPage: React.FC = () => {
                                 </div>
                                 <div className="text-slate-500 w-full overflow-hidden">
                                     <p className="whitespace-nowrap">
-                                        Bol do na zara slowrd+reverbed lofi
+                                        Bol do na zara slowrd+
                                     </p>
                                     <p className="justify-between flex flex-row">
                                         <span className="space-x-2">Artist : Arijit Singh</span>
@@ -180,7 +188,7 @@ const MusicPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <IconButton
-                                    color='primary'
+                                        color='primary'
                                         aria-label="more"
                                         id="long-button"
                                         aria-controls={open ? 'long-menu' : undefined}
