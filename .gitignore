@@ -6,7 +6,7 @@ server/node_modules
 /client/.pnp.js
 /client/.yarn/install-state.gz
 
-/server/docker-compose.yml
+
 
 # testing
 /coverage
@@ -45,4 +45,3 @@ yarn-error.log*
 /server/logs/
 /server/.env
 *.yml
-/server/docker-compose.yml
