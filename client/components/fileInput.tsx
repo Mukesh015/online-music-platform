@@ -6,22 +6,26 @@ import IconButton from '@mui/material/IconButton';
 import { uploadMusic, getDownloadLink, auth, uploadMusicThumbnail } from "@/config/firebase/config";
 import { decodeMetaData, decodeMetaDataToBlob } from "@/lib/musicMetadata";
 import { useAuthToken } from "@/providers/authTokenProvider";
-
+import CircularProgress from '@mui/material/CircularProgress';
 
 interface Props {
     isOpen: boolean;
     visible: string;
     onClose: () => void;
+    showAlert: () => void;
 }
 
-const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
+const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert }) => {
     const { token } = useAuthToken();
     const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [imageBlob, setImageBlob] = useState<Blob | null>(null);
-    const handleClosePopup = () => {
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const handleClosePopup = useCallback(() => {
         onClose();
         setUploadFile(null);
-    }
+        setIsLoading(false);
+    }, [onClose])
 
     const handleSetUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -35,7 +39,6 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
         if (uploadFile && imageBlob) {
             try {
                 const metadata = await decodeMetaData(uploadFile);
-
 
                 const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
                     method: 'POST',
@@ -55,20 +58,24 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                     console.log("Music details synced successfully", responseData);
                     setUploadFile(null);
                 } else {
-                    console.error("Failed to sync music details, please try again",responseData);
+                    console.error("Failed to sync music details, please try again", responseData);
                     setUploadFile(null);
                 }
+                handleClosePopup();
+                showAlert();
             } catch (e) {
                 console.error("Failed to send details, server error", e);
+                handleClosePopup();
+                showAlert();
             }
         }
-    }, [token, uploadFile,imageBlob]);
+    }, [uploadFile, imageBlob, token, handleClosePopup, showAlert]);
 
 
     const handleMusicUpload = useCallback(async () => {
         try {
             if (uploadFile && imageBlob) {
-                console.log("Uploading")
+                setIsLoading(true);
                 const result = await uploadMusic(uploadFile);
                 const musicPath = result.ref.fullPath;
                 const musicLink = await getDownloadLink(musicPath);
@@ -83,7 +90,7 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
         } catch (e) {
             console.error("File uploading failed", e);
         }
-    }, [handleSentMusicDetails, uploadFile,imageBlob]);
+    }, [handleSentMusicDetails, uploadFile, imageBlob]);
 
     return (
         <>
@@ -111,7 +118,10 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible }) => {
                             </form>
                             <section className="flex flex-row justify-end gap-5 pb-10 w-full pr-5">
                                 <Button onClick={() => handleClosePopup()} variant="text">Close</Button>
-                                <Button onClick={() => handleMusicUpload()} variant="contained">Upload</Button>
+                                <Button disabled={isLoading} id="upload-btn" onClick={() => handleMusicUpload()} variant="contained">
+                                    {isLoading && <CircularProgress className="mr-2" color="inherit" size={17} />}
+                                    Upload
+                                </Button>
                             </section>
                         </div>
                     ) : (

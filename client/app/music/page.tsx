@@ -20,6 +20,8 @@ import { useSelector } from 'react-redux';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Alert from '@mui/material/Alert';
+
 
 const TEST_QUERY = gql`
     {
@@ -41,10 +43,14 @@ const MusicPage: React.FC = () => {
     const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
     const [fileInputVisibleProps, setFileInputVisibleProps] = useState<string>("")
     const { loading, error, data, refetch } = useQuery(TEST_QUERY);
+    const [showAlert, setShowAlert] = useState<boolean | null>(null);
+
 
     const token = useSelector((state: RootState) => state.authToken.token);
 
     const open = Boolean(showMenu);
+
+    const handleShowAlert = () => setShowAlert(true);
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setshowMenu(event.currentTarget);
@@ -240,7 +246,13 @@ const MusicPage: React.FC = () => {
                     <WebMusicPlayer musicLink={"https://firebasestorage.googleapis.com/v0/b/musically-76a5d.appspot.com/o/Musics%2FAasa%20Kooda%20Sai%20Abhyankkar%20128%20Kbps.mp3_1725310478040?alt=media&token=9e695c52-55b3-4bad-aec3-af12600a3999"} />
                 </div>
             </div>
-            <FileInput isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
+            <FileInput showAlert={handleShowAlert} isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
+            {showAlert &&
+                <Alert className='fixed top-80 left-[37rem] z-50' severity="error" onClose={() => { setShowAlert(false) }}>
+                    This Alert displays the default close icon.
+                </Alert>
+            }
+
         </>
     );
 };
