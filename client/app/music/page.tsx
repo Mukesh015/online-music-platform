@@ -43,14 +43,19 @@ const MusicPage: React.FC = () => {
     const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
     const [fileInputVisibleProps, setFileInputVisibleProps] = useState<string>("")
     const { loading, error, data, refetch } = useQuery(TEST_QUERY);
-    const [showAlert, setShowAlert] = useState<boolean | null>(null);
+    const [showAlert, setShowAlert] = useState<boolean>(true);
 
 
     const token = useSelector((state: RootState) => state.authToken.token);
 
     const open = Boolean(showMenu);
 
-    const handleShowAlert = () => setShowAlert(true);
+    const handleShowAlert = () => {
+        setShowAlert(true);
+        setTimeout(() => {
+            setShowAlert(false);
+        }, 3000);
+    };
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setshowMenu(event.currentTarget);
@@ -248,7 +253,7 @@ const MusicPage: React.FC = () => {
             </div>
             <FileInput showAlert={handleShowAlert} isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
             {showAlert &&
-                <Alert className='fixed top-80 left-[37rem] z-50' severity="error" onClose={() => { setShowAlert(false) }}>
+                <Alert className='fixed top-5 right-5 z-50' severity="error" onClose={() => { setShowAlert(false) }}>
                     This Alert displays the default close icon.
                 </Alert>
             }
