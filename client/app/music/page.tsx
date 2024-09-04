@@ -43,7 +43,7 @@ const MusicPage: React.FC = () => {
     const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
     const [fileInputVisibleProps, setFileInputVisibleProps] = useState<string>("")
     const { loading, error, data, refetch } = useQuery(TEST_QUERY);
-    const [showAlert, setShowAlert] = useState<boolean>(true);
+    const [showAlert, setShowAlert] = useState<boolean>(false);
 
 
     const token = useSelector((state: RootState) => state.authToken.token);
