@@ -25,7 +25,6 @@ export const AuthTokenProvider = ({ children }: { children: ReactNode }) => {
                         const idToken = await user.getIdToken();
                         setLocalToken(idToken); // Update local state
                         dispatch(setToken(idToken)); // Update Redux store
-                        console.log("Token fetched: ", idToken);
                     } catch (error) {
                         console.error("Error fetching token: ", error);
                         setLocalToken(""); // Update local state

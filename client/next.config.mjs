@@ -4,7 +4,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "filmfare.wwmindia.com",
+        hostname: "firebasestorage.googleapis.com",
       },
       {
         protocol: "https",
@@ -12,24 +12,8 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "imgv3.fotor.com",
-      },
-      {
-        protocol: "https",
-        hostname: "i.ytimg.com",
-      },
-      {
-        protocol: "https",
-        hostname: "static.vecteezy.com",
-      },
-      {
-        protocol: "https",
-        hostname: "upload.wikimedia.org",
-      },
-      {
-        protocol: "https",
         hostname: "img.wynk.in",
-      }
+      },
     ],
   },
 };
