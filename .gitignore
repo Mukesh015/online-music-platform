@@ -44,6 +44,5 @@ yarn-error.log*
 /server/dist/
 /server/logs/
 /server/.env
-/server/Dockerfile
 *.yml
 /server/docker-compose.yml
