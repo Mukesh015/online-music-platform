@@ -21,6 +21,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Alert from '@mui/material/Alert';
+import SearchSuggestion from '@/components/searchSuggestion';
 
 
 const TEST_QUERY = gql`
@@ -118,6 +119,7 @@ const MusicPage: React.FC = () => {
                             <Tooltip title="search songs">
                                 <section className='flex'>
                                     <input className='w-[40rem] hidden md:flex bg-inherit border border-slate-500 rounded-3xl text-white text-sm py-2 px-4' placeholder='Enter song name here ...' type="text" />
+                                    <SearchSuggestion />
                                     <IconButton className='fixed right-[31rem]' color="secondary" aria-label="search-icon">
                                         <SearchIcon fontSize="medium" />
                                     </IconButton>
