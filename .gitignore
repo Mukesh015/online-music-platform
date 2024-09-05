@@ -45,3 +45,4 @@ yarn-error.log*
 /server/logs/
 /server/.env
 *.yml
+cors.json

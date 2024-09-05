@@ -21,7 +21,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Alert from '@mui/material/Alert';
-
+import {downLoadMusic} from '@/config/firebase/config'
 
 const TEST_QUERY = gql`
     {
@@ -97,16 +97,9 @@ const MusicPage: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        console.log(data);
-        if (error) {
-            console.error('Error fetching data', error);
-        }
-        if (token) {
-            console.log("token getting token", token);
-            refetch();
-        }
-    }, [data, error, refetch, token]);
+
+
+
 
     return (
         <>
@@ -219,8 +212,8 @@ const MusicPage: React.FC = () => {
                                         onClose={handleClose}
                                         sx={{
                                             '& .MuiPaper-root': {
-                                                backgroundColor: '#2d2d2d', // Set background color to black
-                                                color: '#ffffff', // Set text color to white for contrast
+                                                backgroundColor: '#2d2d2d', 
+                                                color: '#ffffff', 
                                             },
                                         }}
                                     >
@@ -232,7 +225,7 @@ const MusicPage: React.FC = () => {
                                             <FavoriteIcon />
                                             <span>Add to Favorite</span>
                                         </MenuItem>
-                                        <MenuItem className='flex flex-row gap-2 items-center'>
+                                        <MenuItem className='flex flex-row gap-2 items-center' onClick={() => downLoadMusic("https://firebasestorage.googleapis.com/v0/b/musically-76a5d.appspot.com/o/Musics%2F02%20-%20Chhupana%20Bhi%20Nahin%20Aata%20-%20DownloadMing.SE.mp3_1725467796093?alt=media&token=c4b3e99d-1e63-4c7a-bf3c-f42d7e2fb099")}>
                                             <FileDownloadIcon />
                                             <span>Download</span>
                                         </MenuItem>
@@ -248,7 +241,7 @@ const MusicPage: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <WebMusicPlayer musicLink={"https://firebasestorage.googleapis.com/v0/b/musically-76a5d.appspot.com/o/Musics%2FAasa%20Kooda%20Sai%20Abhyankkar%20128%20Kbps.mp3_1725310478040?alt=media&token=9e695c52-55b3-4bad-aec3-af12600a3999"} />
+                    <WebMusicPlayer musicLink={"https://firebasestorage.googleapis.com/v0/b/musically-76a5d.appspot.com/o/Musics%2F02%20-%20Chhupana%20Bhi%20Nahin%20Aata%20-%20DownloadMing.SE.mp3_1725467796093?alt=media&token=c4b3e99d-1e63-4c7a-bf3c-f42d7e2fb099"} />
                 </div>
             </div>
             <FileInput showAlert={handleShowAlert} isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />

@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, Res } from '@nestjs/common';
 import { MusicService } from './music.service';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
-import { error } from 'console';
-import { json } from 'node:stream/consumers';
+import * as path from 'path';
+
 
 @Controller('music')
 export class MusicController {
@@ -140,4 +140,5 @@ export class MusicController {
       });
     }
   }
+ 
 }

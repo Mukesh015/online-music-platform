@@ -35,4 +35,31 @@ const getDownloadLink = async (path: string): Promise<string> => {
   return await getDownloadURL(ref(storage, path));
 };
 
-export { app, auth, uploadMusic, getDownloadLink ,uploadMusicThumbnail}
+
+
+
+const downLoadMusic = async (musicUrl: string) => {
+
+  try {
+    const downloadUrl = await getDownloadURL(ref(storage, musicUrl));
+
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = 'your_mp3_file.mp3';
+    link.style.display = 'none';
+
+
+    document.body.appendChild(link);
+
+
+    link.click();
+
+
+
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error downloading MP3:', error);
+  }
+}
+
+export { app, auth, uploadMusic, getDownloadLink, uploadMusicThumbnail, downLoadMusic }

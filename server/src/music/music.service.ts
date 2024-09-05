@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { CreateMusicInput } from './dto/create-music.input';
+// import { CreateMusicInput } from './dto/create-music.input';
 import { Prisma } from '@prisma/client';
-import { Music} from './entities/music.entity'
+import { Music } from './entities/music.entity'
+import { firebaseAdmin } from '../firebase-admin.validation';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class MusicService {
@@ -292,11 +295,13 @@ export class MusicService {
         musicTitle: true,
         musicArtist: true,
         createdAt: true,
-     
+
       },
     });
 
 
     return musicList;
   }
-}  
+
+}
+
