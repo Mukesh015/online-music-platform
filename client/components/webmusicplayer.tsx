@@ -102,7 +102,7 @@ const WebMusicPlayer: React.FC<Props> = ({ musicLink }) => {
                     aria-label="Time"
                     valueLabelDisplay="auto"
                 />
-                <div className="md:pl-10 md:pr-10 pl-3 pr-3 mt-7 md:mt-5">
+                <div className="md:pl-10 md:pr-10 pl-3 pr-3 mt-2 md:mt-5">
                     <div className="flex flex-row gap-2 items-center justify-between md:justify-normal">
                         <section className="flex flex-row gap-1 items-center md:gap-3">
                             <Image className="rounded-md" height={40} width={40} src={"https://img.wynk.in/unsafe/250x250/filters:no_upscale():strip_exif():format(webp)/http://s3.ap-south-1.amazonaws.com/wynk-music-cms/srch_universalmusic/00602465891379_20240822112644251/1724327403985/24UMGIM61704_T1_cvrart.jpg"} alt="Thumbnail" />
