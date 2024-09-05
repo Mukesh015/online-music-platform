@@ -14,6 +14,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "img.wynk.in",
       },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
+      },
     ],
   },
 };

@@ -7,6 +7,28 @@ import { uploadMusic, getDownloadLink, auth, uploadMusicThumbnail } from "@/conf
 import { decodeMetaData, decodeMetaDataToBlob } from "@/lib/musicMetadata";
 import { useAuthToken } from "@/providers/authTokenProvider";
 import CircularProgress from '@mui/material/CircularProgress';
+import { gql, useQuery } from "@apollo/client";
+
+const getUserMusics = gql`{
+    getMusicByUserId{
+        id
+        musicUrl
+        isFavourite
+        musicTitle
+        thumbnailUrl
+        musicArtist
+    }
+}
+`
+
+interface MusicDetail {
+    id: number;
+    musicUrl: string;
+    isFavourite: boolean;
+    musicTitle: string;
+    thumbnailUrl: string;
+    musicArtist: string;
+}
 
 interface Props {
     isOpen: boolean;
@@ -17,9 +39,11 @@ interface Props {
 
 const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert }) => {
     const { token } = useAuthToken();
+    const { loading, error, data } = useQuery(getUserMusics);
     const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [imageBlob, setImageBlob] = useState<Blob | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [musicDetails, setMusicDetails] = useState<MusicDetail[]>([]);
 
     const handleClosePopup = useCallback(() => {
         onClose();
@@ -92,6 +116,13 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert }) => 
         }
     }, [handleSentMusicDetails, uploadFile, imageBlob]);
 
+    useEffect(() => {
+        if (data && data.getMusicByUserId) {
+            setMusicDetails(data.getMusicByUserId);
+            console.log(data.getMusicByUserId);
+        }
+    }, [data]);
+
     return (
         <>
             {isOpen &&
@@ -135,12 +166,14 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert }) => 
                             </section>
                             <section className="max-w-[75vw] overflow-y-auto mt-5 flex flex-col bg-gray-100 md:w-[40vw] rounded-md h-[40vh] p-1.5">
                                 <h3 className="text-red-500 text-sm mb-3">wanna add some music</h3>
-                                <div className="flex flex-row gap-2 items-center justify-between">
-                                    <p className="max-w-[60vw] overflow-hidden whitespace-nowrap ">Sanam teri kasam slowed + reverbed</p>
-                                    <IconButton color="primary" aria-label="add">
-                                        <AddIcon fontSize="small" />
-                                    </IconButton>
-                                </div>
+                                {musicDetails.map((music: MusicDetail) => (
+                                    <div key={music.id} className="flex flex-row gap-2 items-center justify-between">
+                                        <p className="max-w-[60vw] overflow-hidden whitespace-nowrap ">{music.musicTitle}</p>
+                                        <IconButton color="primary" aria-label="add">
+                                            <AddIcon fontSize="small" />
+                                        </IconButton>
+                                    </div>
+                                ))}
                             </section>
                             <section className="flex flex-row justify-end gap-5 pt-5 pb-10 w-full pr-5">
                                 <Button onClick={onClose} variant="text">Close</Button>

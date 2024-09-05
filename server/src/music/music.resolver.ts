@@ -33,6 +33,7 @@ export class MusicResolver {
   @UseGuards(AuthGuard)
   async getFavoriteMusicByUserId(@Context() context): Promise<Partial<Music>[]> {
     const userId = context.req['firebaseUserId'];
+
     if (userId === "null"||userId === "invalid") {
       return [];
     }

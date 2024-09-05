@@ -20,13 +20,12 @@ import { useSelector } from 'react-redux';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import Alert from '@mui/material/Alert';
 import SearchSuggestion from '@/components/searchSuggestion';
 import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import dynamic from 'next/dynamic';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import musicWave from "@/lottie/Animation - 1724571535854.json";
-
+import AlertPopup from '@/components/alert';
 
 const MusicQuery = gql`
     {
@@ -42,7 +41,17 @@ const MusicQuery = gql`
             thumbnailUrl
             musicArtist
         }
+        
+        getFavoriteMusicByUserId{
+            id
+            musicUrl
+            thumbnailUrl
+            musicTitle
+            musicArtist
+        
+        }
     }
+
 `;
 
 interface MusicDetail {
@@ -64,8 +73,11 @@ const MusicPage: React.FC = () => {
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [showSearchSuggestion, setShowSearchSuggestion] = useState<boolean>(false);
     const [musicDetails, setMusicDetails] = useState<MusicDetail[]>([]);
+    const [favoriteMusicDetails, setFavoriteMusicDetails] = useState<MusicDetail[]>([]);
     const [currentPlayingMusicDetails, setCurrentPlayingMusicDetails] = useState<MusicDetail[]>([]);
-
+    const [selectedMusicIdForMenu, setSelectedMusicIdForMenu] = useState<number | null>(null);
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [severity, setSeverity] = useState<boolean>(false);
 
     const token = useSelector((state: RootState) => state.authToken.token);
 
@@ -78,9 +90,11 @@ const MusicPage: React.FC = () => {
         }, 3000);
     };
 
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    const handleClick = (event: React.MouseEvent<HTMLElement>, id: string) => {
         setshowMenu(event.currentTarget);
+        setSelectedMusicIdForMenu(parseInt(id));
     };
+
     const handleClose = () => {
         setshowMenu(null);
     };
@@ -104,7 +118,7 @@ const MusicPage: React.FC = () => {
     }
 
     const handleToggleMobileMenu = () => {
-        setShowMobileMenu(!showMobilemenu); // Corrected typo in showMobileMenu
+        setShowMobileMenu(!showMobilemenu);
 
         const menu = document.getElementsByClassName("menu")[0] as HTMLElement;
 
@@ -122,10 +136,10 @@ const MusicPage: React.FC = () => {
         setCurrentPlayingMusicDetails([music])
     }
 
-    const handleAddToFav = useCallback(async (musicId: number) => {
+    const handleAddToFav = useCallback(async () => {
+        handleClose();
         try {
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/addtoFavorite/${musicId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/addtoFavorite/${selectedMusicIdForMenu}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -133,16 +147,23 @@ const MusicPage: React.FC = () => {
                 },
             })
             if (response.ok) {
-                console.log("Added music to favorites")
+                setAlertMessage("Song added to favorite");
+                setSeverity(true);
             }
             else {
-                console.error("Failed to add music to favorites")
+                setAlertMessage("Song added to favorite");
+                setSeverity(false);
             }
+            handleShowAlert();
+            refetch();
         }
         catch (error) {
+            setAlertMessage("Something went wrong, please try again");
+            setSeverity(false);
+            handleShowAlert();
             console.error("fetch error:", error);
         }
-    }, [token]);
+    }, [selectedMusicIdForMenu, token, refetch]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -165,11 +186,14 @@ const MusicPage: React.FC = () => {
         };
     }, [showSearchSuggestion]);
 
+    const displayedMusic = showFavoriteSongs ? favoriteMusicDetails : musicDetails;
+
     useEffect(() => {
 
         if (data) {
             setMusicDetails(data.getMusicByUserId);
-            console.log(data);
+            setFavoriteMusicDetails(data.getFavoriteMusicByUserId)
+            console.log("fetching", data);
         }
         if (error) {
             console.error('Error fetching data', error);
@@ -177,7 +201,7 @@ const MusicPage: React.FC = () => {
         if (token) {
             refetch();
         }
-    }, [data, error, refetch, token]);
+    }, [error, refetch, token, data]);
 
     return (
         <>
@@ -257,92 +281,83 @@ const MusicPage: React.FC = () => {
                                 </IconButton>
                             </section>
                             <div className='h-[70vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full'>
-                                {musicDetails
-                                    .filter(music => !showFavoriteSongs && music.isFavourite)
-                                    .map((music: MusicDetail) => (
-                                        <section onClick={() => handleSendMusicDetails(music)} key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
-                                            <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
-                                                <div>
-                                                    <Image
-                                                        className='rounded-full'
-                                                        height={50}
-                                                        width={50}
-                                                        src={music.thumbnailUrl}
-                                                        alt="album cover"
-                                                    />
-                                                </div>
-                                                <div className="w-full overflow-hidden space-y-2">
-                                                    <p className="whitespace-nowrap text-slate-300 ">{music.musicTitle}</p>
-                                                    <p className="justify-between flex flex-row">
-                                                        <span className="space-x-2 text-slate-500 text-[13px]">Artist : {music.musicArtist}</span>
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    {currentPlayingMusicDetails[0]?.id === music.id && <Lottie className='h-6 w-6' animationData={musicWave} />}
-                                                </div>
-                                                <div>
-                                                    <IconButton
-                                                        color='primary'
-                                                        aria-label="more"
-                                                        id="long-button"
-                                                        aria-controls={open ? 'long-menu' : undefined}
-                                                        aria-expanded={open ? 'true' : undefined}
-                                                        aria-haspopup="true"
-                                                        onClick={handleClick}
-                                                    >
-                                                        <MoreVertIcon />
-                                                    </IconButton>
-                                                    <Menu
-                                                        id="long-menu"
-                                                        MenuListProps={{
-                                                            'aria-labelledby': 'long-button',
-                                                        }}
-                                                        anchorEl={showMenu}
-                                                        open={open}
-                                                        onClose={handleClose}
-                                                        sx={{
-                                                            '& .MuiPaper-root': {
-                                                                backgroundColor: '#2d2d2d', // Set background color to black
-                                                                color: '#ffffff', // Set text color to white for contrast
-                                                            },
-                                                        }}
-                                                    >
-                                                        <MenuItem className='flex flex-row gap-2 items-center'>
-                                                            <PlayArrowIcon />
-                                                            <span>Play</span>
-                                                        </MenuItem>
-                                                        <MenuItem onClick={() => { handleAddToFav(parseInt(music.id)) }} className='flex flex-row gap-2 items-center'>
-                                                            <FavoriteIcon />
-                                                            <span>Add to Favorite</span>
-                                                        </MenuItem>
-                                                        <MenuItem className='flex flex-row gap-2 items-center'>
-                                                            <FileDownloadIcon />
-                                                            <span>Download</span>
-                                                        </MenuItem>
-                                                        <MenuItem className='flex flex-row gap-2 items-center'>
-                                                            <DeleteIcon />
-                                                            <span>Delete</span>
-                                                        </MenuItem>
-                                                    </Menu>
-                                                </div>
+                                {displayedMusic.map((music: MusicDetail) => (
+                                    <section onClick={() => handleSendMusicDetails(music)} key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
+                                        <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
+                                            <div>
+                                                <Image
+                                                    className='rounded-full'
+                                                    height={50}
+                                                    width={50}
+                                                    src={music.thumbnailUrl}
+                                                    alt="album cover"
+                                                />
                                             </div>
-                                            <div className="border border-slate-800"></div>
-                                        </section>
-                                    ))}
+                                            <div className="w-full overflow-hidden space-y-2">
+                                                <p className="whitespace-nowrap text-slate-300 ">{music.musicTitle}</p>
+                                                <p className="justify-between flex flex-row">
+                                                    <span className="space-x-2 text-slate-500 text-[13px]">Artist : {music.musicArtist}</span>
+                                                </p>
+                                            </div>
+                                            <div>
+                                                {currentPlayingMusicDetails[0]?.id === music.id && <Lottie className='h-6 w-6' animationData={musicWave} />}
+                                            </div>
+                                            <div >
+                                                <IconButton
+                                                    color='primary'
+                                                    aria-label="more"
+                                                    id="long-button"
+                                                    aria-controls={open ? 'long-menu' : undefined}
+                                                    aria-expanded={open ? 'true' : undefined}
+                                                    aria-haspopup="true"
+                                                    onClick={(event) => handleClick(event, music.id)}
+                                                >
+                                                    <MoreVertIcon />
+                                                </IconButton>
+                                                <Menu
+                                                    MenuListProps={{
+                                                        'aria-labelledby': 'long-button',
+                                                    }}
+                                                    anchorEl={showMenu}
+                                                    open={open}
+                                                    onClose={handleClose}
+                                                    sx={{
+                                                        '& .MuiPaper-root': {
+                                                            backgroundColor: '#2d2d2d',
+                                                            color: '#ffffff',
+                                                        },
+                                                    }}
+                                                >
+                                                    <MenuItem className='flex flex-row gap-2 items-center'>
+                                                        <PlayArrowIcon />
+                                                        <span>Play</span>
+                                                    </MenuItem>
+                                                    <MenuItem onClick={() => { handleAddToFav() }} className='flex flex-row gap-2 items-center'>
+                                                        <FavoriteIcon />
+                                                        <span>Add to Favorite</span>
+                                                    </MenuItem>
+                                                    <MenuItem className='flex flex-row gap-2 items-center'>
+                                                        <FileDownloadIcon />
+                                                        <span>Download</span>
+                                                    </MenuItem>
+                                                    <MenuItem className='flex flex-row gap-2 items-center'>
+                                                        <DeleteIcon />
+                                                        <span>Delete</span>
+                                                    </MenuItem>
+                                                </Menu>
+                                            </div>
+                                        </div>
+                                        <div className="border border-slate-800"></div>
+                                    </section>
+                                ))}
                             </div>
-
                         </div>
                     </div>
                     {currentPlayingMusicDetails.length > 0 && <WebMusicPlayer musicDetails={currentPlayingMusicDetails} />}
                 </div>
             )}
             <FileInput showAlert={handleShowAlert} isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
-            {showAlert &&
-                <Alert className='fixed top-5 right-5 z-50' severity="error" onClose={() => { setShowAlert(false) }}>
-                    This Alert displays the default close icon.
-                </Alert>
-            }
-
+            {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );
 };
