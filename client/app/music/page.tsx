@@ -1,6 +1,6 @@
 "use client"
 import Tooltip from '@mui/material/Tooltip';
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import AddIcon from '@mui/icons-material/Add';
@@ -25,7 +25,7 @@ import SearchSuggestion from '@/components/searchSuggestion';
 import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import dynamic from 'next/dynamic';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
-
+import musicWave from "@/lottie/Animation - 1724571535854.json";
 
 
 const MusicQuery = gql`
@@ -122,6 +122,28 @@ const MusicPage: React.FC = () => {
         setCurrentPlayingMusicDetails([music])
     }
 
+    const handleAddToFav = useCallback(async (musicId: number) => {
+        try {
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/addtoFavorite/${musicId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+            })
+            if (response.ok) {
+                console.log("Added music to favorites")
+            }
+            else {
+                console.error("Failed to add music to favorites")
+            }
+        }
+        catch (error) {
+            console.error("fetch error:", error);
+        }
+    }, [token]);
+
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const searchInput = document.getElementById('search-input');
@@ -147,6 +169,7 @@ const MusicPage: React.FC = () => {
 
         if (data) {
             setMusicDetails(data.getMusicByUserId);
+            console.log(data);
         }
         if (error) {
             console.error('Error fetching data', error);
@@ -154,7 +177,7 @@ const MusicPage: React.FC = () => {
         if (token) {
             refetch();
         }
-    }, [data, error, musicDetails, refetch, token]);
+    }, [data, error, refetch, token]);
 
     return (
         <>
@@ -176,7 +199,7 @@ const MusicPage: React.FC = () => {
                                             <SearchSuggestion />
                                         </div>
                                     )}
-                                    <SearchIcon className='absolute mt-2 right-[30.5rem]' fontSize="medium" />
+                                    <SearchIcon color='secondary' className='absolute mt-2 right-[31.5rem]' fontSize="medium" />
                                 </section>
                                 <section className="flex gap-10 flex-row items-center">
                                     <Tooltip title="search">
@@ -233,73 +256,81 @@ const MusicPage: React.FC = () => {
                                     <ArrowBackIosNewIcon className='menu' color='secondary' fontSize='small' />
                                 </IconButton>
                             </section>
-                            {musicDetails.map((music: MusicDetail) => (
-                                <section onClick={() => handleSendMusicDetails(music)} key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
-                                    <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
-                                        <div>
-                                            <Image
-                                                className='rounded-full'
-                                                height={50}
-                                                width={50}
-                                                src={music.thumbnailUrl}
-                                                alt="album cover"
-                                            />
-                                        </div>
-                                        <div className="w-full overflow-hidden space-y-2">
-                                            <p className="whitespace-nowrap text-slate-300 ">{music.musicTitle}</p>
-                                            <p className="justify-between flex flex-row">
-                                                <span className="space-x-2 text-slate-500 text-[13px]">Artist : {music.musicArtist}</span>
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <IconButton
-                                                color='primary'
-                                                aria-label="more"
-                                                id="long-button"
-                                                aria-controls={open ? 'long-menu' : undefined}
-                                                aria-expanded={open ? 'true' : undefined}
-                                                aria-haspopup="true"
-                                                onClick={handleClick}
-                                            >
-                                                <MoreVertIcon />
-                                            </IconButton>
-                                            <Menu
-                                                id="long-menu"
-                                                MenuListProps={{
-                                                    'aria-labelledby': 'long-button',
-                                                }}
-                                                anchorEl={showMenu}
-                                                open={open}
-                                                onClose={handleClose}
-                                                sx={{
-                                                    '& .MuiPaper-root': {
-                                                        backgroundColor: '#2d2d2d', // Set background color to black
-                                                        color: '#ffffff', // Set text color to white for contrast
-                                                    },
-                                                }}
-                                            >
-                                                <MenuItem className='flex flex-row gap-2 items-center'>
-                                                    <PlayArrowIcon />
-                                                    <span>Play</span>
-                                                </MenuItem>
-                                                <MenuItem className='flex flex-row gap-2 items-center'>
-                                                    <FavoriteIcon />
-                                                    <span>Add to Favorite</span>
-                                                </MenuItem>
-                                                <MenuItem className='flex flex-row gap-2 items-center'>
-                                                    <FileDownloadIcon />
-                                                    <span>Download</span>
-                                                </MenuItem>
-                                                <MenuItem className='flex flex-row gap-2 items-center'>
-                                                    <DeleteIcon />
-                                                    <span>Delete</span>
-                                                </MenuItem>
-                                            </Menu>
-                                        </div>
-                                    </div>
-                                    <div className="border border-slate-800"></div>
-                                </section>
-                            ))}
+                            <div className='h-[70vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full'>
+                                {musicDetails
+                                    .filter(music => !showFavoriteSongs && music.isFavourite)
+                                    .map((music: MusicDetail) => (
+                                        <section onClick={() => handleSendMusicDetails(music)} key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
+                                            <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
+                                                <div>
+                                                    <Image
+                                                        className='rounded-full'
+                                                        height={50}
+                                                        width={50}
+                                                        src={music.thumbnailUrl}
+                                                        alt="album cover"
+                                                    />
+                                                </div>
+                                                <div className="w-full overflow-hidden space-y-2">
+                                                    <p className="whitespace-nowrap text-slate-300 ">{music.musicTitle}</p>
+                                                    <p className="justify-between flex flex-row">
+                                                        <span className="space-x-2 text-slate-500 text-[13px]">Artist : {music.musicArtist}</span>
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    {currentPlayingMusicDetails[0]?.id === music.id && <Lottie className='h-6 w-6' animationData={musicWave} />}
+                                                </div>
+                                                <div>
+                                                    <IconButton
+                                                        color='primary'
+                                                        aria-label="more"
+                                                        id="long-button"
+                                                        aria-controls={open ? 'long-menu' : undefined}
+                                                        aria-expanded={open ? 'true' : undefined}
+                                                        aria-haspopup="true"
+                                                        onClick={handleClick}
+                                                    >
+                                                        <MoreVertIcon />
+                                                    </IconButton>
+                                                    <Menu
+                                                        id="long-menu"
+                                                        MenuListProps={{
+                                                            'aria-labelledby': 'long-button',
+                                                        }}
+                                                        anchorEl={showMenu}
+                                                        open={open}
+                                                        onClose={handleClose}
+                                                        sx={{
+                                                            '& .MuiPaper-root': {
+                                                                backgroundColor: '#2d2d2d', // Set background color to black
+                                                                color: '#ffffff', // Set text color to white for contrast
+                                                            },
+                                                        }}
+                                                    >
+                                                        <MenuItem className='flex flex-row gap-2 items-center'>
+                                                            <PlayArrowIcon />
+                                                            <span>Play</span>
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => { handleAddToFav(parseInt(music.id)) }} className='flex flex-row gap-2 items-center'>
+                                                            <FavoriteIcon />
+                                                            <span>Add to Favorite</span>
+                                                        </MenuItem>
+                                                        <MenuItem className='flex flex-row gap-2 items-center'>
+                                                            <FileDownloadIcon />
+                                                            <span>Download</span>
+                                                        </MenuItem>
+                                                        <MenuItem className='flex flex-row gap-2 items-center'>
+                                                            <DeleteIcon />
+                                                            <span>Delete</span>
+                                                        </MenuItem>
+                                                    </Menu>
+                                                </div>
+                                            </div>
+                                            <div className="border border-slate-800"></div>
+                                        </section>
+                                    ))}
+                            </div>
+
                         </div>
                     </div>
                     {currentPlayingMusicDetails.length > 0 && <WebMusicPlayer musicDetails={currentPlayingMusicDetails} />}

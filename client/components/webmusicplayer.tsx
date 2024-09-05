@@ -13,11 +13,9 @@ import FastForwardIcon from '@mui/icons-material/FastForward';
 import FastRewindIcon from '@mui/icons-material/FastRewind';
 import Slider from '@mui/material/Slider';
 import VolumeUp from '@mui/icons-material/VolumeUp';
-import musicWave from "@/lottie/Animation - 1724571535854.json";
 import RepeatOneIcon from '@mui/icons-material/RepeatOne';
 import Tooltip from '@mui/material/Tooltip';
 import Image from "next/image";
-const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import SettingsIcon from '@mui/icons-material/Settings';
 
 interface MusicDetails {
@@ -110,7 +108,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
                 <div className="md:pl-10 md:pr-10 pl-3 pr-3 mt-2 md:mt-5">
                     <div className="flex flex-row gap-2 items-center justify-between md:justify-normal">
                         <section className="flex flex-row gap-1 items-center md:gap-3">
-                            <Image className="rounded-md" height={40} width={40} src={"https://img.wynk.in/unsafe/250x250/filters:no_upscale():strip_exif():format(webp)/http://s3.ap-south-1.amazonaws.com/wynk-music-cms/srch_universalmusic/00602465891379_20240822112644251/1724327403985/24UMGIM61704_T1_cvrart.jpg"} alt="Thumbnail" />
+                            <Image className="rounded-md" height={40} width={40} src={musicDetails[0].thumbnailUrl} alt="Thumbnail" />
                             <p className="flex flex-col md:w-[25rem] w-[9rem] overflow-x-hidden whitespace-nowrap">
                                 <span className="md:text-[20px] text-[14px]">{musicDetails[0].musicTitle}</span>
                                 <span className="text-slate-500 text-[10px]">Artist : {musicDetails[0].musicArtist}</span>

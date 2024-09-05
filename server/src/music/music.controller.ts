@@ -112,6 +112,7 @@ export class MusicController {
     @Res() res: Response
   ) {
     const userId = req['firebaseUserId'];
+
     try {
       const result = await this.musicservice.addToFavorite(id, userId);
 
