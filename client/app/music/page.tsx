@@ -381,7 +381,7 @@ const MusicPage: React.FC = () => {
                                                     alt="album cover"
                                                 />
                                             </div>
-                                            <div className="w-full overflow-hidden space-y-2">
+                                            <div onClick={() => handleSendMusicDetails(music)} className="w-full overflow-hidden space-y-2">
                                                 <p className="whitespace-nowrap text-slate-300 ">{music.musicTitle}</p>
                                                 <p className="justify-between flex flex-row">
                                                     <span className="space-x-2 text-slate-500 text-[13px]">Artist : {music.musicArtist}</span>
@@ -416,10 +416,6 @@ const MusicPage: React.FC = () => {
                                                         },
                                                     }}
                                                 >
-                                                    <MenuItem onClick={() => handleSendMusicDetails(music)} className='flex flex-row gap-2 items-center'>
-                                                        <PlayArrowIcon />
-                                                        <span>Play</span>
-                                                    </MenuItem>
                                                     <MenuItem onClick={() => handleAddToQueue()} className='flex flex-row gap-2 items-center'>
                                                         <QueueMusicIcon />
                                                         <span>Add to queue</span>
