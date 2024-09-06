@@ -1,4 +1,5 @@
 "use client"
+import { deleteMusic } from '@/config/firebase/config';
 import Tooltip from '@mui/material/Tooltip';
 import React, { useCallback, useEffect, useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
@@ -26,6 +27,7 @@ import dynamic from 'next/dynamic';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import musicWave from "@/lottie/Animation - 1724571535854.json";
 import AlertPopup from '@/components/alert';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 
 const MusicQuery = gql`
     {
@@ -78,8 +80,16 @@ const MusicPage: React.FC = () => {
     const [selectedMusicIdForMenu, setSelectedMusicIdForMenu] = useState<number | null>(null);
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [severity, setSeverity] = useState<boolean>(false);
+    const [queue, setQueue] = useState<MusicDetail[]>([]);
 
     const token = useSelector((state: RootState) => state.authToken.token);
+
+
+    const handleAddToQueue = () => {
+        // @ts-ignore
+        const music: MusicDetail = musicDetails.find(music => parseInt(music.id) === selectedMusicIdForMenu);
+        setQueue(prevQueue => [...prevQueue, music]);
+    };
 
     const open = Boolean(showMenu);
 
@@ -133,8 +143,19 @@ const MusicPage: React.FC = () => {
     };
 
     const handleSendMusicDetails = (music: MusicDetail) => {
-        setCurrentPlayingMusicDetails([music])
-    }
+        setCurrentPlayingMusicDetails([music]); // Set the current song
+        setQueue([]); // Clear the queue when a new song is directly selected
+    };
+
+    const playNextFromQueue = useCallback(() => {
+        if (queue.length > 0) {
+            const nextSong = queue[0]; // Get the first song in the queue
+            setCurrentPlayingMusicDetails([nextSong]); // Play the next song
+            setQueue(prevQueue => prevQueue.slice(1)); // Remove the played song from the queue
+        } else {
+            console.log("No songs in the queue");
+        }
+    }, [queue]);
 
     const handleAddToFav = useCallback(async () => {
         handleClose();
@@ -165,6 +186,62 @@ const MusicPage: React.FC = () => {
         }
     }, [selectedMusicIdForMenu, token, refetch]);
 
+    const getMusicPath = (url: string) => {
+        const decodedURL = decodeURIComponent(url);
+        const parts = decodedURL.split('/');
+        const fileNameWithParams = parts[parts.length - 1];
+        const fileName = fileNameWithParams.split('?')[0];
+        return fileName;
+    }
+
+    const getthumbnilPath = (url: string) => {
+        const decodedURL = decodeURIComponent(url);
+        const parts = decodedURL.split('/');
+        const fileNameWithParams = parts[parts.length - 1];
+        const fileId = fileNameWithParams.split('?')[0];
+        return fileId;
+    }
+
+    const handleDeleteMusic = useCallback(async () => {
+        if (selectedMusicIdForMenu !== null) {
+            // Find the music details corresponding to the selected music ID
+            const musicDetail = musicDetails.find(music => parseInt(music.id) === selectedMusicIdForMenu);
+
+            if (musicDetail) {
+                // Get the musicUrl and thumbnailUrl from the found musicDetail
+                const musicPath = getMusicPath(musicDetail.musicUrl);
+                const thumbnilPath = getthumbnilPath(musicDetail.thumbnailUrl);
+
+                try {
+                    // Call the deleteMusic function with the paths
+                    const result = await deleteMusic(musicPath, thumbnilPath);
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/${selectedMusicIdForMenu}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (response.ok) {
+                        setAlertMessage("Song deleted successfully");
+                        setSeverity(true);
+                        refetch();
+                    }
+                    else {
+                        setAlertMessage("Failed to delete song");
+                        setSeverity(false);
+                    }
+                } catch (error) {
+                    console.error("Error deleting music:", error);
+                }
+            } else {
+                console.error("Music not found for the selected ID");
+            }
+        } else {
+            console.error("No music ID selected");
+        }
+    }, [musicDetails, refetch, selectedMusicIdForMenu, token]);
+
+
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const searchInput = document.getElementById('search-input');
@@ -193,7 +270,6 @@ const MusicPage: React.FC = () => {
         if (data) {
             setMusicDetails(data.getMusicByUserId);
             setFavoriteMusicDetails(data.getFavoriteMusicByUserId)
-            console.log("fetching", data);
         }
         if (error) {
             console.error('Error fetching data', error);
@@ -202,6 +278,18 @@ const MusicPage: React.FC = () => {
             refetch();
         }
     }, [error, refetch, token, data]);
+
+    useEffect(() => {
+        const currentSong = currentPlayingMusicDetails[0];
+        if (currentSong) {
+            // Replace this with your actual logic to detect when the song ends
+            const simulateSongEnd = setTimeout(() => {
+                playNextFromQueue();
+            }, currentSong ? 2000 : 0); // Simulate song end after 2 seconds for demo purposes
+
+            return () => clearTimeout(simulateSongEnd); // Clean up timer on component unmount or song change
+        }
+    }, [currentPlayingMusicDetails, playNextFromQueue]);
 
     return (
         <>
@@ -282,7 +370,7 @@ const MusicPage: React.FC = () => {
                             </section>
                             <div className='h-[70vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full'>
                                 {displayedMusic.map((music: MusicDetail) => (
-                                    <section onClick={() => handleSendMusicDetails(music)} key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
+                                    <section key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
                                         <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
                                             <div>
                                                 <Image
@@ -328,9 +416,13 @@ const MusicPage: React.FC = () => {
                                                         },
                                                     }}
                                                 >
-                                                    <MenuItem className='flex flex-row gap-2 items-center'>
+                                                    <MenuItem onClick={() => handleSendMusicDetails(music)} className='flex flex-row gap-2 items-center'>
                                                         <PlayArrowIcon />
                                                         <span>Play</span>
+                                                    </MenuItem>
+                                                    <MenuItem onClick={() => handleAddToQueue()} className='flex flex-row gap-2 items-center'>
+                                                        <QueueMusicIcon />
+                                                        <span>Add to queue</span>
                                                     </MenuItem>
                                                     <MenuItem onClick={() => { handleAddToFav() }} className='flex flex-row gap-2 items-center'>
                                                         <FavoriteIcon />
@@ -340,7 +432,7 @@ const MusicPage: React.FC = () => {
                                                         <FileDownloadIcon />
                                                         <span>Download</span>
                                                     </MenuItem>
-                                                    <MenuItem className='flex flex-row gap-2 items-center'>
+                                                    <MenuItem onClick={() => handleDeleteMusic()} className='flex flex-row gap-2 items-center'>
                                                         <DeleteIcon />
                                                         <span>Delete</span>
                                                     </MenuItem>

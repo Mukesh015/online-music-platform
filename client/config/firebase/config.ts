@@ -31,11 +31,14 @@ const uploadMusicThumbnail = async (thumbnail: Blob): Promise<UploadResult> => {
 }
 
 const deleteMusic = async (musicPath: string, thumbnailPath: string) => {
-  const musicRef = ref(storage, `Music/${musicPath}`);
+  const musicRef = ref(storage, `Musics/${musicPath}`);
   const thumbnailRef = ref(storage, `Thumbnails/${thumbnailPath}`)
   const musicRes = await deleteObject(musicRef);
   const thumbnailRes = await deleteObject(thumbnailRef);
-  // return result;
+  return {
+    music: musicRes,
+    thumbnail: thumbnailRes,
+  };
 }
 
 const getDownloadLink = async (path: string): Promise<string> => {
