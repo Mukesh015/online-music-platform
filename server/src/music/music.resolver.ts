@@ -1,8 +1,8 @@
 import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql';
 import { MusicService } from './music.service';
-import { CreateMusicInput } from './dto/create-music.input';
-import { Music } from './entities/music.entity';
-import { Prisma } from '@prisma/client';
+
+import { Music,Playlist} from './entities/music.entity';
+
 import { Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../authguard/authguard.service'
 
@@ -22,10 +22,10 @@ export class MusicResolver {
   @UseGuards(AuthGuard)
   async getMusicByUserId(@Context() context): Promise<Partial<Music>[]> {
     const userId = context.req['firebaseUserId'];
-    if (userId === "null"||userId === "invalid") {
+    if (userId === "null" || userId === "invalid") {
       return [];
     }
-   return this.musicService.findByUserId(userId)
+    return this.musicService.findByUserId(userId)
   }
 
 
@@ -33,12 +33,34 @@ export class MusicResolver {
   @UseGuards(AuthGuard)
   async getFavoriteMusicByUserId(@Context() context): Promise<Partial<Music>[]> {
     const userId = context.req['firebaseUserId'];
-    if (userId === "null"||userId === "invalid") {
+    if (userId === "null" || userId === "invalid") {
       return [];
     }
     return this.musicService.findFouriteByUserId(userId)
 
   }
+  @Query(returns => [String])
+  @UseGuards(AuthGuard)
+  async getPlaylistNameByUserId(@Context() context): Promise<string[]> {
+    const userId = context.req['firebaseUserId'];
+    if (userId === "null" || userId === "invalid") {
+      return [];
+    }
+    return this.musicService.getPlaylistNameByUserId(userId)
+
+  }
+
+  @Query(returns => [Playlist])
+  @UseGuards(AuthGuard)
+  async getPlaylistByUserId(@Context() context): Promise<Partial<Playlist>[]> {
+    const userId = context.req['firebaseUserId'];
+    if (userId === "null" || userId === "invalid") {
+      return [];
+    }
+    return this.musicService.getPlaylistByUserId(userId)
+  }
+
+
 
 }
 

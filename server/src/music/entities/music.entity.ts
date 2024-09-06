@@ -25,3 +25,13 @@ export class Music {
   @Field()
   createdAt: Date;
 }
+
+
+@ObjectType()
+export class Playlist {
+  @Field()
+  playlistName: string;
+
+  @Field(type => [Music])
+  playlists: Music[];
+}
