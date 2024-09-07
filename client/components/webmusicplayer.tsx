@@ -1,6 +1,5 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
@@ -31,7 +30,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
 
     const musicRef = useRef<HTMLAudioElement | null>(null);
     const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
-    const [isPlaying, setIsPlaying] = useState<boolean>(false);
+    const [isPlaying, setIsPlaying] = useState<boolean>(true);
     const [isLooping, setIsLooping] = useState<boolean>(false);
     const [isFavorite, setIsFavorite] = useState<boolean>(false);
     const [currentTime, setCurrentTime] = useState<number>(0);
@@ -94,7 +93,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
     return (
         <>
             <div className="fixed bottom-1 md:bottom-0 w-full right-0 h-20 text-white bg-slate-800 z-50">
-                <audio ref={musicRef} src={musicDetails[0].musicUrl} />
+                <audio autoPlay ref={musicRef} src={musicDetails[0].musicUrl} />
                 <Slider
                     className="fixed bottom-16 md:bottom-[65px]"
                     size="small"
@@ -252,8 +251,6 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
                                 </div>
                             </section>
                         </div>
-
-
                     </div>
                 </div >
             </div >

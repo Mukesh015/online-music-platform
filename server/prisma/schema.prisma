@@ -47,13 +47,14 @@ model IsFavourite {
   @@id([userId, id])
 }
 
-model Playlist {
-  userId  String
-  musicId      Int
-  id           Int
-  playlistName String 
 
-  Music   Music? @relation(fields: [id], references: [id])
+model Playlist {
+  userId         String
+  musicId        Int
+
+  playlistName   String
+
+  Music          Music?   @relation(fields: [musicId], references: [id])
   
   @@id([userId, musicId])
 }

@@ -1,8 +1,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getStorage, ref, uploadBytes, getDownloadURL, UploadResult } from "firebase/storage";
-import { resolve } from "path";
+import { getStorage, ref, uploadBytes, getDownloadURL, UploadResult, deleteObject } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -29,6 +28,17 @@ const uploadMusicThumbnail = async (thumbnail: Blob): Promise<UploadResult> => {
   const urlRef = ref(storage, `Thumbnails/${Date.now()}`);
   const uploadUrl = await uploadBytes(urlRef, thumbnail);
   return uploadUrl;
+}
+
+const deleteMusic = async (musicPath: string, thumbnailPath: string) => {
+  const musicRef = ref(storage, `Musics/${musicPath}`);
+  const thumbnailRef = ref(storage, `Thumbnails/${thumbnailPath}`)
+  const musicRes = await deleteObject(musicRef);
+  const thumbnailRes = await deleteObject(thumbnailRef);
+  return {
+    music: musicRes,
+    thumbnail: thumbnailRes,
+  };
 }
 
 const getDownloadLink = async (path: string): Promise<string> => {
@@ -62,4 +72,4 @@ const downLoadMusic = async (musicUrl: string) => {
   }
 }
 
-export { app, auth, uploadMusic, getDownloadLink, uploadMusicThumbnail, downLoadMusic }
+export { app, auth, uploadMusic, getDownloadLink, uploadMusicThumbnail, downLoadMusic,deleteMusic }

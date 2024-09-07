@@ -1,4 +1,5 @@
 "use client"
+import { deleteMusic } from '@/config/firebase/config';
 import Tooltip from '@mui/material/Tooltip';
 import React, { useCallback, useEffect, useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
@@ -20,24 +21,18 @@ import { useSelector } from 'react-redux';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import Alert from '@mui/material/Alert';
 import SearchSuggestion from '@/components/searchSuggestion';
 import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import dynamic from 'next/dynamic';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import musicWave from "@/lottie/Animation - 1724571535854.json";
-
-import { downLoadMusic } from '@/config/firebase/config'
+import AlertPopup from '@/components/alert';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 
 const MusicQuery = gql`
     {
         musics{
             id
-            musicUrl
-            isFavourite
-            musicTitle
-            thumbnailUrl
-            musicArtist
         }
         index
         getMusicByUserId{
@@ -48,7 +43,17 @@ const MusicQuery = gql`
             thumbnailUrl
             musicArtist
         }
+        
+        getFavoriteMusicByUserId{
+            id
+            musicUrl
+            thumbnailUrl
+            musicTitle
+            musicArtist
+        
+        }
     }
+
 `;
 
 interface MusicDetail {
@@ -70,11 +75,21 @@ const MusicPage: React.FC = () => {
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [showSearchSuggestion, setShowSearchSuggestion] = useState<boolean>(false);
     const [musicDetails, setMusicDetails] = useState<MusicDetail[]>([]);
+    const [favoriteMusicDetails, setFavoriteMusicDetails] = useState<MusicDetail[]>([]);
     const [currentPlayingMusicDetails, setCurrentPlayingMusicDetails] = useState<MusicDetail[]>([]);
-
+    const [selectedMusicIdForMenu, setSelectedMusicIdForMenu] = useState<number | null>(null);
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [severity, setSeverity] = useState<boolean>(false);
+    const [queue, setQueue] = useState<MusicDetail[]>([]);
 
     const token = useSelector((state: RootState) => state.authToken.token);
 
+
+    const handleAddToQueue = () => {
+        // @ts-ignore
+        const music: MusicDetail = musicDetails.find(music => parseInt(music.id) === selectedMusicIdForMenu);
+        setQueue(prevQueue => [...prevQueue, music]);
+    };
 
     const open = Boolean(showMenu);
 
@@ -85,9 +100,11 @@ const MusicPage: React.FC = () => {
         }, 3000);
     };
 
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    const handleClick = (event: React.MouseEvent<HTMLElement>, id: string) => {
         setshowMenu(event.currentTarget);
+        setSelectedMusicIdForMenu(parseInt(id));
     };
+
     const handleClose = () => {
         setshowMenu(null);
     };
@@ -111,7 +128,7 @@ const MusicPage: React.FC = () => {
     }
 
     const handleToggleMobileMenu = () => {
-        setShowMobileMenu(!showMobilemenu); // Corrected typo in showMobileMenu
+        setShowMobileMenu(!showMobilemenu);
 
         const menu = document.getElementsByClassName("menu")[0] as HTMLElement;
 
@@ -126,13 +143,24 @@ const MusicPage: React.FC = () => {
     };
 
     const handleSendMusicDetails = (music: MusicDetail) => {
-        setCurrentPlayingMusicDetails([music])
-    }
+        setCurrentPlayingMusicDetails([music]); // Set the current song
+        setQueue([]); // Clear the queue when a new song is directly selected
+    };
 
-    const handleAddToFav = useCallback(async (musicId: number) => {
+    const playNextFromQueue = useCallback(() => {
+        if (queue.length > 0) {
+            const nextSong = queue[0]; // Get the first song in the queue
+            setCurrentPlayingMusicDetails([nextSong]); // Play the next song
+            setQueue(prevQueue => prevQueue.slice(1)); // Remove the played song from the queue
+        } else {
+            console.log("No songs in the queue");
+        }
+    }, [queue]);
+
+    const handleAddToFav = useCallback(async () => {
+        handleClose();
         try {
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/addtoFavorite/${musicId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/addtoFavorite/${selectedMusicIdForMenu}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -140,16 +168,79 @@ const MusicPage: React.FC = () => {
                 },
             })
             if (response.ok) {
-                console.log("Added music to favorites")
+                setAlertMessage("Song added to favorite");
+                setSeverity(true);
             }
             else {
-                console.error("Failed to add music to favorites")
+                setAlertMessage("Song added to favorite");
+                setSeverity(false);
             }
+            handleShowAlert();
+            refetch();
         }
         catch (error) {
+            setAlertMessage("Something went wrong, please try again");
+            setSeverity(false);
+            handleShowAlert();
             console.error("fetch error:", error);
         }
-    }, [token]);
+    }, [selectedMusicIdForMenu, token, refetch]);
+
+    const getMusicPath = (url: string) => {
+        const decodedURL = decodeURIComponent(url);
+        const parts = decodedURL.split('/');
+        const fileNameWithParams = parts[parts.length - 1];
+        const fileName = fileNameWithParams.split('?')[0];
+        return fileName;
+    }
+
+    const getthumbnilPath = (url: string) => {
+        const decodedURL = decodeURIComponent(url);
+        const parts = decodedURL.split('/');
+        const fileNameWithParams = parts[parts.length - 1];
+        const fileId = fileNameWithParams.split('?')[0];
+        return fileId;
+    }
+
+    const handleDeleteMusic = useCallback(async () => {
+        if (selectedMusicIdForMenu !== null) {
+            // Find the music details corresponding to the selected music ID
+            const musicDetail = musicDetails.find(music => parseInt(music.id) === selectedMusicIdForMenu);
+
+            if (musicDetail) {
+                // Get the musicUrl and thumbnailUrl from the found musicDetail
+                const musicPath = getMusicPath(musicDetail.musicUrl);
+                const thumbnilPath = getthumbnilPath(musicDetail.thumbnailUrl);
+
+                try {
+                    // Call the deleteMusic function with the paths
+                    const result = await deleteMusic(musicPath, thumbnilPath);
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/${selectedMusicIdForMenu}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (response.ok) {
+                        setAlertMessage("Song deleted successfully");
+                        setSeverity(true);
+                        refetch();
+                    }
+                    else {
+                        setAlertMessage("Failed to delete song");
+                        setSeverity(false);
+                    }
+                } catch (error) {
+                    console.error("Error deleting music:", error);
+                }
+            } else {
+                console.error("Music not found for the selected ID");
+            }
+        } else {
+            console.error("No music ID selected");
+        }
+    }, [musicDetails, refetch, selectedMusicIdForMenu, token]);
+
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -172,11 +263,13 @@ const MusicPage: React.FC = () => {
         };
     }, [showSearchSuggestion]);
 
+    const displayedMusic = showFavoriteSongs ? favoriteMusicDetails : musicDetails;
+
     useEffect(() => {
 
         if (data) {
             setMusicDetails(data.getMusicByUserId);
-            console.log(data);
+            setFavoriteMusicDetails(data.getFavoriteMusicByUserId)
         }
         if (error) {
             console.error('Error fetching data', error);
@@ -184,54 +277,22 @@ const MusicPage: React.FC = () => {
         if (token) {
             refetch();
         }
-    }, [data, error, refetch, token]);
+    }, [error, refetch, token, data]);
 
-    const handleUploadYoutubeUrl = async () => {
-        try {
-            const response = await fetch('http://localhost:8000/download-audio', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    "youtube_url": "https://www.youtube.com/watch?v=NelLHPPL-Iw"
-                }),
-            });
-    
-            if (response.ok) {
-                // Get the blob from the response
-                const blob = await response.blob();
-                console.log(blob);
-    
-                if (blob.size > 0) {
-                    // Create a URL for the blob and a download link
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'audio.mp3'; // Specify the filename
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-    
-                    // Optionally, release the object URL after usage
-                    window.URL.revokeObjectURL(url);
-                } else {
-                    console.error("The blob size is 0, which indicates an issue with the server response.");
-                }
-            } else {
-                const responseData = await response.json();
-                console.error("Failed to sync music details, please try again", responseData);
-            }
-        } catch (e) {
-            console.error("Failed to send details, server error", e);
+    useEffect(() => {
+        const currentSong = currentPlayingMusicDetails[0];
+        if (currentSong) {
+            // Replace this with your actual logic to detect when the song ends
+            const simulateSongEnd = setTimeout(() => {
+                playNextFromQueue();
+            }, currentSong ? 2000 : 0); // Simulate song end after 2 seconds for demo purposes
+
+            return () => clearTimeout(simulateSongEnd); // Clean up timer on component unmount or song change
         }
-    };
-    
-
+    }, [currentPlayingMusicDetails, playNextFromQueue]);
 
     return (
         <>
-
             {loading ? (
                 <div className='h-screen w-screen flex flex-col justify-center items-center bg-slate-950'>
                     <Lottie className="h-80 md:h-96" animationData={loadingAnimation} />
@@ -239,7 +300,6 @@ const MusicPage: React.FC = () => {
             ) : (
 
                 <div className="relative min-h-screen max-w-screen md:flex md:flex-row z-20 bg-slate-950 font-Montserrat">
-                    {/* <button type="button" onClick={() => handleUploadYoutubeUrl()} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Default</button> */}
                     <div className="pt-20 p-5 md:pt-28 md:pl-10 md:pr-10">
                         <div className="flex flex-col gap-0 md:w-[90vw] md:overflow-x-auto">
                             <section id='dekstop-view' className="hidden mb-5 md:flex flex-row justify-between text-white text-xl items-center">
@@ -309,92 +369,87 @@ const MusicPage: React.FC = () => {
                                 </IconButton>
                             </section>
                             <div className='h-[70vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full'>
-                                {musicDetails
-                                    .filter(music => !showFavoriteSongs && music.isFavourite)
-                                    .map((music: MusicDetail) => (
-                                        <section onClick={() => handleSendMusicDetails(music)} key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
-                                            <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
-                                                <div>
-                                                    <Image
-                                                        className='rounded-full'
-                                                        height={50}
-                                                        width={50}
-                                                        src={music.thumbnailUrl}
-                                                        alt="album cover"
-                                                    />
-                                                </div>
-                                                <div className="w-full overflow-hidden space-y-2">
-                                                    <p className="whitespace-nowrap text-slate-300 ">{music.musicTitle}</p>
-                                                    <p className="justify-between flex flex-row">
-                                                        <span className="space-x-2 text-slate-500 text-[13px]">Artist : {music.musicArtist}</span>
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    {currentPlayingMusicDetails[0]?.id === music.id && <Lottie className='h-6 w-6' animationData={musicWave} />}
-                                                </div>
-                                                <div>
-                                                    <IconButton
-                                                        color='primary'
-                                                        aria-label="more"
-                                                        id="long-button"
-                                                        aria-controls={open ? 'long-menu' : undefined}
-                                                        aria-expanded={open ? 'true' : undefined}
-                                                        aria-haspopup="true"
-                                                        onClick={handleClick}
-                                                    >
-                                                        <MoreVertIcon />
-                                                    </IconButton>
-                                                    <Menu
-                                                        id="long-menu"
-                                                        MenuListProps={{
-                                                            'aria-labelledby': 'long-button',
-                                                        }}
-                                                        anchorEl={showMenu}
-                                                        open={open}
-                                                        onClose={handleClose}
-                                                        sx={{
-                                                            '& .MuiPaper-root': {
-                                                                backgroundColor: '#2d2d2d', // Set background color to black
-                                                                color: '#ffffff', // Set text color to white for contrast
-                                                            },
-                                                        }}
-                                                    >
-                                                        <MenuItem className='flex flex-row gap-2 items-center'>
-                                                            <PlayArrowIcon />
-                                                            <span>Play</span>
-                                                        </MenuItem>
-                                                        <MenuItem onClick={() => { handleAddToFav(parseInt(music.id)) }} className='flex flex-row gap-2 items-center'>
-                                                            <FavoriteIcon />
-                                                            <span>Add to Favorite</span>
-                                                        </MenuItem>
-                                                        <MenuItem className='flex flex-row gap-2 items-center' onClick={() => downLoadMusic(music.musicUrl)}>
-                                                            <FileDownloadIcon />
-                                                            <span>Download</span>
-                                                        </MenuItem>
-                                                        <MenuItem className='flex flex-row gap-2 items-center'>
-                                                            <DeleteIcon />
-                                                            <span>Delete</span>
-                                                        </MenuItem>
-                                                    </Menu>
-                                                </div>
+                                {displayedMusic.map((music: MusicDetail) => (
+                                    <section key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
+                                        <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
+                                            <div>
+                                                <Image
+                                                    className='rounded-full'
+                                                    height={50}
+                                                    width={50}
+                                                    src={music.thumbnailUrl}
+                                                    alt="album cover"
+                                                />
                                             </div>
-                                            <div className="border border-slate-800"></div>
-                                        </section>
-                                    ))}
+                                            <div className="w-full overflow-hidden space-y-2">
+                                                <p className="whitespace-nowrap text-slate-300 ">{music.musicTitle}</p>
+                                                <p className="justify-between flex flex-row">
+                                                    <span className="space-x-2 text-slate-500 text-[13px]">Artist : {music.musicArtist}</span>
+                                                </p>
+                                            </div>
+                                            <div>
+                                                {currentPlayingMusicDetails[0]?.id === music.id && <Lottie className='h-6 w-6' animationData={musicWave} />}
+                                            </div>
+                                            <div >
+                                                <IconButton
+                                                    color='primary'
+                                                    aria-label="more"
+                                                    id="long-button"
+                                                    aria-controls={open ? 'long-menu' : undefined}
+                                                    aria-expanded={open ? 'true' : undefined}
+                                                    aria-haspopup="true"
+                                                    onClick={(event) => handleClick(event, music.id)}
+                                                >
+                                                    <MoreVertIcon />
+                                                </IconButton>
+                                                <Menu
+                                                    MenuListProps={{
+                                                        'aria-labelledby': 'long-button',
+                                                    }}
+                                                    anchorEl={showMenu}
+                                                    open={open}
+                                                    onClose={handleClose}
+                                                    sx={{
+                                                        '& .MuiPaper-root': {
+                                                            backgroundColor: '#2d2d2d',
+                                                            color: '#ffffff',
+                                                        },
+                                                    }}
+                                                >
+                                                    <MenuItem onClick={() => handleSendMusicDetails(music)} className='flex flex-row gap-2 items-center'>
+                                                        <PlayArrowIcon />
+                                                        <span>Play</span>
+                                                    </MenuItem>
+                                                    <MenuItem onClick={() => handleAddToQueue()} className='flex flex-row gap-2 items-center'>
+                                                        <QueueMusicIcon />
+                                                        <span>Add to queue</span>
+                                                    </MenuItem>
+                                                    <MenuItem onClick={() => { handleAddToFav() }} className='flex flex-row gap-2 items-center'>
+                                                        <FavoriteIcon />
+                                                        <span>Add to Favorite</span>
+                                                    </MenuItem>
+                                                    <MenuItem className='flex flex-row gap-2 items-center'>
+                                                        <FileDownloadIcon />
+                                                        <span>Download</span>
+                                                    </MenuItem>
+                                                    <MenuItem onClick={() => handleDeleteMusic()} className='flex flex-row gap-2 items-center'>
+                                                        <DeleteIcon />
+                                                        <span>Delete</span>
+                                                    </MenuItem>
+                                                </Menu>
+                                            </div>
+                                        </div>
+                                        <div className="border border-slate-800"></div>
+                                    </section>
+                                ))}
                             </div>
-
                         </div>
                     </div>
                     {currentPlayingMusicDetails.length > 0 && <WebMusicPlayer musicDetails={currentPlayingMusicDetails} />}
                 </div>
             )}
             <FileInput showAlert={handleShowAlert} isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
-            {showAlert &&
-                <Alert className='fixed top-5 right-5 z-50' severity="error" onClose={() => { setShowAlert(false) }}>
-                    This Alert displays the default close icon.
-                </Alert>
-            }
-
+            {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );
 };
