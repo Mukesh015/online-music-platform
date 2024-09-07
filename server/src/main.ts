@@ -18,12 +18,13 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter(logger));
   const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',')
-  : ['http://localhost:8080'];
+  : ['https://musicly-ktbt.vercel.app'];
   app.enableCors({
     origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     preflightContinue: false,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   await app.listen(parseInt(process.env.PORT, 10) || 3000);

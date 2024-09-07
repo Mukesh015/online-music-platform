@@ -256,7 +256,7 @@ export class MusicController {
       });
     }
   }
-  @Patch()
+  @Patch('updatePlaylist')
   async updatePlaylist(
     @Body() updatePlaylist: AddToPlaylistDto,
     @Req() req: Request,
