@@ -5,10 +5,6 @@ import { Prisma } from '@prisma/client';
 import { Music, Playlist, AddToPlaylistDto } from './entities/music.entity'
 
 
-const ytdlp = require('yt-dlp-exec');
-
-import { Readable } from 'stream';
-
 @Injectable()
 export class MusicService {
   constructor(private readonly dbService: DatabaseService) { }

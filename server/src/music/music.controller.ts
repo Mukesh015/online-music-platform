@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseI
 import { MusicService } from './music.service';
 import { Prisma } from '@prisma/client';
 import { query, Request, Response } from 'express';
-import { PassThrough } from 'stream';
 import { AddToPlaylistDto } from './entities/music.entity';
 
 interface SuccessResponse {
