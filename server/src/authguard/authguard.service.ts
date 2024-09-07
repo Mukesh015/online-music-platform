@@ -10,17 +10,16 @@ export class AuthGuard implements CanActivate {
 
     const authHeader = req.headers.authorization;
 
-    // Handle missing Authorization header
     if (!authHeader) {
       req['firebaseUserId'] = "null";
-      return true; // Allow request to proceed but set firebaseUserId to "null"
+      return true; 
     }
 
     const token = authHeader.split(' ')[1];
     
     if (!token) {
       req['firebaseUserId'] = "null";
-      return true; // Allow request to proceed but set firebaseUserId to "null"
+      return true; 
     }
 
     try {
@@ -29,8 +28,8 @@ export class AuthGuard implements CanActivate {
       return true;
     } catch (error) {
       console.error('Error verifying token:', error);
-      req['firebaseUserId'] = "invalid"; // Set firebaseUserId to "null" on error
-      return true; // Allow request to proceed but set firebaseUserId to "null"
+      req['firebaseUserId'] = "invalid"; 
+      return true; 
     }
   }
 }

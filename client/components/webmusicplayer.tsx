@@ -180,7 +180,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
                             </Tooltip>
                         </div>
 
-                        <div className="ml-16">
+                        <div className="ml-16 md:w-20">
                             <span className="text-sm">{`${formatTime(currentTime)} / ${formatTime(duration)}`}</span>
                         </div>
 

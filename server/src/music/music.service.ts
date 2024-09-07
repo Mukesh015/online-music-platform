@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { CreateMusicInput } from './dto/create-music.input';
+// import { CreateMusicInput } from './dto/create-music.input';
 import { Prisma } from '@prisma/client';
-import { Music} from './entities/music.entity'
+import { Music, Playlist } from './entities/music.entity'
+
+const ytdlp = require('yt-dlp-exec');
+
+import { Readable } from 'stream';
 
 @Injectable()
 export class MusicService {
@@ -182,6 +186,103 @@ export class MusicService {
 
 
 
+
+
+  async addToPlaylist(userId: string, addtoPlaylistDto: Prisma.PlaylistCreateInput) {
+    const { musicId, playlistName } = addtoPlaylistDto
+
+    try {
+      const music = await this.dbService.music.findUnique({
+        where: { id: musicId },
+      });
+      if (!music) {
+        return { message: "Music not found", statusCode: 404, playlistName: musicId };
+      }
+
+      const existingPlaylist = await this.dbService.playlist.findUnique({
+        where: {
+          userId_musicId: {
+            userId: userId,
+            musicId,
+          }
+        }
+      });
+
+      if (existingPlaylist) {
+        return { message: 'Playlist name already exists', statusCode: 409, playlistName: playlistName };
+      }
+
+
+      const newPlaylist = await this.dbService.playlist.create({
+        data: {
+          userId: userId,
+          playlistName,
+          musicId,
+        }
+      });
+
+      return { mesge: 'Playlist created successfully', statusCode: 201, playlistName: newPlaylist };
+
+    } catch (error) {
+      console.error('Error creating playlist:', error);
+      return { message: 'Error creating playlist', statusCode: 500, error: error.message }
+    }
+  }
+
+
+  async updatePlaylist(updateplayListDto: Prisma.PlaylistUpdateInput, userId: string) {
+    const musicId = updateplayListDto.musicId as number
+    const playlistName = updateplayListDto.playlistName as string
+
+    try {
+      const music = await this.dbService.music.findUnique({
+        where: { id: musicId },
+      });
+
+      if (!music) {
+        return { message: "Music not found", statusCode: 404, updatedPlaylist: musicId };
+      }
+
+      const playlist = await this.dbService.playlist.findFirst({
+        where: {
+          userId,
+          playlistName,
+        },
+      });
+
+      if (playlist) {
+        const existingMusicInPlaylist = await this.dbService.playlist.findFirst({
+          where: {
+            userId,
+            playlistName,
+            musicId,
+          },
+        });
+
+        if (existingMusicInPlaylist) {
+          console.log('Music already exists in the playlist');
+          return { message: "Music already exists in the playlist", statusCode: 409, updatedPlaylist: playlist };
+        }
+
+        await this.dbService.playlist.create({
+          data: {
+            userId,
+            musicId,
+            playlistName,
+          },
+        });
+
+        return { message: "Music added to the playlist", statusCode: 200, updatedPlaylist: playlist };
+      } else {
+        return { message: "Playlist not found", statusCode: 404, updatedPlaylist: musicId };
+      }
+    } catch (error) {
+      console.error('Error updating playlist:', error);
+      return { message: "Internal server error", statusCode: 500, error: error.message };
+    }
+
+  }
+
   async findAll(userId: string): Promise<Partial<Music>[]> {
     if (userId === "null" || userId === "invalid") {
 
@@ -292,11 +393,97 @@ export class MusicService {
         musicTitle: true,
         musicArtist: true,
         createdAt: true,
-     
+
       },
     });
 
 
     return musicList;
   }
-}  
+  async getPlaylistNameByUserId(userId: string): Promise<string[]> {
+    try {
+      // Fetch all playlist names for the given userId
+      const playlists = await this.dbService.playlist.findMany({
+        where: { userId },
+        select: { playlistName: true },
+      });
+
+      // Extract playlist names and remove duplicates
+      const playlistNames = playlists.map(p => p.playlistName);
+      const distinctPlaylistNames = Array.from(new Set(playlistNames));
+
+      return distinctPlaylistNames;
+    } catch (error) {
+      console.error('Error fetching playlist names:', error);
+      throw new Error('Unable to fetch playlist names');
+    }
+  }
+
+
+  async getPlaylistByUserId(userId: string): Promise<Partial<Playlist>[]> {
+    const playlists = await this.dbService.playlist.findMany({
+      where: { userId },
+      include: {
+        Music: {
+          select: {
+            id: true,
+            musicUrl: true,
+            thumbnailUrl: true,
+            musicTitle: true,
+            musicArtist: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+
+    const playlistMap = new Map<string, Playlist>();
+
+    playlists.forEach(playlist => {
+      const { playlistName, Music } = playlist;
+
+
+      const musicArray = Array.isArray(Music) ? Music : [Music];
+
+
+      if (!playlistMap.has(playlistName)) {
+        playlistMap.set(playlistName, {
+          playlistName,
+          playlists: [],
+        });
+      }
+
+      playlistMap.get(playlistName)!.playlists.push(...musicArray.map(m => ({
+        id: m.id,
+        musicUrl: m.musicUrl,
+        thumbnailUrl: m.thumbnailUrl,
+        musicTitle: m.musicTitle,
+        musicArtist: m.musicArtist,
+        createdAt: m.createdAt,
+        isFavourite: m.isFavourite,
+      })));
+    });
+
+    return Array.from(playlistMap.values());
+  }
+
+  async getMp3Stream(youtubeUrl: string): Promise<Readable> {
+    try {
+      const result = await ytdlp(youtubeUrl, {
+        extractAudio: true,
+        audioFormat: 'mp3',
+        output: 'audio.mp3',
+
+      });
+      console.log("Download process started", result);
+      return result.stdout;
+    } catch (error) {
+      console.error('Error downloading or processing audio:', error);
+      throw error;
+    }
+  }
+
+
+}
+

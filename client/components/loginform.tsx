@@ -46,17 +46,17 @@ const LoginForm: React.FC<Props> = ({ closeForm }) => {
 
     return (
         <>
-            <div className="fixed font-Montserrat top-20 right-10 flex flex-col gap-3 z-50 bg-black px-5 py-5 rounded-lg">
+            <div className="fixed border border-teal-700 ml-3 font-Montserrat top-20 md:right-10 flex flex-col gap-3 z-50 bg-black px-5 py-5 rounded-lg">
                 <header className="text-neutral-500 flex flex-row items-center gap-2 justify-between">
                     <Image height={20} width={20} src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" alt="" />
-                    <span>Sign in to Musically with google.com</span>
+                    <span className="text-sm">Sign in to Musically with google.com</span>
                     <IconButton onClick={() => closeForm()} color="primary" aria-label="close">
                         <CloseIcon fontSize="small" />
                     </IconButton>
                 </header>
                 <section className="border border-gray-700 w-full h-0"></section>
                 <section className="space-y-3">
-                    <p className="text-sm text-neutral-500">Sign in for better experience and cloud access</p>
+                    <p className="text-[13px] md:text-sm text-neutral-500">Sign in for better experience and cloud access</p>
                     <button onClick={() => handleGoogleLogin()} className="text-white w-full bg-blue-600 py-2 rounded-3xl flex flex-row space-x-2 justify-center">
                         <span>Continue with google</span>
                         {loadingGoogle &&

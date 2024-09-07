@@ -1,5 +1,6 @@
 "use client"
-import { deleteMusic } from '@/config/firebase/config';
+import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
+import { deleteMusic, downLoadMusic } from '@/config/firebase/config';
 import Tooltip from '@mui/material/Tooltip';
 import React, { useCallback, useEffect, useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
@@ -18,7 +19,6 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Image from 'next/image';
 import { RootState } from '@/lib/store';
 import { useSelector } from 'react-redux';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchSuggestion from '@/components/searchSuggestion';
@@ -29,10 +29,16 @@ import musicWave from "@/lottie/Animation - 1724571535854.json";
 import AlertPopup from '@/components/alert';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 
+
 const MusicQuery = gql`
     {
         musics{
             id
+            musicUrl
+            isFavourite
+            musicTitle
+            thumbnailUrl
+            musicArtist
         }
         index
         getMusicByUserId{
@@ -93,12 +99,18 @@ const MusicPage: React.FC = () => {
 
     const open = Boolean(showMenu);
 
-    const handleShowAlert = () => {
+    const handleSetSeverty = (severity: boolean) => {
+        setSeverity(severity);
+    }
+
+    const handleShowAlert = useCallback((msg: string) => {
+        setAlertMessage(msg);
         setShowAlert(true);
+        refetch();
         setTimeout(() => {
             setShowAlert(false);
         }, 3000);
-    };
+    }, [refetch]);
 
     const handleClick = (event: React.MouseEvent<HTMLElement>, id: string) => {
         setshowMenu(event.currentTarget);
@@ -168,23 +180,21 @@ const MusicPage: React.FC = () => {
                 },
             })
             if (response.ok) {
-                setAlertMessage("Song added to favorite");
+                handleShowAlert("Song added to favorite");
                 setSeverity(true);
             }
             else {
-                setAlertMessage("Song added to favorite");
+                handleShowAlert("Song added to favorite");
                 setSeverity(false);
             }
-            handleShowAlert();
             refetch();
         }
         catch (error) {
-            setAlertMessage("Something went wrong, please try again");
             setSeverity(false);
-            handleShowAlert();
+            handleShowAlert("Something went wrong, please try again");
             console.error("fetch error:", error);
         }
-    }, [selectedMusicIdForMenu, token, refetch]);
+    }, [selectedMusicIdForMenu, token, refetch, handleShowAlert]);
 
     const getMusicPath = (url: string) => {
         const decodedURL = decodeURIComponent(url);
@@ -311,7 +321,7 @@ const MusicPage: React.FC = () => {
                                             <SearchSuggestion />
                                         </div>
                                     )}
-                                    <SearchIcon color='secondary' className='absolute mt-2 right-[31.5rem]' fontSize="medium" />
+                                    <SearchIcon color='secondary' className='absolute mt-2 right-[34rem]' fontSize="medium" />
                                 </section>
                                 <section className="flex gap-10 flex-row items-center">
                                     <Tooltip title="search">
@@ -335,6 +345,11 @@ const MusicPage: React.FC = () => {
                                             </IconButton>
                                         )}
                                     </Tooltip>
+                                    <Tooltip title="playlists">
+                                        <IconButton color="secondary">
+                                            <LibraryMusicIcon fontSize="medium" />
+                                        </IconButton>
+                                    </Tooltip>
                                     <Tooltip title="create new playlist">
                                         <IconButton onClick={() => handleOpenCreatePlaylistPopup()} color="secondary" aria-label="add">
                                             <AddIcon fontSize="medium" />
@@ -342,7 +357,7 @@ const MusicPage: React.FC = () => {
                                     </Tooltip>
                                 </section>
                             </section>
-                            <section id='mobile-view' className='md:hidden flex flex-row items-center justify-between'>
+                            <section id='mobile-view' className='md:hidden mb-3 flex flex-row items-center justify-between'>
                                 <h1 className='text-md text-white'>Recent Songs</h1>
                                 {showMobilemenu &&
                                     <section className='items-center flex-row flex space-x-2'>
@@ -368,13 +383,13 @@ const MusicPage: React.FC = () => {
                                     <ArrowBackIosNewIcon className='menu' color='secondary' fontSize='small' />
                                 </IconButton>
                             </section>
-                            <div className='h-[70vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full'>
+                            <div className='md:h-[65vh] h-[75vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full'>
                                 {displayedMusic.map((music: MusicDetail) => (
                                     <section key={music.id} className="flex flex-col w-full md:w-auto md:hover:bg-slate-900">
                                         <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
                                             <div>
                                                 <Image
-                                                    className='rounded-full'
+                                                    className='rounded-md'
                                                     height={50}
                                                     width={50}
                                                     src={music.thumbnailUrl}
@@ -411,7 +426,7 @@ const MusicPage: React.FC = () => {
                                                     onClose={handleClose}
                                                     sx={{
                                                         '& .MuiPaper-root': {
-                                                            backgroundColor: '#2d2d2d',
+                                                            backgroundColor: '#0F172A',
                                                             color: '#ffffff',
                                                         },
                                                     }}
@@ -424,7 +439,7 @@ const MusicPage: React.FC = () => {
                                                         <FavoriteIcon />
                                                         <span>Add to Favorite</span>
                                                     </MenuItem>
-                                                    <MenuItem className='flex flex-row gap-2 items-center'>
+                                                    <MenuItem onClick={() => downLoadMusic(music.musicUrl)} className='flex flex-row gap-2 items-center'>
                                                         <FileDownloadIcon />
                                                         <span>Download</span>
                                                     </MenuItem>
@@ -444,7 +459,7 @@ const MusicPage: React.FC = () => {
                     {currentPlayingMusicDetails.length > 0 && <WebMusicPlayer musicDetails={currentPlayingMusicDetails} />}
                 </div>
             )}
-            <FileInput showAlert={handleShowAlert} isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
+            <FileInput setSeverity={handleSetSeverty} showAlert={handleShowAlert} isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );

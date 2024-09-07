@@ -35,7 +35,6 @@ const Navbar: React.FC = () => {
     const [name, setName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [profile, setProfile] = useState<string>("")
-    const [userId, setUserId] = useState<string>('');
     const [isloggedin, setisLoggedin] = useState<boolean>(true);
     const [showLoginForm, setShowLoginForm] = useState<boolean>(false);
 
@@ -46,6 +45,10 @@ const Navbar: React.FC = () => {
             console.log("firebase error", error);
         }
     };
+
+    const openLoginForm = () => {
+        setShowLoginForm(true);
+    }
 
     const closeloginForm = () => {
         setShowLoginForm(false);
@@ -66,7 +69,6 @@ const Navbar: React.FC = () => {
         if (user) {
             setName(`${user.displayName}`)
             setEmail(`${user.email}`)
-            setUserId(`${user.uid}`);
             setProfile(`${user.photoURL}`);
             setisLoggedin(true)
         } else {
@@ -80,7 +82,7 @@ const Navbar: React.FC = () => {
 
     return (
         <>
-            <nav className="flex bg-slate-950 fixed w-full py-5 md:py-2 justify-between pl-3 pr-3 md:pl-0 md:pr-0  md:justify-around top-0 bg-inherit z-30 font-Montserrat text-white text-lg items-center">
+            <nav className="flex bg-transparent fixed w-full py-5 md:py-2 justify-between pl-3 pr-3 md:pl-0 md:pr-0  md:justify-around top-0 z-30 font-Montserrat text-white text-lg items-center">
                 <ol className="flex items-center space-x-3 cursor-pointer">
                     <Image className="h-8 w-8 rounded-full" src={logo} alt={"logo"} />
                     <span className="font-bold">MUSICALLY</span>
@@ -139,7 +141,7 @@ const Navbar: React.FC = () => {
                         </button>
                     )}
                 </ol>
-                {showHamburgerMenu && <HamburerMenu isOpen={showHamburgerMenu} closeMenu={closehamburgerMenu} />}
+                {showHamburgerMenu && <HamburerMenu name={name} isOpen={showHamburgerMenu} isLoggedIn={isloggedin} showLoginForm={openLoginForm} closeMenu={closehamburgerMenu} />}
             </nav >
             {showLoginForm && <LoginForm closeForm={closeloginForm} />}
 

@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, Res } from '@nestjs/common';
 import { MusicService } from './music.service';
 import { Prisma } from '@prisma/client';
-import { Request, Response } from 'express';
+import { query, Request, Response } from 'express';
+import { PassThrough } from 'stream';
 import { error } from 'console';
-import { json } from 'node:stream/consumers';
+
 
 @Controller('music')
 export class MusicController {
@@ -16,9 +17,9 @@ export class MusicController {
     @Res() res: Response
   ) {
     const userId = req['firebaseUserId'];
-    
 
-  
+
+
     try {
 
       const serviceResponse = await this.musicservice.upload(createMusicDto, userId);
@@ -31,12 +32,12 @@ export class MusicController {
 
       }
       else {
-      res.status(serviceResponse.statusCode).json({
-        message: serviceResponse.message,
-        newMusic: serviceResponse.newMusic,
+        res.status(serviceResponse.statusCode).json({
+          message: serviceResponse.message,
+          newMusic: serviceResponse.newMusic,
 
-      });
-    }
+        });
+      }
     } catch (error) {
       console.error('Error in upload controller:', error);
       res.status(500).json({
@@ -46,10 +47,10 @@ export class MusicController {
     }
   }
 
-  @Patch(':id') 
+  @Patch(':id')
   async edit(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateMusicDto: Prisma.MusicUpdateInput, 
+    @Body() updateMusicDto: Prisma.MusicUpdateInput,
     @Req() req: Request,
     @Res() res: Response
   ) {
@@ -81,6 +82,7 @@ export class MusicController {
     @Req() req: Request,
     @Res() res: Response
   ) {
+
     const userId = req['firebaseUserId'];
     try {
       const serviceResponse = await this.musicservice.remove(id, userId);
@@ -141,4 +143,106 @@ export class MusicController {
       });
     }
   }
+
+
+  @Post('upload')
+  async getMp3(
+    @Body('youtubeUrl') youtubeUrl: string,
+    @Req() req: Request,
+    @Res() res: Response
+  ): Promise<void> {
+    if (!youtubeUrl) {
+      res.status(400).json({ error: 'YouTube URL is required' });
+    }
+
+    try {
+      const mp3Stream = await this.musicservice.getMp3Stream(youtubeUrl);
+
+      if (mp3Stream) {
+        const bufferStream = new PassThrough(); // Stream to buffer data
+
+        let totalSize = 0; // Initialize size counter
+        mp3Stream.on('data', (chunk) => {
+          totalSize += chunk.length; // Accumulate chunk sizes
+          bufferStream.write(chunk); // Write chunks to the buffer stream
+        });
+
+        mp3Stream.on('end', () => {
+          bufferStream.end();
+
+
+          res.setHeader('Content-Type', 'audio/mpeg');
+          res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
+          res.setHeader('Content-Length', totalSize);
+
+
+          bufferStream.pipe(res);
+
+          bufferStream.on('end', () => {
+            console.log('MP3 file has been successfully streamed to the client.');
+          });
+        });
+
+        mp3Stream.on('error', (error) => {
+          console.error('Error during MP3 streaming:', error);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Error streaming MP3 file' });
+          }
+        });
+      } else {
+        res.status(500).json({ error: 'Failed to retrieve MP3 stream' });
+      }
+    } catch (error) {
+      console.error('Error fetching MP3 stream:', error);
+      res.status(500).json({ error: 'Failed to fetch MP3' });
+    }
+  }
+
+
+  @Post('addtoplaylist')
+  async addtoplaylist(@Body() addtoPlaylistDto: Prisma.PlaylistCreateInput,
+    @Req() req: Request,
+    @Res() res: Response) {
+    const userId = req['firebaseUserId'];
+    try {
+      const response = await this.musicservice.addToPlaylist(userId, addtoPlaylistDto)
+      if (response.statusCode === 500) {
+        res.status(response.statusCode).json({
+          message: response.message,
+          error: response.error
+        })
+      }
+      res.status(response.statusCode).json({ message: response.message, playlistDetails: response.playlistName })
+    }
+    catch (error) {
+      console.error(error)
+      res.status(500).json({ error: error.message, message: "Internal Server Error" })
+    }
+  }
+  @Patch()
+  async updatePlaylist(@Body() updatePlaylist: Prisma.PlaylistUpdateInput,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    const userId = req['firebaseUserId'];
+    try {
+      const response = await this.musicservice.updatePlaylist(updatePlaylist, userId)
+      if (response.statusCode === 500) {
+        res.status(response.statusCode).json({
+          message: response.message,
+          error: response.error
+        })
+      }
+      res.status(response.statusCode).json({ message: response.message, updatedPlaylist: response.updatedPlaylist })
+    }
+    catch (error) {
+      console.error(error)
+      res.status(500).json({ error: error.message, message: "Internal Server Error" })
+    }
+  }
+
+
+
 }
+
+
