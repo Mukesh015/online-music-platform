@@ -27,6 +27,14 @@ type SignupResponse {
   message: String!
 }
 
+type LastHistory {
+  musicUrl: String!
+  musicTitle: String!
+  thumbnailUrl: String!
+  musicArtist: String!
+  lastPlayedAt: DateTime!
+}
+
 type Query {
   index: String!
   musics: [Music!]!
@@ -34,6 +42,7 @@ type Query {
   getFavoriteMusicByUserId: [Music!]!
   getPlaylistNameByUserId: [String!]!
   getPlaylistByUserId: [Playlist!]!
+  getLastHistory: LastHistory!
 }
 
 type Mutation {

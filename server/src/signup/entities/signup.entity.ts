@@ -20,6 +20,8 @@ export class SignupResponse {
   message: string;
 }
 
+
+@ObjectType()
 export class LastHistory {
   @Field()
   musicUrl: string;
