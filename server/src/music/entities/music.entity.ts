@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { IsString, IsNotEmpty, IsArray, ArrayNotEmpty, IsInt } from 'class-validator';
 
 @ObjectType()
 export class Music {
@@ -24,6 +25,7 @@ export class Music {
 
   @Field()
   createdAt: Date;
+  
 }
 
 
@@ -37,8 +39,15 @@ export class Playlist {
 }
 
 
-@ObjectType()
+
+
 export class AddToPlaylistDto {
+  @IsString()
+  @IsNotEmpty()  // Ensures the string is not empty and not null
   playlistName: string;
-  musicIds: number[]; // Array of music IDs
+
+  @IsArray()
+  @ArrayNotEmpty()  // Ensures the array is not empty
+  @IsInt({ each: true })  // Ensures each element in the array is an integer
+  musicIds: number[];  // Array of music IDs
 }

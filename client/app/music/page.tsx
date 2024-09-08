@@ -66,6 +66,7 @@ interface MusicDetail {
 }
 const MusicPage: React.FC = () => {
 
+    const token = useSelector((state: RootState) => state.authToken.token);
     const { loading, error, data, refetch } = useQuery(MusicQuery);
     const [showMenu, setshowMenu] = React.useState<null | HTMLElement>(null);
     const [isOpenFileInput, setIsOpenFileInput] = useState<boolean>(false);
@@ -78,33 +79,29 @@ const MusicPage: React.FC = () => {
     const [favoriteMusicDetails, setFavoriteMusicDetails] = useState<MusicDetail[]>([]);
     const [currentPlayingMusicDetails, setCurrentPlayingMusicDetails] = useState<MusicDetail[]>([]);
     const [selectedMusicIdForMenu, setSelectedMusicIdForMenu] = useState<number | null>(null);
+    const [idForplaylist, setIdForplaylist] = useState<number[]>([]);
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [severity, setSeverity] = useState<boolean>(false);
-    const [queue, setQueue] = useState<MusicDetail[]>([]);
+    const open = Boolean(showMenu);
 
-    const token = useSelector((state: RootState) => state.authToken.token);
-
-
-    const handleAddToQueue = () => {
-        // @ts-ignore
-        const music: MusicDetail = musicDetails.find(music => parseInt(music.id) === selectedMusicIdForMenu);
-        setQueue(prevQueue => [...prevQueue, music]);
+    const addtoplaylistById = (id: number) => {
+        if (!idForplaylist.includes(id)) {
+            setIdForplaylist(prevState => [...prevState, id]);
+        }
+        console.log("Added to playlist", idForplaylist)
     };
 
-    const open = Boolean(showMenu);
+    const removeFromPlaylistById = (id: number) => {
+        setIdForplaylist(prevState => prevState.filter(item => item !== id));
+    };
+
+    const handleAddToQueue = () => {
+        console.log("Added to queue")
+    };
 
     const handleSetSeverty = (severity: boolean) => {
         setSeverity(severity);
     }
-
-    const handleShowAlert = useCallback((msg: string) => {
-        setAlertMessage(msg);
-        setShowAlert(true);
-        refetch();
-        setTimeout(() => {
-            setShowAlert(false);
-        }, 3000);
-    }, [refetch]);
 
     const handleClick = (event: React.MouseEvent<HTMLElement>, id: string) => {
         setshowMenu(event.currentTarget);
@@ -132,6 +129,16 @@ const MusicPage: React.FC = () => {
     const closeUploadPopup = () => {
         setIsOpenFileInput(false);
     }
+    const handleShowAlert = useCallback((msg: string) => {
+        setAlertMessage(msg);
+        setShowAlert(true);
+        refetch();
+        setTimeout(() => {
+            setShowAlert(false);
+        }, 3000);
+    }, [refetch]);
+
+
 
     const handleToggleMobileMenu = () => {
         setShowMobileMenu(!showMobilemenu);
@@ -150,18 +157,8 @@ const MusicPage: React.FC = () => {
 
     const handleSendMusicDetails = (music: MusicDetail) => {
         setCurrentPlayingMusicDetails([music]); // Set the current song
-        setQueue([]); // Clear the queue when a new song is directly selected
     };
 
-    const playNextFromQueue = useCallback(() => {
-        if (queue.length > 0) {
-            const nextSong = queue[0]; // Get the first song in the queue
-            setCurrentPlayingMusicDetails([nextSong]); // Play the next song
-            setQueue(prevQueue => prevQueue.slice(1)); // Remove the played song from the queue
-        } else {
-            console.log("No songs in the queue");
-        }
-    }, [queue]);
 
     const handleAddToFav = useCallback(async () => {
         handleClose();
@@ -189,6 +186,37 @@ const MusicPage: React.FC = () => {
             console.error("fetch error:", error);
         }
     }, [selectedMusicIdForMenu, token, refetch, handleShowAlert]);
+
+    const handleCreatePlaylsit = useCallback(async (playlistName: string) => {
+        handleClose();
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/addtoplaylist`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    musicIds: idForplaylist,
+                    playlistName: playlistName
+                })
+            })
+            if (response.ok) {
+                handleShowAlert("Playlist created successfully");
+                setSeverity(true);
+            }
+            else {
+                handleShowAlert("Failed to create playlist");
+                setSeverity(false);
+            }
+            refetch();
+        }
+        catch (error) {
+            setSeverity(false);
+            handleShowAlert("Something went wrong, please try again");
+            console.error("fetch error:", error);
+        }
+    }, [handleShowAlert, idForplaylist, refetch, token])
 
     const getMusicPath = (url: string) => {
         const decodedURL = decodeURIComponent(url);
@@ -282,18 +310,6 @@ const MusicPage: React.FC = () => {
             refetch();
         }
     }, [error, refetch, token, data]);
-
-    useEffect(() => {
-        const currentSong = currentPlayingMusicDetails[0];
-        if (currentSong) {
-            // Replace this with your actual logic to detect when the song ends
-            const simulateSongEnd = setTimeout(() => {
-                playNextFromQueue();
-            }, currentSong ? 2000 : 0); // Simulate song end after 2 seconds for demo purposes
-
-            return () => clearTimeout(simulateSongEnd); // Clean up timer on component unmount or song change
-        }
-    }, [currentPlayingMusicDetails, playNextFromQueue]);
 
     return (
         <>
@@ -453,7 +469,17 @@ const MusicPage: React.FC = () => {
                     {currentPlayingMusicDetails.length > 0 && <WebMusicPlayer musicDetails={currentPlayingMusicDetails} />}
                 </div>
             )}
-            <FileInput setSeverity={handleSetSeverty} showAlert={handleShowAlert} isOpen={isOpenFileInput} onClose={closeUploadPopup} visible={fileInputVisibleProps} />
+            <FileInput
+                idForplaylist={idForplaylist}
+                isOpen={isOpenFileInput}
+                visible={fileInputVisibleProps}
+                removeToPlayList={removeFromPlaylistById}
+                addToPlaylist={addtoplaylistById}
+                setSeverity={handleSetSeverty}
+                showAlert={handleShowAlert}
+                onClose={closeUploadPopup}
+                createPlaylist={handleCreatePlaylsit}
+            />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );

@@ -2,6 +2,7 @@ import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MyLoggerService } from './my-logger/my-logger.service';
 import { AllExceptionsFilter } from './all-exception.filter';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -14,11 +15,15 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useLogger(logger);
 
-
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
   app.useGlobalFilters(new AllExceptionsFilter(logger));
   const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',')
-  : ['https://musicly-ktbt.vercel.app'];
+    ? process.env.CORS_ORIGINS.split(',')
+    : ['https://musicly-ktbt.vercel.app'];
   app.enableCors({
     origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

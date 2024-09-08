@@ -13,8 +13,7 @@ import { MiddlewareModule } from './middleware/middleware.module';
 import { AuthguardModule } from './authguard/authguard.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MicroservicesModule } from '@nestjs/microservices/microservices-module';
-import { ClusterModule } from './cluster/cluster.module';
+
 // Determine schema file path and load schema if in production
 const schemaFilePath = process.env.NODE_ENV === 'production'
   ? join(process.cwd(), './src/schema.gql') // Path to your pre-generated schema in production
@@ -39,8 +38,7 @@ const schema = schemaFilePath ? makeExecutableSchema({
     MyLoggerModule,
     MiddlewareModule,
     AuthguardModule,
-    MicroservicesModule,
-    ClusterModule
+    
   ],
   providers: [
     AppResolver,

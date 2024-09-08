@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, NotFoundException, Param, ParseIntPipe, Patch, Post, Query, Req, Res, UnauthorizedException } from '@nestjs/common';
 import { MusicService } from './music.service';
 import { Prisma } from '@prisma/client';
 import { query, Request, Response } from 'express';
@@ -268,13 +268,12 @@ export class MusicController {
       const response: UpdatePlaylistResponse = await this.musicservice.updatePlaylist(updatePlaylist, userId);
 
       if ('updatedPlaylist' in response) {
-        // Handle success response
         return res.status(response.statusCode).json({
           message: response.message,
           updatedPlaylist: response.updatedPlaylist,
         });
       } else {
-        // Handle error response
+
         return res.status(response.statusCode).json({
           message: response.message,
           error: response.error,
@@ -288,7 +287,37 @@ export class MusicController {
       });
     }
   }
+  @Delete('removefromplaylist')
+  async removeFromPlaylist(
+    @Body() removeFromPlaylistDto: { musicId: number }, // Expecting only musicId in the body
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    const userId = req['firebaseUserId'];
+    const { musicId } = removeFromPlaylistDto;
 
+    try {
+      const response = await this.musicservice.removeFromPlaylist(musicId, userId);
+      if (response.statusCode === 500) {
+
+        return res.status(response.statusCode).json({
+          message: response.message,
+          error: response.error,
+        });
+      }
+      res.status(response.statusCode).json({
+        "message": response.message,
+        "details": response.musicDetails
+      });
+    } catch (error) {
+      console.error('Error in removeFromPlaylist controller:', error)
+
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Internal Server Error',
+        error: error.message,
+      });
+    }
+  }
 
 
 }

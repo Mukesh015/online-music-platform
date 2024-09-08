@@ -20,3 +20,19 @@ export class SignupResponse {
   message: string;
 }
 
+export class LastHistory {
+  @Field()
+  musicUrl: string;
+
+  @Field()
+  musicTitle: string;
+
+  @Field()
+  thumbnailUrl: string;
+
+  @Field()
+  musicArtist: string;
+
+  @Field()
+  lastPlayedAt: Date;
+}

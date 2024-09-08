@@ -8,6 +8,7 @@ import { decodeMetaData, decodeMetaDataToBlob } from "@/lib/musicMetadata";
 import { useAuthToken } from "@/providers/authTokenProvider";
 import CircularProgress from '@mui/material/CircularProgress';
 import { gql, useQuery } from "@apollo/client";
+import RemoveIcon from '@mui/icons-material/Remove';
 
 const getUserMusics = gql`{
     getMusicByUserId{
@@ -33,18 +34,28 @@ interface MusicDetail {
 interface Props {
     isOpen: boolean;
     visible: string;
+    idForplaylist: number[],
     onClose: () => void;
     showAlert: (msg: string) => void;
     setSeverity: (severity: boolean) => void;
+    addToPlaylist: (id: number) => void;
+    removeToPlayList: (id: number) => void;
+    createPlaylist: (playlistName: string) => void;
 }
 
-const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert, setSeverity }) => {
+const FileInput: React.FC<Props> = ({ isOpen, createPlaylist, onClose, idForplaylist, removeToPlayList, visible, showAlert, setSeverity, addToPlaylist }) => {
     const { token } = useAuthToken();
     const { loading, error, data } = useQuery(getUserMusics);
     const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [imageBlob, setImageBlob] = useState<Blob | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [musicDetails, setMusicDetails] = useState<MusicDetail[]>([]);
+    const [isAddedToPlaylist, setIsAddedToPlaylist] = useState<boolean>(false);
+    const [newPlaylistName, setNewPlaylistName] = useState<string>("");
+
+    const toggleAddAndRemoveToPlaylist = () => {
+        setIsAddedToPlaylist(!isAddedToPlaylist);
+    }
 
     const handleClosePopup = useCallback(() => {
         onClose();
@@ -59,6 +70,16 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert, setSe
             setImageBlob(blob);
         }
     };
+
+    const handleAddToPlaylist = (id: number) => {
+        addToPlaylist(id);
+        toggleAddAndRemoveToPlaylist();
+    }
+
+    const handleRemoveFromPlaylist = (id: number) => {
+        removeToPlayList(id);
+        toggleAddAndRemoveToPlaylist();
+    }
 
     const handleSentMusicDetails = useCallback(async (link: string, thumbnailLink: string) => {
         if (uploadFile && imageBlob) {
@@ -106,12 +127,9 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert, setSe
                 const result = await uploadMusic(uploadFile);
                 const musicPath = result.ref.fullPath;
                 const musicLink = await getDownloadLink(musicPath);
-                console.log("Music uploaded successfully", musicLink);
                 const thumbnail = await uploadMusicThumbnail(imageBlob)
-                console.log("Thumbnail uploaded successfully", thumbnail);
                 const thumbnailPath = thumbnail.ref.fullPath;
                 const thumbnailLink = await getDownloadLink(thumbnailPath);
-                console.log("Thumbnail uploaded successfully", thumbnailLink)
                 handleSentMusicDetails(musicLink, thumbnailLink);
             }
         } catch (e) {
@@ -122,7 +140,6 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert, setSe
     useEffect(() => {
         if (data && data.getMusicByUserId) {
             setMusicDetails(data.getMusicByUserId);
-            console.log(data.getMusicByUserId);
         }
     }, [data]);
 
@@ -165,22 +182,36 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert, setSe
                                 <p className="text-xs text-gray-500">Folder name must be unique</p>
                             </div>
                             <section className="flex flex-row gap-10">
-                                <TextField id="outlined-basic" label="Album name" variant="outlined" />
+                                <TextField onChange={(e) => setNewPlaylistName(e.target.value)} id="outlined-basic" label="Enter playlist name" variant="outlined" />
                             </section>
                             <section className="max-w-[75vw] overflow-y-auto mt-5 flex flex-col bg-gray-100 md:w-[40vw] rounded-md h-[40vh] p-1.5">
                                 <h3 className="text-red-500 text-sm mb-3">wanna add some music</h3>
                                 {musicDetails.map((music: MusicDetail) => (
                                     <div key={music.id} className="flex flex-row gap-2 items-center justify-between">
                                         <p className="max-w-[60vw] overflow-hidden whitespace-nowrap ">{music.musicTitle}</p>
-                                        <IconButton color="primary" aria-label="add">
-                                            <AddIcon fontSize="small" />
-                                        </IconButton>
+                                        {idForplaylist.includes(music.id) ? (
+                                            <IconButton
+                                                onClick={() => handleRemoveFromPlaylist(music.id)}
+                                                color="primary"
+                                                aria-label="remove"
+                                            >
+                                                <RemoveIcon fontSize="small" />
+                                            </IconButton>
+                                        ) : (
+                                            <IconButton
+                                                onClick={() => handleAddToPlaylist(music.id)}
+                                                color="primary"
+                                                aria-label="add"
+                                            >
+                                                <AddIcon fontSize="small" />
+                                            </IconButton>
+                                        )}
                                     </div>
                                 ))}
                             </section>
                             <section className="flex flex-row justify-end gap-5 pt-5 pb-10 w-full pr-5">
                                 <Button onClick={onClose} variant="text">Close</Button>
-                                <Button variant="contained">CREATE</Button>
+                                <Button onClick={() => createPlaylist(newPlaylistName)} variant="contained">CREATE</Button>
                             </section>
                         </div>
                     )}

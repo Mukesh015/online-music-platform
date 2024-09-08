@@ -35,7 +35,7 @@ export class SignupService {
 
     if (existingUser) {
 
-      return { statusCode: 200, message: "Loggedin Successfully",user: createUserDto};
+      return { statusCode: 200, message: "Loggedin Successfully", user: createUserDto };
     }
 
     try {
@@ -44,7 +44,7 @@ export class SignupService {
         data: createUserDto,
       });
 
-      return { statusCode: 201, message: "User created successfully",user: createUserDto};
+      return { statusCode: 201, message: "User created successfully", user: createUserDto };
     } catch (error) {
 
       console.error("Error creating user:", error);
@@ -52,12 +52,57 @@ export class SignupService {
 
       if (error.code === 'P2002') {
 
-        return { statusCode: 409, message: "User with this ID already exists",user: createUserDto };
+        return { statusCode: 409, message: "User with this ID already exists", user: createUserDto };
       } else {
 
         return { statusCode: 500, message: "An error occurred while creating the user", error: error.message };
       }
     }
   }
+
+  async addToLastHistory(addToLastHistoryDto: Prisma.lasthistoryCreateInput, userId: string) {
+    try {
+      const lasthistory = await this.dbService.lasthistory.upsert({
+        where: {
+          userId_musicId: {
+            userId: userId,
+            musicId: addToLastHistoryDto.musicId,
+          },
+        },
+        update: {
+          musicUrl: addToLastHistoryDto.musicUrl,
+          thumbnailUrl: addToLastHistoryDto.thumbnailUrl,
+          musicTitle: addToLastHistoryDto.musicTitle,
+          musicArtist: addToLastHistoryDto.musicArtist,
+          lastPlayedAt: addToLastHistoryDto.lastPlayedAt,
+        },
+        create: {
+          userId: userId,
+          musicId: addToLastHistoryDto.musicId,
+          musicUrl: addToLastHistoryDto.musicUrl,
+          thumbnailUrl: addToLastHistoryDto.thumbnailUrl,
+          musicTitle: addToLastHistoryDto.musicTitle,
+          musicArtist: addToLastHistoryDto.musicArtist,
+          lastPlayedAt: addToLastHistoryDto.lastPlayedAt,
+        },
+      });
+      return { statusCode: 200, message: "Added to last history successfully", lasthistory: lasthistory };
+    }
+    catch (error) {
+      console.error("Error adding to last history:", error);
+      return { statusCode: 500, message: "An error occurred while adding to last history", error: error.message };
+    }
+
+  }
+
+
+  async findLastHistory(userId: string) {
+    return this.dbService.lasthistory.findFirst({
+      where: {
+        userId: userId,
+      },
+    });
+  }
+
 
 }

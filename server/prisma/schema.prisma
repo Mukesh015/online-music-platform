@@ -19,6 +19,7 @@ model User {
   email  String  @unique
   name   String
   music  Music[]
+  LastHistory lasthistory[]
 }
 
 model Music {
@@ -56,5 +57,21 @@ model Playlist {
 
   Music          Music?   @relation(fields: [musicId], references: [id])
   
+  @@id([userId, musicId])
+}
+
+
+
+model lasthistory{
+  userId String
+  musicId Int
+  musicUrl String
+  thumbnailUrl String
+  musicTitle String
+  musicArtist String
+  lastPlayedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [userId])
+
   @@id([userId, musicId])
 }

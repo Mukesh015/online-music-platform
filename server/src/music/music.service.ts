@@ -3,6 +3,7 @@ import { DatabaseService } from '../database/database.service';
 // import { CreateMusicInput } from './dto/create-music.input';
 import { Prisma } from '@prisma/client';
 import { Music, Playlist, AddToPlaylistDto } from './entities/music.entity'
+import { STATUS_CODES } from 'http';
 
 
 @Injectable()
@@ -321,6 +322,49 @@ export class MusicService {
       return { message: "Internal server error", statusCode: 500, error: error.message };
     }
   }
+
+
+  async removeFromPlaylist(musicId: number, userId: string) {
+    try {
+      const playlistEntry = await this.dbService.playlist.findUnique({
+        where: {
+          userId_musicId: {
+            userId,
+            musicId,
+          },
+        },
+      });
+
+      if (!playlistEntry) {
+
+        return { message: 'Music ID not found in playlist', statusCode: 404, musicDetails: musicId };
+      }
+
+
+      if (playlistEntry.userId !== userId) {
+
+        return { message: 'User does not match', statusCode: 400, musicDetails: musicId };
+      }
+
+
+      await this.dbService.playlist.delete({
+        where: {
+          userId_musicId: {
+            userId,
+            musicId,
+          },
+        },
+      });
+
+      return { message: 'Music removed from playlist successfully', statusCode: 200, musicDetails: playlistEntry };
+    }
+    catch (error) {
+      console.error('Error removing music from playlist:', error);
+      return { message: 'An error occurred while removing music from playlist', statusCode: 500, error: error.message };
+    }
+  }
+
+
   async findAll(userId: string): Promise<Partial<Music>[]> {
     if (userId === "null" || userId === "invalid") {
 
