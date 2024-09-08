@@ -4,10 +4,6 @@ import { DatabaseService } from '../database/database.service';
 import { Prisma } from '@prisma/client';
 import { Music, Playlist } from './entities/music.entity'
 
-const ytdlp = require('yt-dlp-exec');
-
-import { Readable } from 'stream';
-
 @Injectable()
 export class MusicService {
   constructor(private readonly dbService: DatabaseService) { }
@@ -466,22 +462,6 @@ export class MusicService {
     });
 
     return Array.from(playlistMap.values());
-  }
-
-  async getMp3Stream(youtubeUrl: string): Promise<Readable> {
-    try {
-      const result = await ytdlp(youtubeUrl, {
-        extractAudio: true,
-        audioFormat: 'mp3',
-        output: 'audio.mp3',
-
-      });
-      console.log("Download process started", result);
-      return result.stdout;
-    } catch (error) {
-      console.error('Error downloading or processing audio:', error);
-      throw error;
-    }
   }
 
 
