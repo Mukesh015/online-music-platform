@@ -18,7 +18,7 @@ import Image from "next/image";
 import SettingsIcon from '@mui/icons-material/Settings';
 
 interface MusicDetails {
-    id: string;
+    id: number;
     musicUrl: string;
     musicTitle: string;
     thumbnailUrl: string;
@@ -26,7 +26,7 @@ interface MusicDetails {
     isFavourite: boolean;
 }
 
-const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
+const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
     const musicRef = useRef<HTMLAudioElement | null>(null);
     const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
@@ -93,7 +93,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
     return (
         <>
             <div className="fixed bottom-1 md:bottom-0 w-full right-0 h-20 text-white bg-slate-800 z-50">
-                <audio autoPlay ref={musicRef} src={musicDetails[0].musicUrl} />
+                <audio autoPlay ref={musicRef} src={musicDetails.musicUrl} />
                 <Slider
                     className="fixed bottom-16 md:bottom-[65px]"
                     size="small"
@@ -107,10 +107,10 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
                 <div className="md:pl-10 md:pr-10 pl-3 pr-3 mt-2 md:mt-5">
                     <div className="flex flex-row gap-2 items-center justify-between md:justify-normal">
                         <section className="flex flex-row gap-1 items-center md:gap-3">
-                            <Image className="rounded-md" height={40} width={40} src={musicDetails[0].thumbnailUrl} alt="Thumbnail" />
+                            <Image className="rounded-md" height={40} width={40} src={musicDetails.thumbnailUrl} alt="Thumbnail" />
                             <p className="flex flex-col md:w-[25rem] w-[9rem] overflow-x-hidden whitespace-nowrap">
-                                <span className="md:text-[20px] text-[14px]">{musicDetails[0].musicTitle}</span>
-                                <span className="text-slate-500 text-[10px]">Artist : {musicDetails[0].musicArtist}</span>
+                                <span className="md:text-[20px] text-[14px]">{musicDetails.musicTitle}</span>
+                                <span className="text-slate-500 text-[10px]">Artist : {musicDetails.musicArtist}</span>
                             </p>
                         </section>
                         <section
@@ -140,7 +140,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
                             </div>
                         </section>
                         <IconButton className="md:hidden" color="primary" aria-label="favorite" onClick={toggleFavorite}>
-                            {musicDetails[0].isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
+                            {musicDetails.isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
                         </IconButton>
                         <IconButton className="md:hidden" color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
                             {isLooping ? (
