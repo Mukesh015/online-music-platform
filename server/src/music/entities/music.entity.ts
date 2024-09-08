@@ -35,3 +35,10 @@ export class Playlist {
   @Field(type => [Music])
   playlists: Music[];
 }
+
+
+@ObjectType()
+export class AddToPlaylistDto {
+  playlistName: string;
+  musicIds: number[]; // Array of music IDs
+}

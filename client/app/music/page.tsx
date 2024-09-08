@@ -29,16 +29,10 @@ import musicWave from "@/lottie/Animation - 1724571535854.json";
 import AlertPopup from '@/components/alert';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 
-
 const MusicQuery = gql`
     {
         musics{
             id
-            musicUrl
-            isFavourite
-            musicTitle
-            thumbnailUrl
-            musicArtist
         }
         index
         getMusicByUserId{

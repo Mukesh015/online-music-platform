@@ -2,7 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 // import { CreateMusicInput } from './dto/create-music.input';
 import { Prisma } from '@prisma/client';
-import { Music, Playlist } from './entities/music.entity'
+import { Music, Playlist, AddToPlaylistDto } from './entities/music.entity'
+
 
 @Injectable()
 export class MusicService {
@@ -184,69 +185,26 @@ export class MusicService {
 
 
 
-  async addToPlaylist(userId: string, addtoPlaylistDto: Prisma.PlaylistCreateInput) {
-    const { musicId, playlistName } = addtoPlaylistDto
+  async addToPlaylist(userId: string, addToPlaylistDto: AddToPlaylistDto) {
+    const { musicIds, playlistName } = addToPlaylistDto;
 
     try {
-      const music = await this.dbService.music.findUnique({
-        where: { id: musicId },
-      });
-      if (!music) {
-        return { message: "Music not found", statusCode: 404, playlistName: musicId };
-      }
+      const notFoundMusicIds: number[] = [];
+      const alreadyInPlaylistMusicIds: number[] = [];
+      const addedMusicIds: number[] = [];
 
-      const existingPlaylist = await this.dbService.playlist.findUnique({
-        where: {
-          userId_musicId: {
-            userId: userId,
-            musicId,
-          }
+      // Step 1: Check if each music item exists
+      for (const musicId of musicIds) {
+        const music = await this.dbService.music.findUnique({
+          where: { id: musicId },
+        });
+
+        if (!music) {
+          notFoundMusicIds.push(musicId);
+          continue;
         }
-      });
 
-      if (existingPlaylist) {
-        return { message: 'Playlist name already exists', statusCode: 409, playlistName: playlistName };
-      }
-
-
-      const newPlaylist = await this.dbService.playlist.create({
-        data: {
-          userId: userId,
-          playlistName,
-          musicId,
-        }
-      });
-
-      return { mesge: 'Playlist created successfully', statusCode: 201, playlistName: newPlaylist };
-
-    } catch (error) {
-      console.error('Error creating playlist:', error);
-      return { message: 'Error creating playlist', statusCode: 500, error: error.message }
-    }
-  }
-
-
-  async updatePlaylist(updateplayListDto: Prisma.PlaylistUpdateInput, userId: string) {
-    const musicId = updateplayListDto.musicId as number
-    const playlistName = updateplayListDto.playlistName as string
-
-    try {
-      const music = await this.dbService.music.findUnique({
-        where: { id: musicId },
-      });
-
-      if (!music) {
-        return { message: "Music not found", statusCode: 404, updatedPlaylist: musicId };
-      }
-
-      const playlist = await this.dbService.playlist.findFirst({
-        where: {
-          userId,
-          playlistName,
-        },
-      });
-
-      if (playlist) {
+        // Step 2: Check if music is already in the playlist
         const existingMusicInPlaylist = await this.dbService.playlist.findFirst({
           where: {
             userId,
@@ -256,29 +214,113 @@ export class MusicService {
         });
 
         if (existingMusicInPlaylist) {
-          console.log('Music already exists in the playlist');
-          return { message: "Music already exists in the playlist", statusCode: 409, updatedPlaylist: playlist };
+          alreadyInPlaylistMusicIds.push(musicId);
+        } else {
+          // Step 3: Add music to the playlist
+          await this.dbService.playlist.create({
+            data: {
+              userId,
+              musicId,
+              playlistName,
+            },
+          });
+          addedMusicIds.push(musicId);
+        }
+      }
+
+      // Prepare response
+      return {
+        statusCode: 200,
+        message: "Playlist updated successfully",
+        playlistDetails: {
+          added: addedMusicIds,
+          alreadyExists: alreadyInPlaylistMusicIds,
+          notFound: notFoundMusicIds,
+        },
+      };
+    } catch (error) {
+      console.error('Error adding to playlist:', error);
+      return {
+        message: 'Error adding to playlist',
+        statusCode: 500,
+        error: error.message,
+      };
+    }
+  }
+
+
+  async updatePlaylist(updateplayListDto: AddToPlaylistDto, userId: string) {
+    const { musicIds, playlistName } = updateplayListDto;
+
+    try {
+
+      const playlist = await this.dbService.playlist.findFirst({
+        where: {
+          userId,
+          playlistName,
+        },
+      });
+
+      if (!playlist) {
+        return { message: "Playlist not found", statusCode: 404, updatedPlaylist: null };
+      }
+
+      const notFoundMusicIds = [];
+      const alreadyInPlaylistMusicIds = [];
+      const addedMusicIds = [];
+
+      for (const musicId of musicIds) {
+
+        const music = await this.dbService.music.findUnique({
+          where: { id: musicId },
+        });
+
+        if (!music) {
+          notFoundMusicIds.push(musicId);
+          continue;
         }
 
-        await this.dbService.playlist.create({
-          data: {
+
+        const existingMusicInPlaylist = await this.dbService.playlist.findFirst({
+          where: {
             userId,
-            musicId,
             playlistName,
+            musicId,
           },
         });
 
-        return { message: "Music added to the playlist", statusCode: 200, updatedPlaylist: playlist };
-      } else {
-        return { message: "Playlist not found", statusCode: 404, updatedPlaylist: musicId };
+        if (existingMusicInPlaylist) {
+          alreadyInPlaylistMusicIds.push(musicId);
+        } else {
+
+          await this.dbService.playlist.create({
+            data: {
+              userId,
+              musicId,
+              playlistName,
+            },
+          });
+          addedMusicIds.push(musicId);
+        }
       }
+
+
+      const response = {
+        message: "Playlist updated successfully",
+        statusCode: 200,
+        updatedPlaylist: {
+          added: addedMusicIds,
+          alreadyExists: alreadyInPlaylistMusicIds,
+          notFound: notFoundMusicIds,
+        },
+      };
+
+      return response;
     } catch (error) {
       console.error('Error updating playlist:', error);
       return { message: "Internal server error", statusCode: 500, error: error.message };
     }
-
   }
-
   async findAll(userId: string): Promise<Partial<Music>[]> {
     if (userId === "null" || userId === "invalid") {
 
@@ -463,6 +505,22 @@ export class MusicService {
 
     return Array.from(playlistMap.values());
   }
+
+  // async getMp3Stream(youtubeUrl: string): Promise<Readable> {
+  //   try {
+  //     const result = await ytdlp(youtubeUrl, {
+  //       extractAudio: true,
+  //       audioFormat: 'mp3',
+  //       output: 'audio.mp3',
+
+  //     });
+  //     console.log("Download process started", result);
+  //     return result.stdout;
+  //   } catch (error) {
+  //     console.error('Error downloading or processing audio:', error);
+  //     throw error;
+  //   }
+  // }
 
 
 }
