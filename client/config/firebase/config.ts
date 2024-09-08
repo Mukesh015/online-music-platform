@@ -72,4 +72,4 @@ const downLoadMusic = async (musicUrl: string) => {
   }
 }
 
-export { app, auth, uploadMusic, getDownloadLink, uploadMusicThumbnail, downLoadMusic,deleteMusic }
+export { app, auth, deleteMusic, uploadMusic, getDownloadLink, uploadMusicThumbnail, downLoadMusic }

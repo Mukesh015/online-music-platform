@@ -34,10 +34,11 @@ interface Props {
     isOpen: boolean;
     visible: string;
     onClose: () => void;
-    showAlert: () => void;
+    showAlert: (msg: string) => void;
+    setSeverity: (severity: boolean) => void;
 }
 
-const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert }) => {
+const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert, setSeverity }) => {
     const { token } = useAuthToken();
     const { loading, error, data } = useQuery(getUserMusics);
     const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -86,14 +87,16 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert }) => 
                     setUploadFile(null);
                 }
                 handleClosePopup();
-                showAlert();
+                setSeverity(true);
+                showAlert("Music Details synced successfully");
             } catch (e) {
                 console.error("Failed to send details, server error", e);
                 handleClosePopup();
-                showAlert();
+                setSeverity(false);
+                showAlert("Failed to send details, server error");
             }
         }
-    }, [uploadFile, imageBlob, token, handleClosePopup, showAlert]);
+    }, [uploadFile, imageBlob, token, handleClosePopup, showAlert, setSeverity]);
 
 
     const handleMusicUpload = useCallback(async () => {
@@ -135,9 +138,9 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert }) => 
                         md:left-[26rem] md:top-28 md:translate-x-0 md:translate-y-0 md:w-[45vw]">
                             <div className="mt-10 mb-10 text-center">
                                 <h2 className="text-2xl font-semibold mb-2">Upload your files</h2>
-                                <p className="text-xs text-gray-500">File should be of format .mp4, .avi, .mov or .mkv</p>
+                                <p className="text-xs text-gray-500">File should be of format .mp4 or .mp3</p>
                             </div>
-                            <form action="#" className="relative w-4/5 h-32 max-w-xs mb-10 bg-gray-100 rounded-lg shadow-inner">
+                            <form action="#" className="relative w-4/5 h-32 max-w-xs mb-3 bg-gray-100 rounded-lg shadow-inner">
                                 <input onChange={handleSetUploadFile} type="file" id="file-upload" className="hidden" />
                                 <label htmlFor="file-upload" className="z-20 flex flex-col-reverse items-center justify-center w-full h-full cursor-pointer">
                                     <p className="z-10 text-xs font-light text-center text-gray-500">Drag & Drop your files here</p>
@@ -145,9 +148,9 @@ const FileInput: React.FC<Props> = ({ isOpen, onClose, visible, showAlert }) => 
                                         <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
                                     </svg>
                                 </label>
-                                {uploadFile && <span className="pt-2">{`${uploadFile.name}`}</span>}
                             </form>
-                            <section className="flex flex-row justify-end gap-5 pb-10 w-full pr-5">
+                            {uploadFile && <span className="w-80 overflow-hidden whitespace-nowrap">{`${uploadFile.name}`}</span>}
+                            <section className="flex flex-row mt-4 justify-end gap-5 pb-10 w-full pr-5">
                                 <Button onClick={() => handleClosePopup()} variant="text">Close</Button>
                                 <Button disabled={isLoading} id="upload-btn" onClick={() => handleMusicUpload()} variant="contained">
                                     {isLoading && <CircularProgress className="mr-2" color="inherit" size={17} />}

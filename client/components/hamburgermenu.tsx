@@ -6,20 +6,32 @@ import ArticleIcon from '@mui/icons-material/Article';
 import Button from "@mui/material/Button";
 import PersonIcon from '@mui/icons-material/Person';
 import LoginIcon from '@mui/icons-material/Login';
+import { Logout } from "@mui/icons-material";
+import { useSignOut } from "react-firebase-hooks/auth";
+import { auth } from "@/config/firebase/config";
 
 interface props {
+    name: string;
+    isLoggedIn: boolean;
     isOpen: boolean
     closeMenu: () => void
+    showLoginForm: () => void
 }
 
 
-const HamburerMenu: React.FC<props> = ({ isOpen, closeMenu }) => {
+const HamburerMenu: React.FC<props> = ({ isOpen, closeMenu, showLoginForm, isLoggedIn, name }) => {
 
     const [showMenu, setShowMenu] = useState<boolean>(isOpen);
+    const [signOut] = useSignOut(auth);
 
     const handleClosehambergerMenu = () => {
         closeMenu();
         setShowMenu(false);
+    }
+
+    const handleLoginUser = () => {
+        showLoginForm();
+        closeMenu();
     }
 
     return (
@@ -30,7 +42,11 @@ const HamburerMenu: React.FC<props> = ({ isOpen, closeMenu }) => {
                     <ol className="flex flex-col space-y-5 px-12 py-5">
                         <li className="space-x-2">
                             <PersonIcon />
-                            <span>user</span>
+                            {isLoggedIn ? (
+                                <span>{name}</span>
+                            ) : (
+                                <span>user</span>
+                            )}
                         </li>
                         <Link href={"/"} >
                             <li onClick={() => handleClosehambergerMenu()} className="space-x-2 hover:text-blue-600">
@@ -51,13 +67,20 @@ const HamburerMenu: React.FC<props> = ({ isOpen, closeMenu }) => {
                             </li>
                         </Link>
                         <li>
-                            <Button className="space-x-2 mt-2" variant="outlined">
-                                <LoginIcon />
-                                <span>Login</span>
-                            </Button>
+                            {isLoggedIn ? (
+                                <Button onClick={() => signOut()} className="space-x-2 mt-2" variant="outlined">
+                                    <Logout />
+                                    <span>Logout</span>
+                                </Button>
+                            ) : (
+                                <Button onClick={() => handleLoginUser()} className="space-x-2 mt-2" variant="outlined">
+                                    <LoginIcon />
+                                    <span>Login</span>
+                                </Button>
+                            )}
                         </li>
                     </ol>
-                </div>
+                </div >
             }
         </>
     )
