@@ -84,6 +84,12 @@ const MusicPage: React.FC = () => {
     const [severity, setSeverity] = useState<boolean>(false);
     const open = Boolean(showMenu);
 
+    const cleanup = () => {
+        console.log("Cleanup called");
+        idForplaylist.splice(0, idForplaylist.length);  // Remove all elements from the array
+        console.log("idForPlaylist after cleanup:", idForplaylist);
+    };
+
     const addtoplaylistById = (id: number) => {
         if (!idForplaylist.includes(id)) {
             setIdForplaylist(prevState => [...prevState, id]);
@@ -128,6 +134,7 @@ const MusicPage: React.FC = () => {
 
     const closeUploadPopup = () => {
         setIsOpenFileInput(false);
+        cleanup();
     }
     const handleShowAlert = useCallback((msg: string) => {
         setAlertMessage(msg);
@@ -210,13 +217,14 @@ const MusicPage: React.FC = () => {
                 setSeverity(false);
             }
             refetch();
+            cleanup();
         }
         catch (error) {
             setSeverity(false);
             handleShowAlert("Something went wrong, please try again");
             console.error("fetch error:", error);
         }
-    }, [handleShowAlert, idForplaylist, refetch, token])
+    }, [cleanup, handleShowAlert, idForplaylist, refetch, token])
 
     const getMusicPath = (url: string) => {
         const decodedURL = decodeURIComponent(url);
@@ -479,6 +487,7 @@ const MusicPage: React.FC = () => {
                 showAlert={handleShowAlert}
                 onClose={closeUploadPopup}
                 createPlaylist={handleCreatePlaylsit}
+                cleanup={cleanup}
             />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>

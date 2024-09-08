@@ -35,6 +35,7 @@ interface Props {
     isOpen: boolean;
     visible: string;
     idForplaylist: number[],
+    cleanup: () => void;
     onClose: () => void;
     showAlert: (msg: string) => void;
     setSeverity: (severity: boolean) => void;
@@ -43,7 +44,7 @@ interface Props {
     createPlaylist: (playlistName: string) => void;
 }
 
-const FileInput: React.FC<Props> = ({ isOpen, createPlaylist, onClose, idForplaylist, removeToPlayList, visible, showAlert, setSeverity, addToPlaylist }) => {
+const FileInput: React.FC<Props> = ({ isOpen, cleanup, createPlaylist, onClose, idForplaylist, removeToPlayList, visible, showAlert, setSeverity, addToPlaylist }) => {
     const { token } = useAuthToken();
     const { loading, error, data } = useQuery(getUserMusics);
     const [uploadFile, setUploadFile] = useState<File | null>(null);
