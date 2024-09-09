@@ -28,7 +28,6 @@ const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import musicWave from "@/lottie/Animation - 1724571535854.json";
 import AlertPopup from '@/components/alert';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
-
 const MusicQuery = gql`
     {
         musics{
@@ -86,7 +85,7 @@ const MusicPage: React.FC = () => {
 
     const cleanup = () => {
         console.log("Cleanup called");
-        idForplaylist.splice(0, idForplaylist.length);  // Remove all elements from the array
+        idForplaylist.splice(0, idForplaylist.length);
         console.log("idForPlaylist after cleanup:", idForplaylist);
     };
 
@@ -158,12 +157,12 @@ const MusicPage: React.FC = () => {
             } else {
                 menu.style.transform = "rotate(-90deg)";
             }
-            menu.style.transition = "transform 0.3s ease"; // Smooth transition for rotation
+            menu.style.transition = "transform 0.3s ease"; 
         }
     };
 
     const handleSendMusicDetails = (music: MusicDetail) => {
-        setCurrentPlayingMusicDetails([music]); // Set the current song
+        setCurrentPlayingMusicDetails([music]); 
     };
 
 

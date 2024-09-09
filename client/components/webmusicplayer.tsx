@@ -25,9 +25,11 @@ interface MusicDetails {
     musicArtist: string;
     isFavourite: boolean;
 }
+import {MusicPlayer} from '@/config/musicqueue/queue'
+
 
 const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
-
+    const player = new MusicPlayer();
     const musicRef = useRef<HTMLAudioElement | null>(null);
     const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(true);
@@ -74,7 +76,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails[] }) => {
     useEffect(() => {
         const music = musicRef.current;
         if (music) {
-            music.volume = volume / 100; // Convert percentage to a value between 0.0 and 1.0
+            music.volume = volume / 100;
             music.loop = isLooping;
 
             const handleTimeUpdate = () => setCurrentTime(music.currentTime);
