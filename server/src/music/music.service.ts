@@ -190,64 +190,87 @@ export class MusicService {
     const { musicIds, playlistName } = addToPlaylistDto;
 
     try {
-      const notFoundMusicIds: number[] = [];
-      const alreadyInPlaylistMusicIds: number[] = [];
-      const addedMusicIds: number[] = [];
+        const notFoundMusicIds: number[] = [];
+        const alreadyInPlaylistMusicIds: number[] = [];
+        const addedMusicIds: number[] = [];
 
-      // Step 1: Check if each music item exists
-      for (const musicId of musicIds) {
-        const music = await this.dbService.music.findUnique({
-          where: { id: musicId },
-        });
-
-        if (!music) {
-          notFoundMusicIds.push(musicId);
-          continue;
-        }
-
-        // Step 2: Check if music is already in the playlist
-        const existingMusicInPlaylist = await this.dbService.playlist.findFirst({
-          where: {
-            userId,
-            playlistName,
-            musicId,
-          },
-        });
-
-        if (existingMusicInPlaylist) {
-          alreadyInPlaylistMusicIds.push(musicId);
-        } else {
-          // Step 3: Add music to the playlist
-          await this.dbService.playlist.create({
-            data: {
-              userId,
-              musicId,
-              playlistName,
+        // Step 1: Fetch all music items at once
+        const musicRecords = await this.dbService.music.findMany({
+            where: {
+                id: {
+                    in: musicIds,
+                },
             },
-          });
-          addedMusicIds.push(musicId);
-        }
-      }
+        });
 
-      // Prepare response
-      return {
-        statusCode: 200,
-        message: "Playlist updated successfully",
-        playlistDetails: {
-          added: addedMusicIds,
-          alreadyExists: alreadyInPlaylistMusicIds,
-          notFound: notFoundMusicIds,
-        },
-      };
+        const musicIdSet = new Set(musicRecords.map(m => m.id));
+
+        // Step 2: Determine which musicIds are valid
+        for (const musicId of musicIds) {
+            if (!musicIdSet.has(musicId)) {
+                notFoundMusicIds.push(musicId);
+            }
+        }
+
+        // Step 3: Check which music is already in the playlist
+        const existingPlaylistItems = await this.dbService.playlist.findMany({
+            where: {
+                userId,
+                playlistName,
+                musicId: {
+                    in: musicIds,
+                },
+            },
+        });
+
+        const existingMusicIdSet = new Set(existingPlaylistItems.map(p => p.musicId));
+
+        for (const musicId of musicIds) {
+            if (notFoundMusicIds.includes(musicId)) {
+                continue;
+            }
+
+            if (existingMusicIdSet.has(musicId)) {
+                alreadyInPlaylistMusicIds.push(musicId);
+            } else {
+                addedMusicIds.push(musicId);
+            }
+        }
+
+        // Step 4: Add new music to the playlist using a transaction
+        if (addedMusicIds.length > 0) {
+            await this.dbService.$transaction(async (prisma) => {
+                const playlistEntries = addedMusicIds.map(musicId => ({
+                    userId,
+                    musicId,
+                    playlistName,
+                }));
+
+                await prisma.playlist.createMany({
+                    data: playlistEntries,
+                });
+            });
+        }
+
+        // Prepare response
+        return {
+            statusCode: 200,
+            message: "Playlist updated successfully",
+            playlistDetails: {
+                added: addedMusicIds,
+                alreadyExists: alreadyInPlaylistMusicIds,
+                notFound: notFoundMusicIds,
+            },
+        };
     } catch (error) {
-      console.error('Error adding to playlist:', error);
-      return {
-        message: 'Error adding to playlist',
-        statusCode: 500,
-        error: error.message,
-      };
+        console.error('Error adding to playlist:', error);
+        return {
+            message: 'Error adding to playlist',
+            statusCode: 500,
+            error: error.message,
+        };
     }
-  }
+}
 
 
   async updatePlaylist(updateplayListDto: AddToPlaylistDto, userId: string) {
@@ -324,45 +347,63 @@ export class MusicService {
   }
 
 
-  async removeFromPlaylist(musicId: number, userId: string) {
+  async removeFromPlaylist(musicId: number, userId: string, playlistName: string) {
     try {
-      const playlistEntry = await this.dbService.playlist.findUnique({
-        where: {
-          userId_musicId: {
-            userId,
-            musicId,
-          },
-        },
-      });
+        // Step 1: Find the playlist entry with the given userId, musicId, and playlistName
+        const playlistEntry = await this.dbService.playlist.findUnique({
+            where: {
+                userId_musicId_playlistName: {
+                    userId,
+                    musicId,
+                    playlistName,
+                },
+            },
+        });
 
-      if (!playlistEntry) {
+        // Step 2: Check if the playlist entry exists
+        if (!playlistEntry) {
+            return {
+                message: 'Music ID not found in playlist for the specified playlist name',
+                statusCode: 404,
+                musicDetails: { musicId, userId, playlistName },
+            };
+        }
 
-        return { message: 'Music ID not found in playlist', statusCode: 404, musicDetails: musicId };
-      }
+        // Step 3: Check if the userId matches
+        if (playlistEntry.userId !== userId) {
+            return {
+                message: 'User does not match',
+                statusCode: 400,
+                musicDetails: { musicId, userId, playlistName },
+            };
+        }
 
+      
+        await this.dbService.playlist.delete({
+            where: {
+                userId_musicId_playlistName: {
+                    userId,
+                    musicId,
+                    playlistName,
+                },
+            },
+        });
 
-      if (playlistEntry.userId !== userId) {
-
-        return { message: 'User does not match', statusCode: 400, musicDetails: musicId };
-      }
-
-
-      await this.dbService.playlist.delete({
-        where: {
-          userId_musicId: {
-            userId,
-            musicId,
-          },
-        },
-      });
-
-      return { message: 'Music removed from playlist successfully', statusCode: 200, musicDetails: playlistEntry };
+        return {
+            message: 'Music removed from playlist successfully',
+            statusCode: 200,
+            musicDetails: { musicId, userId, playlistName },
+        };
+    } catch (error) {
+        console.error('Error removing music from playlist:', error);
+        return {
+            message: 'An error occurred while removing music from playlist',
+            statusCode: 500,
+            error: error.message,
+        };
     }
-    catch (error) {
-      console.error('Error removing music from playlist:', error);
-      return { message: 'An error occurred while removing music from playlist', statusCode: 500, error: error.message };
-    }
-  }
+}
+
 
 
   async findAll(userId: string): Promise<Partial<Music>[]> {
@@ -503,6 +544,7 @@ export class MusicService {
 
 
   async getPlaylistByUserId(userId: string): Promise<Partial<Playlist>[]> {
+
     const playlists = await this.dbService.playlist.findMany({
       where: { userId },
       include: {
@@ -543,7 +585,7 @@ export class MusicService {
         musicTitle: m.musicTitle,
         musicArtist: m.musicArtist,
         createdAt: m.createdAt,
-        isFavourite: m.isFavourite,
+
       })));
     });
 

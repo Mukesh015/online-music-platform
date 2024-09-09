@@ -57,7 +57,7 @@ model Playlist {
 
   Music          Music?   @relation(fields: [musicId], references: [id])
   
-  @@id([userId, musicId])
+  @@id([userId, musicId,playlistName])
 }
 
 

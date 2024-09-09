@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authTokenReducer from "./resolvers/auth"
+import currentMusicReducer from './resolvers/currentMusic';
 
 export const makeStore = () => {
     return configureStore({
         reducer: {
-            authToken: authTokenReducer, // Include the authToken reducer here
+            authToken: authTokenReducer,
+            currentMusic: currentMusicReducer
         },
     });
 };

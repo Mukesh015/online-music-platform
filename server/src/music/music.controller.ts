@@ -289,15 +289,15 @@ export class MusicController {
   }
   @Delete('removefromplaylist')
   async removeFromPlaylist(
-    @Body() removeFromPlaylistDto: { musicId: number }, // Expecting only musicId in the body
+    @Body() removeFromPlaylistDto: { musicId: number ,playlistName:string}, // Expecting only musicId in the body
     @Req() req: Request,
     @Res() res: Response
   ) {
     const userId = req['firebaseUserId'];
-    const { musicId } = removeFromPlaylistDto;
+    const { musicId ,playlistName} = removeFromPlaylistDto;
 
     try {
-      const response = await this.musicservice.removeFromPlaylist(musicId, userId);
+      const response = await this.musicservice.removeFromPlaylist(musicId, userId,playlistName);
       if (response.statusCode === 500) {
 
         return res.status(response.statusCode).json({

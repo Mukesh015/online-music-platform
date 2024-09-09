@@ -30,12 +30,34 @@ export class Music {
 
 
 @ObjectType()
+export class playMusic {
+  @Field(() => Int)
+  id: number;
+
+  @Field()
+  musicUrl: string;
+
+
+  @Field()
+  musicTitle: string;
+
+  @Field()
+  thumbnailUrl: string;
+
+  @Field()
+  musicArtist: string;
+
+  @Field()
+  createdAt: Date;
+}
+
+@ObjectType()
 export class Playlist {
   @Field()
   playlistName: string;
 
-  @Field(type => [Music])
-  playlists: Music[];
+  @Field(type => [playMusic])
+  playlists: playMusic[];
 }
 
 

@@ -54,6 +54,7 @@ export class MusicResolver {
   @UseGuards(AuthGuard)
   async getPlaylistByUserId(@Context() context): Promise<Partial<Playlist>[]> {
     const userId = context.req['firebaseUserId'];
+
     if (userId === "null" || userId === "invalid") {
       return [];
     }
