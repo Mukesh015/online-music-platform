@@ -459,6 +459,7 @@ export class MusicService {
 
 
   async getPlaylistByUserId(userId: string): Promise<Partial<Playlist>[]> {
+    console.log("Hello service", userId);
     const playlists = await this.dbService.playlist.findMany({
       where: { userId },
       include: {
@@ -475,7 +476,7 @@ export class MusicService {
       },
     });
 
-
+   
     const playlistMap = new Map<string, Playlist>();
 
     playlists.forEach(playlist => {
@@ -502,7 +503,7 @@ export class MusicService {
         isFavourite: m.isFavourite,
       })));
     });
-
+    console.log("Playlists",playlistMap.values())
     return Array.from(playlistMap.values());
   }
 
