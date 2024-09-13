@@ -30,8 +30,10 @@ import musicWave from "@/lottie/Animation - 1724571535854.json";
 import AlertPopup from '@/components/alert';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import Link from 'next/link';
-import { motion, useAnimation } from "framer-motion"
+import { motion } from "framer-motion"
 import notFoundAnimation from "@/lottie/notFound.json"
+import { Button } from '@mui/material';
+import SearchBox from '@/components/searchbox';
 
 const MusicQuery = gql`
     {
@@ -108,13 +110,13 @@ const MusicPage: React.FC = () => {
     const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
     const [fileInputVisibleProps, setFileInputVisibleProps] = useState<string>("")
     const [showAlert, setShowAlert] = useState<boolean>(false);
-    const [showSearchSuggestion, setShowSearchSuggestion] = useState<boolean>(false);
     const [musicDetails, setMusicDetails] = useState<MusicDetail[]>([]);
     const [favoriteMusicDetails, setFavoriteMusicDetails] = useState<MusicDetail[]>([]);
     const [currentPlayingMusicDetails, setCurrentPlayingMusicDetails] = useState<MusicDetail[]>([]);
     const [selectedMusicIdForMenu, setSelectedMusicIdForMenu] = useState<number | null>(null);
     const [idForplaylist, setIdForplaylist] = useState<number[]>([]);
     const [alertMessage, setAlertMessage] = useState<string>("");
+    const [isSearchBoxOpen, setIsSearchBoxOpen] = useState<boolean>(true);
     const [severity, setSeverity] = useState<boolean>(false);
     const open = Boolean(showMenu);
 
@@ -179,8 +181,6 @@ const MusicPage: React.FC = () => {
         }, 3000);
     }, [refetch]);
 
-
-
     const handleToggleMobileMenu = () => {
         setShowMobileMenu(!showMobilemenu);
 
@@ -192,7 +192,7 @@ const MusicPage: React.FC = () => {
             } else {
                 menu.style.transform = "rotate(-90deg)";
             }
-            menu.style.transition = "transform 0.3s ease"; 
+            menu.style.transition = "transform 0.3s ease";
         }
     };
 
@@ -258,7 +258,7 @@ const MusicPage: React.FC = () => {
             handleShowAlert("Something went wrong, please try again");
             console.error("fetch error:", error);
         }
-    }, [cleanup, handleShowAlert, idForplaylist, refetch, token])
+    }, [cleanup, handleClose, handleShowAlert, idForplaylist, refetch, token])
 
     const getMusicPath = (url: string) => {
         const decodedURL = decodeURIComponent(url);
@@ -315,28 +315,6 @@ const MusicPage: React.FC = () => {
         }
     }, [musicDetails, refetch, selectedMusicIdForMenu, token]);
 
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            const searchInput = document.getElementById('search-input');
-            const searchSuggestion = document.getElementById('search-suggestion');
-
-            if (searchInput && searchSuggestion && !searchInput.contains(e.target as Node) && !searchSuggestion.contains(e.target as Node)) {
-                setShowSearchSuggestion(false);
-            }
-        };
-
-        if (showSearchSuggestion) {
-            window.addEventListener('click', handleClickOutside);
-        } else {
-            window.removeEventListener('click', handleClickOutside);
-        }
-
-        return () => {
-            window.removeEventListener('click', handleClickOutside);
-        };
-    }, [showSearchSuggestion]);
-
     const displayedMusic = showFavoriteSongs ? favoriteMusicDetails : musicDetails;
 
     useEffect(() => {
@@ -371,21 +349,18 @@ const MusicPage: React.FC = () => {
                                 <div className="flex flex-col gap-0 md:w-[90vw] md:overflow-x-auto">
                                     <section id='dekstop-view' className="hidden mb-5 md:flex flex-row justify-between text-white text-xl items-center">
                                         <h1 className='ml-10'>Recent Songs</h1>
-                                        <section className='flex'>
-                                            <input id="search-input" onClick={() => setShowSearchSuggestion(true)} className='w-[40rem] hidden md:flex bg-inherit border border-slate-500 rounded-3xl text-white text-sm py-2 px-4' placeholder='Enter song name here ...' type="text" />
-                                            {showSearchSuggestion && (
-                                                <div className='fixed rounded-sm top-40 ml-3 bg-slate-800 h-40 border w-[40vw]' id="search-suggestion">
-                                                    <SearchSuggestion />
-                                                </div>
-                                            )}
-                                            <SearchIcon color='secondary' className='absolute mt-2 right-[34rem]' fontSize="medium" />
-                                        </section>
                                         <section className="flex gap-10 flex-row items-center">
                                             <Tooltip title="search">
                                                 <IconButton className='md:hidden' color="secondary" aria-label="search-icon">
                                                     <SearchIcon fontSize="medium" />
                                                 </IconButton>
                                             </Tooltip>
+                                            <Button onClick={() => setIsSearchBoxOpen(true)} variant="text">
+                                                <div className='border border-gray-700 px-5 py-1.5 rounded-3xl flex flex-row gap-3 items-center'>
+                                                    <SearchIcon color='secondary' fontSize="medium" />
+                                                    Search musics ...
+                                                </div>
+                                            </Button>
                                             <Tooltip title="upload songs">
                                                 <IconButton onClick={() => handleToggleFileInputPopup()} color="secondary" aria-label="upload">
                                                     <CloudUploadIcon fontSize="medium" />
@@ -529,6 +504,7 @@ const MusicPage: React.FC = () => {
                     )}
                 </div>
             )}
+
             <FileInput
                 idForplaylist={idForplaylist}
                 isOpen={isOpenFileInput}
@@ -541,6 +517,7 @@ const MusicPage: React.FC = () => {
                 createPlaylist={handleCreatePlaylsit}
                 cleanup={cleanup}
             />
+            <SearchBox openModal={isSearchBoxOpen} />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );
