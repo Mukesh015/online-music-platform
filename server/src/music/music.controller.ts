@@ -291,7 +291,7 @@ export class MusicController {
   }
   @Delete('removefromplaylist')
   async removeFromPlaylist(
-    @Body() removeFromPlaylistDto: { musicId: number ,playlistName:string}, // Expecting only musicId in the body
+    @Body() removeFromPlaylistDto: { musicId: number ,playlistName:string}, 
     @Req() req: Request,
     @Res() res: Response
   ) {

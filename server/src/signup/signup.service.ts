@@ -62,6 +62,7 @@ export class SignupService {
 
   async addToLastHistory(addToLastHistoryDto: Prisma.lasthistoryCreateInput, userId: string) {
     try {
+      
       const lasthistory = await this.dbService.lasthistory.upsert({
         where: {
           userId_musicId: {
