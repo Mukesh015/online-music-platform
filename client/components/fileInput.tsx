@@ -156,7 +156,7 @@ const FileInput: React.FC<Props> = ({ isOpen, cleanup, createPlaylist, onClose, 
                         md:left-[26rem] md:top-28 md:translate-x-0 md:translate-y-0 md:w-[45vw]">
                             <div className="mt-10 mb-10 text-center">
                                 <h2 className="text-2xl font-semibold mb-2">Upload your files</h2>
-                                <p className="text-xs text-gray-500">File should be of format .mp4 or .mp3</p>
+                                <p className="text-xs text-gray-500">File should be of format .mp3</p>
                             </div>
                             <form action="#" className="relative w-4/5 h-32 max-w-xs mb-3 bg-gray-100 rounded-lg shadow-inner">
                                 <input onChange={handleSetUploadFile} type="file" id="file-upload" className="hidden" />

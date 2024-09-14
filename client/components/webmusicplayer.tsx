@@ -150,7 +150,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 <RepeatOneIcon fontSize="medium" color="primary" />
                             )}
                         </IconButton>
-                        <IconButton className="md:hidden" onClick={togglePlayPause} color="primary" aria-label="play/pause">
+                        <IconButton className="md:hidden" onClick={togglePlayPause} color="primary" aria-label="play / pause">
                             {isPlaying ? <PauseCircleIcon fontSize="medium" /> : <PlayCircleIcon fontSize="medium" />}
                         </IconButton>
 
@@ -165,7 +165,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                     <FastRewindIcon fontSize="medium" />
                                 </IconButton>
                             </Tooltip>
-                            <Tooltip title="play/pause">
+                            <Tooltip title="play / pause">
                                 <IconButton color="primary" aria-label="play" onClick={togglePlayPause}>
                                     {isPlaying ? <PauseCircleIcon fontSize="large" /> : <PlayCircleIcon fontSize="large" />}
                                 </IconButton>
