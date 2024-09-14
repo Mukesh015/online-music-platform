@@ -107,7 +107,7 @@ const MusicPage: React.FC = () => {
     const dispatch = useDispatch();
     const token = useSelector((state: RootState) => state.authToken.token);
     const { loading, error, data, refetch } = useQuery(MusicQuery);
-    const [showMenu, setshowMenu] = React.useState<null | HTMLElement>(null);
+    const [showMenu, setshowMenu] = useState<null | HTMLElement>(null);
     const [isOpenFileInput, setIsOpenFileInput] = useState<boolean>(false);
     const [showMobilemenu, setShowMobileMenu] = useState<boolean>(false);
     const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
@@ -119,10 +119,13 @@ const MusicPage: React.FC = () => {
     const [selectedMusicIdForMenu, setSelectedMusicIdForMenu] = useState<number | null>(null);
     const [idForplaylist, setIdForplaylist] = useState<number[]>([]);
     const [alertMessage, setAlertMessage] = useState<string>("");
-    const [isSearchBoxOpen, setIsSearchBoxOpen] = useState<boolean>(true);
+    const [isSearchBoxOpen, setIsSearchBoxOpen] = useState<boolean>(false);
     const [severity, setSeverity] = useState<boolean>(false);
     const open = Boolean(showMenu);
 
+    const handleCloseSearchBox = ()=>{
+        setIsSearchBoxOpen(false);
+    }
 
     const removeFromPlaylistById = (id: number) => {
         setIdForplaylist(prevState => prevState.filter(item => item !== id));
@@ -506,7 +509,7 @@ const MusicPage: React.FC = () => {
                 createPlaylist={handleCreatePlaylsit}
                 cleanup={cleanup}
             />
-            <SearchBox openModal={isSearchBoxOpen} />
+            <SearchBox openModal={isSearchBoxOpen} onClose = {handleCloseSearchBox} />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );
