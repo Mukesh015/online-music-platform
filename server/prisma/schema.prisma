@@ -20,6 +20,7 @@ model User {
   name   String
   music  Music[]
   LastHistory lasthistory[]
+  searchhistory SearchHistory[]
 }
 
 model Music {
@@ -74,4 +75,15 @@ model lasthistory{
   user User @relation(fields: [userId], references: [userId])
 
   @@id([userId, musicId])
+}
+
+
+model SearchHistory{
+  userId String
+  searchQuery String
+  searchHistoryAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [userId])
+
+  @@id([userId, searchQuery])
 }

@@ -22,6 +22,8 @@ export class MusicModule {
         { path: 'music/:id', method: RequestMethod.DELETE },
         { path: 'music/addtoFavorite/:id', method: RequestMethod.PATCH },
         { path: 'music/addtoplaylist', method: RequestMethod.POST },
+        { path: 'music/removefromplaylist', method: RequestMethod.DELETE },
+
 
       );
   }

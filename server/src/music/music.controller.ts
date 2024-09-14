@@ -3,6 +3,7 @@ import { MusicService } from './music.service';
 import { Prisma } from '@prisma/client';
 import { query, Request, Response } from 'express';
 import { AddToPlaylistDto } from './entities/music.entity';
+import { ApiTags } from '@nestjs/swagger';
 
 interface SuccessResponse {
   message: string;
@@ -33,6 +34,7 @@ interface AddToPlaylistResponse {
 }
 type UpdatePlaylistResponse = SuccessResponse | ErrorResponse;
 
+@ApiTags('Music')
 @Controller('music')
 export class MusicController {
   constructor(private readonly musicservice: MusicService) { }
@@ -289,7 +291,7 @@ export class MusicController {
   }
   @Delete('removefromplaylist')
   async removeFromPlaylist(
-    @Body() removeFromPlaylistDto: { musicId: number ,playlistName:string}, // Expecting only musicId in the body
+    @Body() removeFromPlaylistDto: { musicId: number ,playlistName:string}, 
     @Req() req: Request,
     @Res() res: Response
   ) {

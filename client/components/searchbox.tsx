@@ -5,6 +5,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import { Divider, IconButton } from "@mui/material";
 import Image from "next/image";
+import { gql, useQuery } from "@apollo/client";
+import { RootState } from "@/lib/store";
+import { useSelector } from "react-redux";
 
 interface Props {
     openModal: boolean;
@@ -20,14 +23,61 @@ const style = {
     boxShadow: 24,
 };
 
+const SEARCH_QUERY = gql`
+  query Search($searchString: String) {
+    search(searchString: $searchString) {
+      favourite {
+        musicTitle
+        musicArtist
+      }
+      previousSearch {
+        searchQuery
+        searchHistoryAt
+      }
+      suggestion {
+        musicTitle
+        musicArtist
+      }
+    }
+  }
+`;
+
 const SearchBox: React.FC<Props> = ({ openModal }) => {
 
     const [openSearchBox, setOpenSearchBox] = useState<boolean>(openModal);
     const handleClose = () => setOpenSearchBox(false);
+    const [searchString, setSearchString] = useState<string | null>(null);
+    const token = useSelector((state: RootState) => state.authToken.token);
 
+    const { loading, error, data, refetch } = useQuery(SEARCH_QUERY, {
+        variables: { searchString },
+    });
+
+
+
+    useEffect(() => {
+        if (data) {
+            console.log(data);
+
+        }
+        if (error) {
+            console.error("Error fetching data", error);
+        }
+        if (token) {
+            refetch();
+        }
+    }, [data, token]);
     useEffect(() => {
         console.log(openSearchBox);
     }, [openSearchBox])
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchString(e.target.value);
+        const value = e.target.value.toLowerCase();
+        console.log(value);
+    }
+
+
 
     return (
 
@@ -45,6 +95,7 @@ const SearchBox: React.FC<Props> = ({ openModal }) => {
                             placeholder="Search your desired songs ..."
                             className="bg-inherit px-5 text-white border-none w-full border focus:outline-none focus:border-transparent"
                             type="text"
+                            onChange={handleSearchChange}
                         />
                         <IconButton color="primary" aria-label="search-icon">
                             <CloseIcon fontSize="medium" />

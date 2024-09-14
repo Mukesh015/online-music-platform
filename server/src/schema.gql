@@ -44,6 +44,27 @@ type LastHistory {
   lastPlayedAt: DateTime!
 }
 
+type Favourite {
+  musicTitle: String!
+  musicArtist: String!
+}
+
+type PreviousSearch {
+  searchQuery: String!
+  searchHistoryAt: DateTime!
+}
+
+type Suggestion {
+  musicTitle: String!
+  musicArtist: String!
+}
+
+type SearchResponse {
+  favourite: [Favourite!]!
+  previousSearch: [PreviousSearch!]!
+  suggestion: [Suggestion!]!
+}
+
 type Query {
   index: String!
   musics: [Music!]!
@@ -52,6 +73,7 @@ type Query {
   getPlaylistNameByUserId: [String!]!
   getPlaylistByUserId: [Playlist!]!
   getLastHistory: LastHistory!
+  search(searchString: String): SearchResponse!
 }
 
 type Mutation {
