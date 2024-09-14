@@ -177,7 +177,7 @@ const FileInput: React.FC<Props> = ({ isOpen, cleanup, createPlaylist, onClose, 
                             </section>
                         </div>
                     ) : (
-                        <div className="font-Montserrat rounded-md fixed left-1/2 top-72 z-50 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center my-20 bg-white w-[85vw] sm:rounded-lg sm:shadow-xl md:left-[26rem] md:top-5 md:translate-x-0 md:translate-y-0 md:w-[45vw]">
+                        <div className="font-Montserrat rounded-md fixed left-1/2 top-72 md:top-0 z-50 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center my-20 md:h-[73vh] bg-white w-[85vw] sm:rounded-lg sm:shadow-xl md:left-[26rem] md:translate-x-0 md:translate-y-0 md:w-[45vw]">
                             <div className="mt-10 mb-10 text-center">
                                 <h2 className="text-2xl font-semibold mb-2">Create new playlist</h2>
                                 <p className="text-xs text-gray-500">Folder name must be unique</p>

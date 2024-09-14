@@ -16,6 +16,8 @@ import RepeatOneIcon from '@mui/icons-material/RepeatOne';
 import Tooltip from '@mui/material/Tooltip';
 import Image from "next/image";
 import SettingsIcon from '@mui/icons-material/Settings';
+import CircularProgress from '@mui/material/CircularProgress';
+import { green } from "@mui/material/colors";
 
 interface MusicDetails {
     id: number;
@@ -25,8 +27,6 @@ interface MusicDetails {
     musicArtist: string;
     isFavourite: boolean;
 }
-import {MusicPlayer} from '@/config/musicqueue/queue'
-
 
 const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
@@ -38,6 +38,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
     const [currentTime, setCurrentTime] = useState<number>(0);
     const [volume, setVolume] = useState<number>(50);
     const [duration, setDuration] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(true);
 
     const togglePlayPause = () => {
         const music = musicRef.current;
@@ -50,6 +51,9 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
             setIsPlaying(!isPlaying);
         }
     };
+    useEffect(() => {
+        setLoading(true);
+    }, [musicDetails, setLoading])
 
     const handleSkip = (seconds: number) => {
         const music = musicRef.current;
@@ -95,7 +99,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
     return (
         <>
             <div className="fixed bottom-1 md:bottom-0 w-full right-0 h-20 text-white bg-slate-800 z-50">
-                <audio autoPlay ref={musicRef} src={musicDetails.musicUrl} />
+                <audio autoPlay onLoadedData={() => setLoading(false)} ref={musicRef} src={musicDetails.musicUrl} />
                 <Slider
                     className="fixed bottom-16 md:bottom-[65px]"
                     size="small"
@@ -153,6 +157,17 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                         <IconButton className="md:hidden" onClick={togglePlayPause} color="primary" aria-label="play / pause">
                             {isPlaying ? <PauseCircleIcon fontSize="medium" /> : <PlayCircleIcon fontSize="medium" />}
                         </IconButton>
+                        {loading && (
+                            <CircularProgress
+                                className="md:ml-[44.9rem]"
+                                size={32}
+                                sx={{
+                                    color: green[500],
+                                    position: 'absolute',
+                                    zIndex: 50,
+                                }}
+                            />
+                        )}
 
                         <div className="hidden md:flex flex-row items-center gap-5 ml-32">
                             <Tooltip title="previous">
