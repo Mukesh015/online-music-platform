@@ -10,7 +10,7 @@ export class MiddlewareService implements NestMiddleware {
 
     if (!authHeader) {
       console.error("No token Provided")
-      res.send(404).json({ message: "No token Provided"})
+      res.send(404).json({ message: "No token Provided" })
     }
 
     const token = authHeader.split(' ')[1];
@@ -21,7 +21,7 @@ export class MiddlewareService implements NestMiddleware {
       next();
     } catch (error) {
       console.error(error);
-      res.status(401).json({ error: error.message });
+      res.status(401).json({ error: error.message, code: "NTP" });
     }
   }
 

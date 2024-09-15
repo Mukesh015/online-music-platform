@@ -45,9 +45,6 @@ const getDownloadLink = async (path: string): Promise<string> => {
   return await getDownloadURL(ref(storage, path));
 };
 
-
-
-
 const downLoadMusic = async (musicUrl: string) => {
 
   try {
@@ -57,15 +54,8 @@ const downLoadMusic = async (musicUrl: string) => {
     link.href = downloadUrl;
     link.download = 'your_mp3_file.mp3';
     link.style.display = 'none';
-
-
     document.body.appendChild(link);
-
-
     link.click();
-
-
-
     document.body.removeChild(link);
   } catch (error) {
     console.error('Error downloading MP3:', error);

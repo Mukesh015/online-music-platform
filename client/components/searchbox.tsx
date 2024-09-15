@@ -1,16 +1,27 @@
+
+"use client"
 import React, { useEffect, useState } from "react";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
-import { Divider, IconButton } from "@mui/material";
+import { IconButton } from "@mui/material";
 import Image from "next/image";
 import { gql, useQuery } from "@apollo/client";
 import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
+import dynamic from 'next/dynamic';
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
+import loadinganimation from "@/lottie/suggestionloadinganimation.json"
 
 interface Props {
     openModal: boolean;
+    onClose: () => void;
+}
+
+interface Suggestion {
+    musicTitle: string;
+    musicArtist: string;
 }
 
 const style = {
@@ -42,23 +53,30 @@ const SEARCH_QUERY = gql`
   }
 `;
 
-const SearchBox: React.FC<Props> = ({ openModal }) => {
-
+const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
     const [openSearchBox, setOpenSearchBox] = useState<boolean>(openModal);
-    const handleClose = () => setOpenSearchBox(false);
     const [searchString, setSearchString] = useState<string | null>(null);
     const token = useSelector((state: RootState) => state.authToken.token);
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
     const { loading, error, data, refetch } = useQuery(SEARCH_QUERY, {
         variables: { searchString },
     });
 
+    // Sync openSearchBox state with the openModal prop
+    useEffect(() => {
+        setOpenSearchBox(openModal);
+    }, [openModal]);
 
+    const handleClose = () => {
+        setSuggestions([]);
+        setOpenSearchBox(false)
+        onClose();
+    };
 
     useEffect(() => {
         if (data) {
-            console.log(data);
-
+            setSuggestions(data.search.suggestion);
         }
         if (error) {
             console.error("Error fetching data", error);
@@ -73,14 +91,10 @@ const SearchBox: React.FC<Props> = ({ openModal }) => {
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchString(e.target.value);
-        const value = e.target.value.toLowerCase();
-        console.log(value);
-    }
-
-
+        console.log(e.target.value.toLowerCase());
+    };
 
     return (
-
         <div>
             <Modal
                 open={openSearchBox}
@@ -97,21 +111,38 @@ const SearchBox: React.FC<Props> = ({ openModal }) => {
                             type="text"
                             onChange={handleSearchChange}
                         />
-                        <IconButton color="primary" aria-label="search-icon">
+                        <IconButton color="primary" aria-label="search-icon" onClick={handleClose}>
                             <CloseIcon fontSize="medium" />
                         </IconButton>
                     </header>
                     <div className="border border-slate-800"></div>
-                    <section className="overflow-y-auto text-slate-400 p-5 flex flex-col [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full h-[50vh]">
-                        <div className="cursor-pointer py-3 flex flex-row items-center hover:bg-slate-950 gap-5">
-                            <Image className="aspect-square" height={30} width={30} src={"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRb4IINlvVCjQcXJvgSYS8nq8QlS_zyFoGBQQ&s"} alt="thumbnail" />
-                            <p className="">Sanam teri kasam</p>
+                    {loading ? (
+                        <div className="h-[50vh] flex flex-col justify-center">
+                            <Lottie className="h-40 " animationData={loadinganimation} />
                         </div>
-                    </section>
+                    ) : (
+                        <section className="overflow-y-auto text-slate-400 p-5 flex flex-col [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full h-[50vh]">
+                            {suggestions.map((music: Suggestion, index: number) => (
+                                <div
+                                    key={index}
+                                    className="cursor-pointer font-Montserrat py-3 flex flex-row items-center hover:bg-slate-950 gap-5"
+                                >
+                                    <Image
+                                        className="aspect-square"
+                                        height={30}
+                                        width={30}
+                                        src={"https://i.pinimg.com/736x/e8/6a/e3/e86ae31f3047146140e271721aedf1d7.jpg"}
+                                        alt={music.musicTitle}
+                                    />
+                                    <p className="whitespace-nowrap overflow-x-hidden">{music.musicTitle}</p>
+                                </div>
+                            ))}
+                        </section>
+                    )}
                 </Box>
             </Modal>
         </div>
-    )
-}
+    );
+};
 
 export default SearchBox;

@@ -22,7 +22,6 @@ import { RootState } from '@/lib/store';
 import { useSelector } from 'react-redux';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
-import SearchSuggestion from '@/components/searchSuggestion';
 import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import dynamic from 'next/dynamic';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
@@ -34,33 +33,10 @@ import { motion } from "framer-motion"
 import notFoundAnimation from "@/lottie/notFound.json"
 import { Button } from '@mui/material';
 import SearchBox from '@/components/searchbox';
+import { setUserPlaylist } from '@/lib/resolvers/userplaylist';
+import { addToFavorite, deleteMusicFromDB } from '@/lib/feature';
 
-const MusicQuery = gql`
-    {
-        musics{
-            id
-        }
-        index
-        getMusicByUserId{
-            id
-            musicUrl
-            isFavourite
-            musicTitle
-            thumbnailUrl
-            musicArtist
-        }
-        
-        getFavoriteMusicByUserId{
-            id
-            musicUrl
-            thumbnailUrl
-            musicTitle
-            musicArtist
-        
-        }
-    }
 
-`;
 
 const itemVariants = {
     visible: {
@@ -90,6 +66,33 @@ const containerVariants = {
     }
 };
 
+const MusicQuery = gql`
+    {
+        musics{
+            id
+        }
+        index
+        getMusicByUserId{
+            id
+            musicUrl
+            isFavourite
+            musicTitle
+            thumbnailUrl
+            musicArtist
+        }
+        
+        getFavoriteMusicByUserId{
+            id
+            musicUrl
+            thumbnailUrl
+            musicTitle
+            musicArtist
+        
+        }
+    }
+
+`;
+
 
 interface MusicDetail {
     id: number;
@@ -104,7 +107,7 @@ const MusicPage: React.FC = () => {
     const dispatch = useDispatch();
     const token = useSelector((state: RootState) => state.authToken.token);
     const { loading, error, data, refetch } = useQuery(MusicQuery);
-    const [showMenu, setshowMenu] = React.useState<null | HTMLElement>(null);
+    const [showMenu, setshowMenu] = useState<null | HTMLElement>(null);
     const [isOpenFileInput, setIsOpenFileInput] = useState<boolean>(false);
     const [showMobilemenu, setShowMobileMenu] = useState<boolean>(false);
     const [showFavoriteSongs, setShowFavoriteSongs] = useState<boolean>(false);
@@ -116,22 +119,13 @@ const MusicPage: React.FC = () => {
     const [selectedMusicIdForMenu, setSelectedMusicIdForMenu] = useState<number | null>(null);
     const [idForplaylist, setIdForplaylist] = useState<number[]>([]);
     const [alertMessage, setAlertMessage] = useState<string>("");
-    const [isSearchBoxOpen, setIsSearchBoxOpen] = useState<boolean>(true);
+    const [isSearchBoxOpen, setIsSearchBoxOpen] = useState<boolean>(false);
     const [severity, setSeverity] = useState<boolean>(false);
     const open = Boolean(showMenu);
 
-    const cleanup = useCallback(() => {
-        console.log("Cleanup called");
-        idForplaylist.splice(0, idForplaylist.length);
-        console.log("idForPlaylist after cleanup:", idForplaylist);
-    }, [idForplaylist]);
-
-    const addtoplaylistById = (id: number) => {
-        if (!idForplaylist.includes(id)) {
-            setIdForplaylist(prevState => [...prevState, id]);
-        }
-        console.log("Added to playlist", idForplaylist)
-    };
+    const handleCloseSearchBox = ()=>{
+        setIsSearchBoxOpen(false);
+    }
 
     const removeFromPlaylistById = (id: number) => {
         setIdForplaylist(prevState => prevState.filter(item => item !== id));
@@ -168,6 +162,19 @@ const MusicPage: React.FC = () => {
         setShowFavoriteSongs(!showFavoriteSongs);
     }
 
+    const cleanup = useCallback(() => {
+        console.log("Cleanup called");
+        idForplaylist.splice(0, idForplaylist.length);
+    }, [idForplaylist]);
+
+    const addtoplaylistById = (id: number) => {
+        if (!idForplaylist.includes(id)) {
+            setIdForplaylist(prevState => [...prevState, id]);
+        }
+        console.log("Added to playlist", idForplaylist)
+    };
+
+
     const closeUploadPopup = () => {
         setIsOpenFileInput(false);
         cleanup();
@@ -203,30 +210,22 @@ const MusicPage: React.FC = () => {
 
     const handleAddToFav = useCallback(async () => {
         handleClose();
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/addtoFavorite/${selectedMusicIdForMenu}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-            })
-            if (response.ok) {
+        if (selectedMusicIdForMenu && token) {
+            const response = await addToFavorite(selectedMusicIdForMenu, token);
+            if (response.status === 1) {
                 handleShowAlert("Song added to favorite");
                 setSeverity(true);
-            }
-            else {
-                handleShowAlert("Song added to favorite");
+            } else {
                 setSeverity(false);
+                handleShowAlert("Something went wrong, please try again");
+                console.error("fetch error:", error);
             }
             refetch();
         }
-        catch (error) {
-            setSeverity(false);
-            handleShowAlert("Something went wrong, please try again");
-            console.error("fetch error:", error);
+        else {
+            console.error("Music Id not provided or auth token missing, operation cant permitted");
         }
-    }, [selectedMusicIdForMenu, token, refetch, handleShowAlert]);
+    }, [selectedMusicIdForMenu, refetch, handleShowAlert]);
 
     const handleCreatePlaylsit = useCallback(async (playlistName: string) => {
         handleClose();
@@ -277,38 +276,24 @@ const MusicPage: React.FC = () => {
     }
 
     const handleDeleteMusic = useCallback(async () => {
-        if (selectedMusicIdForMenu !== null) {
-            // Find the music details corresponding to the selected music ID
+        if (selectedMusicIdForMenu && token) {
             const musicDetail = musicDetails.find(music => music.id === selectedMusicIdForMenu);
-
             if (musicDetail) {
-                // Get the musicUrl and thumbnailUrl from the found musicDetail
                 const musicPath = getMusicPath(musicDetail.musicUrl);
                 const thumbnilPath = getthumbnilPath(musicDetail.thumbnailUrl);
-
-                try {
-                    // Call the deleteMusic function with the paths
+                const response = await deleteMusicFromDB(selectedMusicIdForMenu, token)
+                if (response.statusCode === 1) {
+                    setAlertMessage("Song deleted successfully");
+                    setSeverity(true);
                     const result = await deleteMusic(musicPath, thumbnilPath);
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/${selectedMusicIdForMenu}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    if (response.ok) {
-                        setAlertMessage("Song deleted successfully");
-                        setSeverity(true);
-                        refetch();
-                    }
-                    else {
-                        setAlertMessage("Failed to delete song");
-                        setSeverity(false);
-                    }
-                } catch (error) {
-                    console.error("Error deleting music:", error);
                 }
+                else {
+                    setAlertMessage("Failed to delete song");
+                    setSeverity(false);
+                }
+                refetch();
             } else {
-                console.error("Music not found for the selected ID");
+                console.error("Music Id not provided or auth token missing, operation cant permitted");
             }
         } else {
             console.error("No music ID selected");
@@ -330,6 +315,13 @@ const MusicPage: React.FC = () => {
             refetch();
         }
     }, [error, refetch, token, data]);
+
+    useEffect(() => {
+        if (musicDetails) {
+            dispatch(setUserPlaylist({ userMusic: musicDetails }));
+        }
+    }, [musicDetails, dispatch]);
+
 
     return (
         <>
@@ -517,7 +509,7 @@ const MusicPage: React.FC = () => {
                 createPlaylist={handleCreatePlaylsit}
                 cleanup={cleanup}
             />
-            <SearchBox openModal={isSearchBoxOpen} />
+            <SearchBox openModal={isSearchBoxOpen} onClose = {handleCloseSearchBox} />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );
