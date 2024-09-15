@@ -45,8 +45,10 @@ type LastHistory {
 }
 
 type Favourite {
+  id: Float!
   musicTitle: String!
   musicArtist: String!
+  thumbnailUrl: String!
 }
 
 type PreviousSearch {
@@ -55,14 +57,32 @@ type PreviousSearch {
 }
 
 type Suggestion {
+  id: Float!
   musicTitle: String!
   musicArtist: String!
+  thumbnailUrl: String!
 }
 
 type SearchResponse {
   favourite: [Favourite!]!
   previousSearch: [PreviousSearch!]!
   suggestion: [Suggestion!]!
+}
+
+type SearchHistory {
+  userId: String!
+  searchQuery: String!
+  searchHistoryAt: DateTime!
+}
+
+type MusicDetails {
+  id: Float!
+  musicUrl: String!
+  musicTitle: String!
+  thumbnailUrl: String!
+  musicArtist: String!
+  createdAt: DateTime!
+  isFavourite: Boolean!
 }
 
 type Query {
@@ -74,10 +94,12 @@ type Query {
   getPlaylistByUserId: [Playlist!]!
   getLastHistory: LastHistory!
   search(searchString: String): SearchResponse!
+  searchMusic(searchQuery: String!): [MusicDetails!]!
 }
 
 type Mutation {
   create(createSignupInput: CreateSignupInput!): SignupResponse!
+  saveSearchQuery(searchQuery: String!): SearchHistory!
 }
 
 input CreateSignupInput {

@@ -1,5 +1,3 @@
-
-"use client"
 import React, { useEffect, useState } from "react";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -7,12 +5,13 @@ import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import { IconButton } from "@mui/material";
 import Image from "next/image";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useMutation, useLazyQuery } from "@apollo/client";
 import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
 import dynamic from 'next/dynamic';
+
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
-import loadinganimation from "@/lottie/suggestionloadinganimation.json"
+import loadinganimation from "@/lottie/suggestionloadinganimation.json";
 
 interface Props {
     openModal: boolean;
@@ -22,6 +21,7 @@ interface Props {
 interface Suggestion {
     musicTitle: string;
     musicArtist: string;
+    thumbnailUrl?: string; // Make thumbnailUrl optional
 }
 
 const style = {
@@ -38,45 +38,71 @@ const SEARCH_QUERY = gql`
   query Search($searchString: String) {
     search(searchString: $searchString) {
       favourite {
+        id
         musicTitle
         musicArtist
+        thumbnailUrl
       }
       previousSearch {
         searchQuery
         searchHistoryAt
       }
       suggestion {
+        id
         musicTitle
         musicArtist
+        thumbnailUrl
       }
     }
   }
 `;
 
+const SAVE_SEARCH_QUERY = gql`
+  mutation SaveSearchQuery($searchQuery: String!) {
+    saveSearchQuery(searchQuery: $searchQuery) {
+      userId
+      searchQuery
+      searchHistoryAt
+    }
+  }
+`;
+
+const FIND_SEARCH_QUERY = gql`
+query SearchMusic($searchQuery: String!){
+    searchMusic(searchQuery: $searchQuery) {
+        id
+        musicUrl
+        musicTitle
+        thumbnailUrl
+        musicArtist
+        createdAt
+        isFavourite
+    }
+}
+`
+
 const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
     const [openSearchBox, setOpenSearchBox] = useState<boolean>(openModal);
     const [searchString, setSearchString] = useState<string | null>(null);
-    const token = useSelector((state: RootState) => state.authToken.token);
+    const [currentSearchQuery, setCurrentSearchQuery] = useState<string | null>(null);
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+
+    const token = useSelector((state: RootState) => state.authToken.token);
 
     const { loading, error, data, refetch } = useQuery(SEARCH_QUERY, {
         variables: { searchString },
     });
 
-    // Sync openSearchBox state with the openModal prop
+    const [saveSearchQuery] = useMutation(SAVE_SEARCH_QUERY);
+    const [findSearchQuery] = useLazyQuery(FIND_SEARCH_QUERY);
     useEffect(() => {
         setOpenSearchBox(openModal);
     }, [openModal]);
 
-    const handleClose = () => {
-        setSuggestions([]);
-        setOpenSearchBox(false)
-        onClose();
-    };
-
     useEffect(() => {
         if (data) {
-            setSuggestions(data.search.suggestion);
+            setSuggestions(data.search.suggestion || []);
+            console.log(data)
         }
         if (error) {
             console.error("Error fetching data", error);
@@ -84,15 +110,69 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         if (token) {
             refetch();
         }
-    }, [data, token,error,refetch]);
+    }, [data, error, token, refetch]);
+
+
     useEffect(() => {
-        console.log(openSearchBox);
-    }, [openSearchBox])
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.key === 'Enter' && currentSearchQuery) {
+                handleSaveSearchQuery();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [currentSearchQuery]);
+
+    const handleClose = () => {
+        setSuggestions([]);
+        setOpenSearchBox(false);
+        onClose();
+    };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchString(e.target.value);
-        console.log(e.target.value.toLowerCase());
+        const newValue = e.target.value;
+        setSearchString(newValue);
+        setCurrentSearchQuery(newValue);
     };
+
+    const handleSaveSearchQuery = async () => {
+
+        if (currentSearchQuery) {
+            try {
+                await saveSearchQuery({ variables: { searchQuery: currentSearchQuery } });
+                console.log("Search query saved successfully");
+                const { data } = await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
+                console.log("Search results:", data);
+            } catch (error) {
+                console.error("Error saving search query", error);
+            }
+        }
+    };
+
+    const handleSearchAction = async (musicTitle: string) => {
+        let searchQuery = '';
+        if (currentSearchQuery) {
+            if (!musicTitle) {
+                searchQuery = currentSearchQuery
+            }
+            searchQuery = musicTitle
+
+            try {
+                await saveSearchQuery({ variables: { searchQuery: searchQuery } });
+                console.log("Search query saved successfully");
+                const { data } = await findSearchQuery({ variables: { searchQuery } });
+                console.log("Search results:", data);
+            } catch (error) {
+                console.error("Error saving search query", error);
+            }
+        }
+
+    };
+
 
     return (
         <div>
@@ -118,20 +198,23 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
                     <div className="border border-slate-800"></div>
                     {loading ? (
                         <div className="h-[50vh] flex flex-col justify-center">
-                            <Lottie className="h-40 " animationData={loadinganimation} />
+                            <Lottie className="h-40" animationData={loadinganimation} />
                         </div>
                     ) : (
-                        <section className="overflow-y-auto text-slate-400 p-5 flex flex-col [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full h-[50vh]">
+                        <section
+                            className="overflow-y-auto text-slate-400 p-5 flex flex-col [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full h-[50vh]"
+                        >
                             {suggestions.map((music: Suggestion, index: number) => (
                                 <div
                                     key={index}
+                                    onClick={() => handleSearchAction(music.musicTitle)}
                                     className="cursor-pointer font-Montserrat py-3 flex flex-row items-center hover:bg-slate-950 gap-5"
                                 >
                                     <Image
                                         className="aspect-square"
                                         height={30}
                                         width={30}
-                                        src={"https://i.pinimg.com/736x/e8/6a/e3/e86ae31f3047146140e271721aedf1d7.jpg"}
+                                        src={music.thumbnailUrl || "https://i.pinimg.com/736x/e8/6a/e3/e86ae31f3047146140e271721aedf1d7.jpg"}
                                         alt={music.musicTitle}
                                     />
                                     <p className="whitespace-nowrap overflow-x-hidden">{music.musicTitle}</p>

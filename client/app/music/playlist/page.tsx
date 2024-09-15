@@ -147,7 +147,7 @@ const PlaylistPage: React.FC = () => {
 
                         <section className="text-slate-300 flex flex-col gap-5 md:p-7 p-5">
                             {playlists.map((playlist, index) => (
-                                <div className="flex flex-row items-center justify-between">
+                                <div key={index} className="flex flex-row items-center justify-between">
                                     <section className='flex-row flex space-x-4 items-center'>
                                         <LibraryMusicIcon fontSize="medium" />
                                         <p onClick={() => handleShowSongs(playlist.playlistName)} key={index} className="hover:text-teal-500 hover:underline cursor-pointer py-3 px-3 rounded-sm">
