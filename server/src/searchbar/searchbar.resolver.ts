@@ -15,10 +15,10 @@ export class SearchbarResolver {
   ): Promise<SearchResponse> {
     const userId = context.req['firebaseUserId'];
     if (userId === "null" || userId === "invalid") {
-        console.log("executed")
+ 
         return this.searchbarService.searchWithEmptyHistory(searchString);
     }
-    console.log("this is also executed")
+
     return this.searchbarService.search(searchString,userId);
   }
 }

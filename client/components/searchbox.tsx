@@ -66,7 +66,7 @@ const SearchBox: React.FC<Props> = ({ openModal }) => {
         if (token) {
             refetch();
         }
-    }, [data, token]);
+    }, [data, token,error,refetch]);
     useEffect(() => {
         console.log(openSearchBox);
     }, [openSearchBox])

@@ -11,7 +11,7 @@ export class SearchbarService {
     const previousSearch: PreviousSearch[] = [];
     const suggestion: Suggestion[] = [];
 
-  
+
     if (searchString === null) {
 
       const favourites = await this.dbService.isFavourite.findMany({
@@ -27,7 +27,7 @@ export class SearchbarService {
         });
       }
 
- 
+
       const previousSearches = await this.dbService.searchHistory.findMany({
         where: {
           userId: userId,
@@ -41,7 +41,7 @@ export class SearchbarService {
         });
       }
     } else {
-      
+
       const searchResults = await this.dbService.music.findMany({
         where: {
           OR: [
@@ -57,6 +57,44 @@ export class SearchbarService {
           musicArtist: result.musicArtist,
         });
       }
+      const previousSearches = await this.dbService.searchHistory.findMany({
+        where: {
+          userId: userId,
+        },
+      });
+
+      const relevantSearches = previousSearches.filter(search =>
+        search.searchQuery.includes(searchString)
+      );
+
+      for (const search of relevantSearches) {
+        const searchResultsFromHistory = await this.dbService.music.findMany({
+          where: {
+            OR: [
+              { musicTitle: { contains: search.searchQuery, mode: 'insensitive' } },
+              { musicArtist: { contains: search.searchQuery, mode: 'insensitive' } },
+            ],
+          },
+        });
+
+        for (const result of searchResultsFromHistory) {
+
+          if (!suggestion.some(s => s.musicTitle === result.musicTitle && s.musicArtist === result.musicArtist)) {
+            suggestion.push({
+              musicTitle: result.musicTitle,
+              musicArtist: result.musicArtist,
+            });
+          }
+        }
+      }
+
+      for (const search of previousSearches) {
+        previousSearch.push({
+          searchQuery: search.searchQuery,
+          searchHistoryAt: search.searchHistoryAt,
+        });
+      }
+
     }
 
     return {
@@ -73,7 +111,7 @@ export class SearchbarService {
     const suggestion: Suggestion[] = [];
 
     if (searchString === null) {
-      // Get suggestions from IsFavourite
+
       const favourites = await this.dbService.isFavourite.findMany({
         include: {
           music: true,
@@ -87,7 +125,7 @@ export class SearchbarService {
         });
       }
     } else {
-      // Get suggestions based on searchString
+
       const searchResults = await this.dbService.music.findMany({
         where: {
           OR: [
@@ -107,7 +145,7 @@ export class SearchbarService {
 
     return {
       favourite,
-      previousSearch: [], 
+      previousSearch: [],
       suggestion,
     };
   }
