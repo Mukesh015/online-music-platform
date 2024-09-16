@@ -1,5 +1,5 @@
 "use client"
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import SearchIcon from '@mui/icons-material/Search';
@@ -29,7 +29,7 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 700,
+    // width: 700,
     bgcolor: 'black',
     boxShadow: 24,
 };
@@ -86,7 +86,7 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
     const [searchString, setSearchString] = useState<string | null>(null);
     const [currentSearchQuery, setCurrentSearchQuery] = useState<string | null>(null);
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-
+    const inputRef = useRef<HTMLInputElement>(null);
     const token = useSelector((state: RootState) => state.authToken.token);
 
     const { loading, error, data, refetch } = useQuery(SEARCH_QUERY, {
@@ -181,6 +181,17 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
 
     };
 
+    useEffect(() => {
+        if (openModal) {
+            setTimeout(() => {
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, 100);
+        }
+    }, [openModal]);
+    
+
 
     return (
         <div>
@@ -191,14 +202,16 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
                 aria-describedby="modal-modal-description"
             >
                 <Box sx={style}>
-                    <header className="flex px-2 flex-row justify-between items-center">
+                    <header className="flex px-2 flex-row justify-between items-center w-[80vw] md:w-[45vw]">
                         <SearchIcon color="primary" fontSize="medium" />
                         <input
+                            ref={inputRef}
                             placeholder="Search your desired songs ..."
                             className="bg-inherit px-5 text-white border-none w-full border focus:outline-none focus:border-transparent"
                             type="text"
                             onChange={handleSearchChange}
                         />
+
                         <IconButton color="primary" aria-label="search-icon" onClick={handleClose}>
                             <CloseIcon fontSize="medium" />
                         </IconButton>
@@ -210,7 +223,7 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
                         </div>
                     ) : (
                         <section
-                            className="overflow-y-auto text-slate-400 p-5 flex flex-col [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full h-[50vh]"
+                            className="overflow-y-auto w-[80vw] md:w-[45vw] text-slate-400 p-5 flex flex-col [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full h-[50vh]"
                         >
                             {suggestions.map((music: Suggestion, index: number) => (
                                 <div

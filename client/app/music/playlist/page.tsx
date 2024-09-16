@@ -26,7 +26,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import dynamic from 'next/dynamic';
 import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
-import { addToFavorite, deleteMusicFromDB } from '@/lib/feature';
+import { addToFavorite, addToHistory, deleteMusicFromDB } from '@/lib/feature';
 import AlertPopup from '@/components/alert';
 import { deleteMusic } from '@/config/firebase/config';
 import FilterList from '@/components/filter';
@@ -55,17 +55,20 @@ interface Playlist {
     musicTitle: string;
     thumbnailUrl: string;
     musicArtist: string;
+    createdAt: Date;
 }
 
 type PlaylistData = {
     playlistName: string;
     playlists: Playlist[];
+    createdAt: Date;
 };
 
 const GET_PLAYLIST = gql`
     {
         getPlaylistByUserId {
             playlistName
+            createdAt
             playlists {
                 id
                 musicUrl
@@ -95,8 +98,12 @@ const PlaylistPage: React.FC = () => {
     const open = Boolean(anchorEl);
     const dispatch = useDispatch();
 
-    const setPlaylistData = (data:PlaylistData[])=>{
+    const setPlaylistData = (data: PlaylistData[]) => {
         setPlaylists(data);
+    };
+
+    const closeFilter = () => {
+        setShowFilter(false);
     }
 
     const handleShowAlert = useCallback((msg: string) => {
@@ -108,7 +115,7 @@ const PlaylistPage: React.FC = () => {
         }, 3000);
     }, [refetch]);
 
-    const toggleOpenFiler = ()=>{
+    const toggleOpenFiler = () => {
         setShowFilter(!showFilter);
     }
 
@@ -132,9 +139,18 @@ const PlaylistPage: React.FC = () => {
     }, [menuOperation, token, refetch, handleShowAlert, error]);
 
 
-    const handlePlaySong = () => {
+    const handlePlaySong = async () => {
         handleClose();
         if (menuOperation) dispatch(setCurrentMusic(menuOperation));
+        if (token && menuOperation) {
+            const response = await addToHistory(token, menuOperation);
+            if (response.status === 1) {
+                console.log("Music history synced successfully")
+            }
+            else {
+                console.error("Music history not synced")
+            }
+        }
     }
 
     const handleClick = (event: React.MouseEvent<HTMLElement>, menu: string, music: Playlist | null) => {
@@ -227,20 +243,20 @@ const PlaylistPage: React.FC = () => {
                 <IconButton disabled={backDisabled} onClick={() => handleBack()} color="primary">
                     <KeyboardBackspaceIcon fontSize="medium" />
                 </IconButton>
-                <Breadcrumbs className="text-slate-500" aria-label="breadcrumb">
+                <Breadcrumbs className="text-slate-500 text-sm md:text-lg" aria-label="breadcrumb">
                     <Link className="hover:underline" color="inherit" href="/">Home</Link>
                     <Link className="hover:underline" color="inherit" href="/music">Music</Link>
-                    <Link href={"/playlist"}>
+                    <Link href={"/music/playlist"}>
                         <Typography className={`text-slate-500 hover:underline ${playlistName ? "text-slate-500" : "text-blue-500"}`} sx={{ color: 'text.primary' }}>Playlists</Typography>
                     </Link>
                     {playlistName && <Typography className="text-blue-500" sx={{ color: 'text.primary' }}>{playlistName}</Typography>}
                 </Breadcrumbs>
-                <IconButton onClick={()=>toggleOpenFiler()} color="primary">
+                <IconButton onClick={() => toggleOpenFiler()} color="primary">
                     <SortIcon fontSize="medium" />
                 </IconButton>
             </div>
             {showPlaylistsFolders ? (
-                <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[75vh] md:h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full">
+                <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[72vh] md:h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full">
                     {loading ? (
                         <div className='h-full w-full    flex flex-col justify-center items-center bg-slate-950'>
                             <Lottie className="h-40 md:h-60" animationData={loadingAnimation} />
@@ -271,7 +287,7 @@ const PlaylistPage: React.FC = () => {
                     )}
                 </div>
             ) : (
-                <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[75vh] md:h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full">
+                <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[72vh] md:h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full">
                     <section className="text-slate-300 flex flex-col gap-5 md:p-7 p-5">
                         {playlists
                             .filter(playlist => playlist.playlistName === playlistName)
@@ -390,7 +406,7 @@ const PlaylistPage: React.FC = () => {
                 )}
             </Menu>
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
-            {showFilter && <FilterList playlist={playlists} setData={setPlaylistData} />}
+            {showFilter && <FilterList playlist={playlists} closeFilter={closeFilter} setData={setPlaylistData} playlistName={playlistName} />}
         </div>
     );
 };

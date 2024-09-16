@@ -88,7 +88,7 @@ const MusicQuery = gql`
         
         }
         getLastHistory{
-            musicId
+            id
             musicUrl
             thumbnailUrl
             musicTitle
@@ -192,7 +192,6 @@ const MusicPage: React.FC = () => {
         console.log("Added to playlist", idForplaylist)
     };
 
-
     const closeUploadPopup = () => {
         setIsOpenFileInput(false);
         cleanup();
@@ -230,7 +229,7 @@ const MusicPage: React.FC = () => {
                 console.log("Music history synced successfully")
             }
             else {
-                console.warn("Music history not synced")
+                console.error("Music history not synced")
             }
         }
     };
@@ -421,7 +420,7 @@ const MusicPage: React.FC = () => {
                                         <h1 className='text-md text-white'>Recent Songs</h1>
                                         {showMobilemenu &&
                                             <section className='items-center flex-row flex space-x-2'>
-                                                <IconButton color="secondary" aria-label="search-icon">
+                                                <IconButton onClick={() => setIsSearchBoxOpen(true)} color="secondary" aria-label="search-icon">
                                                     <SearchIcon fontSize="small" />
                                                 </IconButton>
                                                 <IconButton onClick={() => handleToggleFileInputPopup()} color="secondary" aria-label="upload">
@@ -437,6 +436,11 @@ const MusicPage: React.FC = () => {
                                                 <IconButton onClick={() => handleOpenCreatePlaylistPopup()} color="secondary" aria-label="add">
                                                     <AddIcon fontSize="small" />
                                                 </IconButton>
+                                                <Link href={"/music/playlist"}>
+                                                    <IconButton color="secondary">
+                                                        <LibraryMusicIcon fontSize="medium" />
+                                                    </IconButton>
+                                                </Link>
                                             </section>
                                         }
                                         <IconButton onClick={() => handleToggleMobileMenu()}>

@@ -633,7 +633,7 @@ export class MusicService {
     const playlistMap = new Map<string, Playlist>();
 
     playlists.forEach(playlist => {
-      const { playlistName, Music } = playlist;
+      const { playlistName, Music,createdAt } = playlist;
 
 
       const musicArray = Array.isArray(Music) ? Music : [Music];
@@ -642,6 +642,7 @@ export class MusicService {
       if (!playlistMap.has(playlistName)) {
         playlistMap.set(playlistName, {
           playlistName,
+          createdAt,
           playlists: [],
         });
       }

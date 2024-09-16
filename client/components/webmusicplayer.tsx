@@ -214,7 +214,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                         </IconButton>
                         {loading && (
                             <CircularProgress
-                                className="md:ml-[44.9rem]"
+                                className="md:ml-[44.9rem] ml-[19rem]"
                                 size={32}
                                 sx={{
                                     color: green[500],

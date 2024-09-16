@@ -28,6 +28,7 @@ type playMusic {
 
 type Playlist {
   playlistName: String!
+  createdAt: DateTime!
   playlists: [playMusic!]!
 }
 
@@ -38,7 +39,7 @@ type SignupResponse {
 
 type LastHistory {
   userId: String!
-  musicId: Float!
+  id: Float!
   musicUrl: String!
   thumbnailUrl: String!
   musicTitle: String!

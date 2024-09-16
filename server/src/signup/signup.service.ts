@@ -125,7 +125,13 @@ export class SignupService {
 
 
     return {
-      ...lastHistory,
+      userId:lastHistory.userId,
+      id: lastHistory.musicId,
+      musicUrl: lastHistory.musicUrl,
+      musicTitle: lastHistory.musicTitle,
+      musicArtist: lastHistory.musicArtist,
+      thumbnailUrl: lastHistory.thumbnailUrl,
+      lastPlayedAt: lastHistory.lastPlayedAt,
       isFavourite: isFavourite?.isFavourite ?? false,
     };
   }
