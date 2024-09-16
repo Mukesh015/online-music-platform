@@ -65,11 +65,37 @@ export class Playlist {
 
 export class AddToPlaylistDto {
   @IsString()
-  @IsNotEmpty()  // Ensures the string is not empty and not null
+  @IsNotEmpty()  
   playlistName: string;
 
   @IsArray()
-  @ArrayNotEmpty()  // Ensures the array is not empty
-  @IsInt({ each: true })  // Ensures each element in the array is an integer
-  musicIds: number[];  // Array of music IDs
+  @ArrayNotEmpty() 
+  @IsInt({ each: true })  
+  musicIds: number[];  
+}
+
+
+
+export class removeFromPlaylistDto {
+  @IsString()
+  @IsNotEmpty()  
+  playlistName: string;
+
+
+  @IsNotEmpty()  
+  @IsInt()  
+  musicId: number;  
+}
+
+
+export class renamePlaylistDto {
+
+  @IsString()
+  @IsNotEmpty()  
+  playlistName: string;
+
+  @IsString()
+  @IsNotEmpty()  
+  newPlaylistName: string;
+  
 }

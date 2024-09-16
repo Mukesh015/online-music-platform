@@ -89,6 +89,15 @@ const MusicQuery = gql`
             musicArtist
         
         }
+        getLastHistory{
+            musicId
+            musicUrl
+            thumbnailUrl
+            musicTitle
+            musicArtist
+            lastPlayedAt
+            isFavourite
+        }
     }
 
 `;
@@ -102,6 +111,7 @@ interface MusicDetail {
     thumbnailUrl: string;
     musicArtist: string;
 }
+
 const MusicPage: React.FC = () => {
 
     const dispatch = useDispatch();
@@ -144,9 +154,9 @@ const MusicPage: React.FC = () => {
         setSelectedMusicIdForMenu(id);
     };
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setshowMenu(null);
-    };
+    },[]);
 
     const handleToggleFileInputPopup = () => {
         setIsOpenFileInput(!isOpenFileInput);
@@ -225,7 +235,7 @@ const MusicPage: React.FC = () => {
         else {
             console.error("Music Id not provided or auth token missing, operation cant permitted");
         }
-    }, [selectedMusicIdForMenu, refetch, handleShowAlert]);
+    }, [handleClose, selectedMusicIdForMenu, token, refetch, handleShowAlert, error]);
 
     const handleCreatePlaylsit = useCallback(async (playlistName: string) => {
         handleClose();

@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useEffect, useState } from "react";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -99,6 +101,19 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         setOpenSearchBox(openModal);
     }, [openModal]);
 
+    const handleClose = () => {
+        setSuggestions([]);
+        setOpenSearchBox(false)
+        onClose();
+    };
+
+    useEffect(() => {
+        if (searchString == "") {
+            setSearchString(null);
+            console.log("Search string changes to: ", searchString)
+        }
+    }, [searchString])
+
     useEffect(() => {
         if (data) {
             setSuggestions(data.search.suggestion || []);
@@ -127,11 +142,6 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         };
     }, [currentSearchQuery]);
 
-    const handleClose = () => {
-        setSuggestions([]);
-        setOpenSearchBox(false);
-        onClose();
-    };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
@@ -147,7 +157,7 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
                 console.log("Search query saved successfully");
                 const { data } = await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
                 console.log("Search results:", data);
-            } catch (error) {
+            } catch (error) {   
                 console.error("Error saving search query", error);
             }
         }

@@ -63,13 +63,14 @@ export class SearchbarResolver {
   async searchMusic(@Args('searchQuery') searchQuery: string, 
   @Context() context): Promise<MusicDetails[]> {
     const userId = context.req['firebaseUserId'];
+  
     if (!userId || userId === "null" || userId === "invalid") {
   
       return this.searchbarService.getSanitizedMusicResults(searchQuery, null);
 
     }
 
-
+    console.log(`Searching for ${userId}`);
     return this.searchbarService.getSanitizedMusicResults(searchQuery, userId);
   }
 }

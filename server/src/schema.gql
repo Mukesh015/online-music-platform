@@ -37,11 +37,14 @@ type SignupResponse {
 }
 
 type LastHistory {
+  userId: String!
+  musicId: Float!
   musicUrl: String!
-  musicTitle: String!
   thumbnailUrl: String!
+  musicTitle: String!
   musicArtist: String!
   lastPlayedAt: DateTime!
+  isFavourite: Boolean!
 }
 
 type Favourite {
@@ -92,7 +95,7 @@ type Query {
   getFavoriteMusicByUserId: [Music!]!
   getPlaylistNameByUserId: [String!]!
   getPlaylistByUserId: [Playlist!]!
-  getLastHistory: LastHistory!
+  getLastHistory: LastHistory
   search(searchString: String): SearchResponse!
   searchMusic(searchQuery: String!): [MusicDetails!]!
 }

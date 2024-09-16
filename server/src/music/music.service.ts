@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 // import { CreateMusicInput } from './dto/create-music.input';
 import { Prisma } from '@prisma/client';
-import { Music, Playlist, AddToPlaylistDto } from './entities/music.entity'
-import { STATUS_CODES } from 'http';
+import { Music, Playlist, AddToPlaylistDto ,removeFromPlaylistDto,renamePlaylistDto} from './entities/music.entity'
+
 
 
 @Injectable()
@@ -154,7 +154,7 @@ export class MusicService {
         });
         return {
           message: existingFavorite.isFavourite ? "Music removed from favorites" : "Music added to favorites",
-          statusCode: 200,
+          statusCode: existingFavorite.isFavourite ? 200 :201,
           musicDetails: music,
         };
       } else {
@@ -346,9 +346,9 @@ export class MusicService {
   }
 
 
-  async removeFromPlaylist(musicId: number, userId: string, playlistName: string) {
+  async removeFromPlaylist(removeFromPlaylistDto:removeFromPlaylistDto, userId: string) {
     try {
-
+      const {musicId,playlistName}=removeFromPlaylistDto
       const playlistEntry = await this.dbService.playlist.findUnique({
         where: {
           userId_musicId_playlistName: {
@@ -405,7 +405,8 @@ export class MusicService {
 
 
 
-  async updatePlaylistName(userId: string, playlistName: string, newPlaylistName: string) {
+  async updatePlaylistName(userId: string, renamePlaylistDto:renamePlaylistDto) {
+    const { playlistName, newPlaylistName } = renamePlaylistDto;
     try {
       const playlist = await this.dbService.playlist.findFirst({
         where: { userId, playlistName },
@@ -566,7 +567,7 @@ export class MusicService {
   async findFouriteByUserId(userId: string): Promise<Partial<Music>[]> {
 
     const favouriteIds = await this.dbService.isFavourite.findMany({
-      where: { userId },
+      where: { userId ,isFavourite:true},
       select: { id: true },
     });
 
