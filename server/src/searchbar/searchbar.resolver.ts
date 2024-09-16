@@ -70,7 +70,7 @@ export class SearchbarResolver {
 
     }
 
-    console.log(`Searching for ${userId}`);
+
     return this.searchbarService.getSanitizedMusicResults(searchQuery, userId);
   }
 }

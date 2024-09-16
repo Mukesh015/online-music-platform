@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import SearchIcon from '@mui/icons-material/Search';
@@ -107,6 +107,8 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         onClose();
     };
 
+
+
     useEffect(() => {
         if (searchString == "") {
             setSearchString(null);
@@ -127,6 +129,20 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         }
     }, [data, error, token, refetch]);
 
+    const handleSaveSearchQuery = useCallback(async () => {
+
+        if (currentSearchQuery) {
+            try {
+                await saveSearchQuery({ variables: { searchQuery: currentSearchQuery } });
+                console.log("Search query saved successfully");
+                const { data } = await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
+                console.log("Search results:", data);
+            } catch (error) {
+                console.error("Error saving search query", error);
+            }
+        }
+    }, [currentSearchQuery, findSearchQuery, saveSearchQuery]);
+
 
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
@@ -140,7 +156,7 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         return () => {
             window.removeEventListener('keydown', handleKeyPress);
         };
-    }, [currentSearchQuery]);
+    }, [currentSearchQuery, handleSaveSearchQuery]);
 
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,19 +165,6 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         setCurrentSearchQuery(newValue);
     };
 
-    const handleSaveSearchQuery = async () => {
-
-        if (currentSearchQuery) {
-            try {
-                await saveSearchQuery({ variables: { searchQuery: currentSearchQuery } });
-                console.log("Search query saved successfully");
-                const { data } = await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
-                console.log("Search results:", data);
-            } catch (error) {   
-                console.error("Error saving search query", error);
-            }
-        }
-    };
 
     const handleSearchAction = async (musicTitle: string) => {
         let searchQuery = '';

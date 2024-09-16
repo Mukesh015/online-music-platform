@@ -27,7 +27,7 @@ export class LastHistory {
   userId: string;
 
   @Field()
-  musicId: number;
+  id: number;
 
   @Field()
   musicUrl: string;

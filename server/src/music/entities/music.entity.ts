@@ -56,6 +56,9 @@ export class Playlist {
   @Field()
   playlistName: string;
 
+  @Field()
+  createdAt: Date;
+
   @Field(type => [playMusic])
   playlists: playMusic[];
 }
