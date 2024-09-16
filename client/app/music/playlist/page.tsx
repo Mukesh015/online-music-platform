@@ -29,6 +29,7 @@ import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
 import { addToFavorite, deleteMusicFromDB } from '@/lib/feature';
 import AlertPopup from '@/components/alert';
 import { deleteMusic } from '@/config/firebase/config';
+import FilterList from '@/components/filter';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 const itemVariants = {
@@ -90,8 +91,13 @@ const PlaylistPage: React.FC = () => {
     const [severity, setSeverity] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [showAlert, setShowAlert] = useState<boolean>(false);
+    const [showFilter, setShowFilter] = useState<boolean>(false);
     const open = Boolean(anchorEl);
     const dispatch = useDispatch();
+
+    const setPlaylistData = (data:PlaylistData[])=>{
+        setPlaylists(data);
+    }
 
     const handleShowAlert = useCallback((msg: string) => {
         setAlertMessage(msg);
@@ -101,6 +107,10 @@ const PlaylistPage: React.FC = () => {
             setShowAlert(false);
         }, 3000);
     }, [refetch]);
+
+    const toggleOpenFiler = ()=>{
+        setShowFilter(!showFilter);
+    }
 
     const handleAddToFav = useCallback(async () => {
         handleClose();
@@ -202,7 +212,6 @@ const PlaylistPage: React.FC = () => {
     useEffect(() => {
         if (data && data.getPlaylistByUserId) {
             setPlaylists(data.getPlaylistByUserId);
-            console.log("Fetched Playlists: ", data.getPlaylistByUserId);
         }
         if (error) {
             console.error('Error fetching data', error);
@@ -226,12 +235,12 @@ const PlaylistPage: React.FC = () => {
                     </Link>
                     {playlistName && <Typography className="text-blue-500" sx={{ color: 'text.primary' }}>{playlistName}</Typography>}
                 </Breadcrumbs>
-                <IconButton color="primary">
+                <IconButton onClick={()=>toggleOpenFiler()} color="primary">
                     <SortIcon fontSize="medium" />
                 </IconButton>
             </div>
             {showPlaylistsFolders ? (
-                <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[75vh] md:h-[60vh]">
+                <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[75vh] md:h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full">
                     {loading ? (
                         <div className='h-full w-full    flex flex-col justify-center items-center bg-slate-950'>
                             <Lottie className="h-40 md:h-60" animationData={loadingAnimation} />
@@ -240,7 +249,7 @@ const PlaylistPage: React.FC = () => {
 
                         <section className="text-slate-300 flex flex-col gap-5 md:p-7 p-5">
                             {playlists.map((playlist, index) => (
-                                <div key={index} className="flex flex-row items-center justify-between">
+                                <div key={index} className="flex flex-row items-center justify-between ">
                                     <section className='flex-row flex space-x-4 items-center'>
                                         <LibraryMusicIcon fontSize="medium" />
                                         <p onClick={() => handleShowSongs(playlist.playlistName)} key={index} className="hover:text-teal-500 hover:underline cursor-pointer py-3 px-3 rounded-sm">
@@ -262,7 +271,7 @@ const PlaylistPage: React.FC = () => {
                     )}
                 </div>
             ) : (
-                <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[75vh] md:h-[60vh]">
+                <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[75vh] md:h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full">
                     <section className="text-slate-300 flex flex-col gap-5 md:p-7 p-5">
                         {playlists
                             .filter(playlist => playlist.playlistName === playlistName)
@@ -273,7 +282,7 @@ const PlaylistPage: React.FC = () => {
                                         initial="hidden"
                                         animate="visible"
                                         key={music.id}
-                                        className="flex flex-col w-full md:w-auto md:hover:bg-slate-900 transition-colors duration-300"
+                                        className="flex flex-col  w-full md:w-auto md:hover:bg-slate-900 transition-colors duration-300"
                                     >
                                         <div className="flex flex-row gap-3 w-full md:px-10 md:py-3 cursor-pointer rounded-sm items-center">
                                             <div>
@@ -381,6 +390,7 @@ const PlaylistPage: React.FC = () => {
                 )}
             </Menu>
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
+            {showFilter && <FilterList playlist={playlists} setData={setPlaylistData} />}
         </div>
     );
 };
