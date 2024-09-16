@@ -11,7 +11,6 @@ import { gql, useQuery, useMutation, useLazyQuery } from "@apollo/client";
 import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
 import dynamic from 'next/dynamic';
-
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import loadinganimation from "@/lottie/suggestionloadinganimation.json";
 

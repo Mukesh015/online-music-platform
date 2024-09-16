@@ -64,8 +64,8 @@ model Playlist {
 
 
 
-model lasthistory{
-  userId String
+model lasthistory {
+  userId String @id
   musicId Int
   musicUrl String
   thumbnailUrl String
@@ -75,7 +75,7 @@ model lasthistory{
 
   user User @relation(fields: [userId], references: [userId])
 
-  @@id([userId, musicId])
+  @@unique([userId])
 }
 
 

@@ -34,9 +34,7 @@ import notFoundAnimation from "@/lottie/notFound.json"
 import { Button } from '@mui/material';
 import SearchBox from '@/components/searchbox';
 import { setUserPlaylist } from '@/lib/resolvers/userplaylist';
-import { addToFavorite, deleteMusicFromDB } from '@/lib/feature';
-
-
+import { addToFavorite, addToHistory, deleteMusicFromDB } from '@/lib/feature';
 
 const itemVariants = {
     visible: {
@@ -102,6 +100,15 @@ const MusicQuery = gql`
 
 `;
 
+interface LastMusic {
+    id: number;
+    musicUrl: string;
+    thumbnailUrl: string;
+    musicTitle: string;
+    musicArtist: string;
+    lastPlayedAt: string;
+    isFavourite: boolean;
+}
 
 interface MusicDetail {
     id: number;
@@ -116,6 +123,7 @@ const MusicPage: React.FC = () => {
 
     const dispatch = useDispatch();
     const token = useSelector((state: RootState) => state.authToken.token);
+    const [history, setHistory] = useState<LastMusic | null>(null);
     const { loading, error, data, refetch } = useQuery(MusicQuery);
     const [showMenu, setshowMenu] = useState<null | HTMLElement>(null);
     const [isOpenFileInput, setIsOpenFileInput] = useState<boolean>(false);
@@ -133,7 +141,7 @@ const MusicPage: React.FC = () => {
     const [severity, setSeverity] = useState<boolean>(false);
     const open = Boolean(showMenu);
 
-    const handleCloseSearchBox = ()=>{
+    const handleCloseSearchBox = () => {
         setIsSearchBoxOpen(false);
     }
 
@@ -156,7 +164,7 @@ const MusicPage: React.FC = () => {
 
     const handleClose = useCallback(() => {
         setshowMenu(null);
-    },[]);
+    }, []);
 
     const handleToggleFileInputPopup = () => {
         setIsOpenFileInput(!isOpenFileInput);
@@ -213,9 +221,18 @@ const MusicPage: React.FC = () => {
         }
     };
 
-    const handleSendMusicDetails = (music: MusicDetail) => {
+    const handleSendMusicDetails = async (music: MusicDetail) => {
         setCurrentPlayingMusicDetails([music]);
         dispatch(setCurrentMusic(music));
+        if (token) {
+            const response = await addToHistory(token, music);
+            if (response.status === 1) {
+                console.log("Music history synced successfully")
+            }
+            else {
+                console.warn("Music history not synced")
+            }
+        }
     };
 
     const handleAddToFav = useCallback(async () => {
@@ -317,6 +334,7 @@ const MusicPage: React.FC = () => {
         if (data) {
             setMusicDetails(data.getMusicByUserId);
             setFavoriteMusicDetails(data.getFavoriteMusicByUserId)
+            setHistory(data.getLastHistory);
         }
         if (error) {
             console.error('Error fetching data', error);
@@ -324,13 +342,19 @@ const MusicPage: React.FC = () => {
         if (token) {
             refetch();
         }
-    }, [error, refetch, token, data]);
+    }, [error, refetch, token, data, history,setHistory]);
 
     useEffect(() => {
         if (musicDetails) {
             dispatch(setUserPlaylist({ userMusic: musicDetails }));
         }
     }, [musicDetails, dispatch]);
+
+    useEffect(() => {
+        if (history) {
+            dispatch(setCurrentMusic(history));
+        }
+    }, [dispatch, history])
 
 
     return (
@@ -519,7 +543,7 @@ const MusicPage: React.FC = () => {
                 createPlaylist={handleCreatePlaylsit}
                 cleanup={cleanup}
             />
-            <SearchBox openModal={isSearchBoxOpen} onClose = {handleCloseSearchBox} />
+            <SearchBox openModal={isSearchBoxOpen} onClose={handleCloseSearchBox} />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );
