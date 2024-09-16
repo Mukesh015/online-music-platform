@@ -1,5 +1,4 @@
 "use client"
-
 import React, { useCallback, useEffect, useState } from "react";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -11,7 +10,6 @@ import { gql, useQuery, useMutation, useLazyQuery } from "@apollo/client";
 import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
 import dynamic from 'next/dynamic';
-
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import loadinganimation from "@/lottie/suggestionloadinganimation.json";
 

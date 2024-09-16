@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpException, HttpStatus, NotFoundExcep
 import { MusicService } from './music.service';
 import { Prisma } from '@prisma/client';
 import { query, Request, Response } from 'express';
-import { AddToPlaylistDto } from './entities/music.entity';
+import { AddToPlaylistDto,removeFromPlaylistDto,renamePlaylistDto } from './entities/music.entity';
 import { ApiTags } from '@nestjs/swagger';
 
 interface SuccessResponse {
@@ -291,15 +291,15 @@ export class MusicController {
   }
   @Delete('removefromplaylist')
   async removeFromPlaylist(
-    @Body() removeFromPlaylistDto: { musicId: number ,playlistName:string}, 
+    @Body() removeFromPlaylistDto: removeFromPlaylistDto,
     @Req() req: Request,
     @Res() res: Response
   ) {
     const userId = req['firebaseUserId'];
-    const { musicId ,playlistName} = removeFromPlaylistDto;
+  
 
     try {
-      const response = await this.musicservice.removeFromPlaylist(musicId, userId,playlistName);
+      const response = await this.musicservice.removeFromPlaylist(removeFromPlaylistDto, userId);
       if (response.statusCode === 500) {
 
         return res.status(response.statusCode).json({
@@ -321,7 +321,68 @@ export class MusicController {
     }
   }
 
+  @Patch('/rename/playlist')
+  async updatePlaylisName(
+    @Body() renamePlaylistDto: renamePlaylistDto,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    const userId = req['firebaseUserId'];
+   
+    try {
+      const response = await this.musicservice.updatePlaylistName(userId, renamePlaylistDto);
+      if (response.statusCode === 500) {
+        return res.status(response.statusCode).json({
+          message: response.message,
+          error: response.error,
+        });
+      }
+      res.status(response.statusCode).json({
+        "message": response.message,
+        "details": response.playlistDetails
+      });
+    }
+    catch (error) {
+      console.error('Error in updatePlaylisName controller:', error)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Internal Server Error',
+        error: error.message,
+      });
+    }
 
+  }
+
+  @Delete('delete/playlist')
+  async deletePlaylist(
+    @Body() deletePlaylistDto: { playlistName: string },
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+
+    const userId = req['firebaseUserId'];
+    const { playlistName } = deletePlaylistDto;
+    try {
+      const response = await this.musicservice.deletePlaylist(userId, playlistName);
+      if (response.statusCode === 500) {
+        return res.status(response.statusCode).json({
+          message: response.message,
+          error: response.error,
+        });
+      }
+
+      res.status(response.statusCode).json({
+        "message": response.message,
+        "details": response.playlistDetails
+      });
+    }
+    catch (error) {
+      console.error('Error in updatePlaylisName controller:', error)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Internal Server Error',
+        error: error.message,
+      });
+    }
+
+  }
 }
-
 

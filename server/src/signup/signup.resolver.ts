@@ -15,14 +15,22 @@ export class SignupResolver {
     return this.signupService.create(createSignupInput);
   }
 
-  @Query(returns => LastHistory)
+  @Query(returns => LastHistory, { nullable: true })
   @UseGuards(AuthGuard)
   async getLastHistory(@Context() context): Promise<LastHistory | null> {
-    const userId = context.req['firebaseUserId'];
-    if (userId === "null" || userId === "invalid") {
-      return null;
+    try {
+      const userId = context.req['firebaseUserId'];
+      if (userId === "null" || userId === "invalid") {
+        return null;
+      }
+  
+      const lastHistory = await this.signupService.findLastHistory(userId);
+      return lastHistory;
+    } catch (error) {
+      // Log error or handle it as needed
+      console.error(error);
+      throw new Error("Unable to fetch last history.");
     }
-    return this.signupService.findLastHistory(userId)
   }
 
 }

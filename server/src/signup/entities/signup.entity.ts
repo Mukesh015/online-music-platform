@@ -24,17 +24,26 @@ export class SignupResponse {
 @ObjectType()
 export class LastHistory {
   @Field()
+  userId: string;
+
+  @Field()
+  musicId: number;
+
+  @Field()
   musicUrl: string;
 
   @Field()
-  musicTitle: string;
+  thumbnailUrl: string;
 
   @Field()
-  thumbnailUrl: string;
+  musicTitle: string;
 
   @Field()
   musicArtist: string;
 
   @Field()
   lastPlayedAt: Date;
+
+  @Field()  
+  isFavourite?: boolean;
 }

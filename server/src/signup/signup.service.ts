@@ -1,7 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { CreateSignupInput } from './dto/create-signup.input'
-import { SignupResponse } from './entities/signup.entity';
+import { LastHistory, SignupResponse } from './entities/signup.entity';
 import { Prisma } from '@prisma/client';
 @Injectable()
 export class SignupService {
@@ -62,7 +62,7 @@ export class SignupService {
 
   async addToLastHistory(addToLastHistoryDto: Prisma.lasthistoryCreateInput, userId: string) {
     try {
-      
+
       const lasthistory = await this.dbService.lasthistory.upsert({
         where: {
           userId_musicId: {
@@ -97,13 +97,39 @@ export class SignupService {
   }
 
 
-  async findLastHistory(userId: string) {
-    return this.dbService.lasthistory.findFirst({
+  async findLastHistory(userId: string): Promise<LastHistory | null> {
+
+    const lastHistory = await this.dbService.lasthistory.findFirst({
       where: {
         userId: userId,
       },
     });
+
+
+    if (!lastHistory) {
+      return null;
+    }
+
+
+    const isFavourite = await this.dbService.isFavourite.findUnique({
+      where: {
+        userId_id: {
+          userId: userId,
+          id: lastHistory.musicId,
+        },
+      },
+      select: {
+        isFavourite: true,
+      },
+    });
+
+
+    return {
+      ...lastHistory,
+      isFavourite: isFavourite?.isFavourite ?? false,
+    };
   }
+
 
 
 }

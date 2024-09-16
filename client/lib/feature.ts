@@ -4,6 +4,15 @@ interface ReturnStatus {
     status: 1 | 0;
 }
 
+interface Music {
+    id: number;
+    musicUrl: string;
+    isFavourite: boolean;
+    musicTitle: string;
+    thumbnailUrl: string;
+    musicArtist: string;
+}
+
 const getMusicPath = (url: string) => {
     const decodedURL = decodeURIComponent(url);
     const parts = decodedURL.split('/');
@@ -79,6 +88,42 @@ async function addToFavorite(musicId: number, token: string): Promise<ReturnStat
     }
 }
 
-async function addToHistory (){}
+async function addToHistory(token: string, music: Music): Promise<ReturnStatus> {
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/signup/addtolasthistory`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                musicId: music.id,
+                musicUrl: music.musicUrl,
+                thumbnailUrl: music.thumbnailUrl,
+                musicTitle: music.musicTitle,
+                musicArtist: music.musicArtist
+            })
+        });
+        if (response.ok) {
+            return {
+                statusCode: response.status,
+                status: 1
+            };
+        }
+        else {
+            return {
+                statusCode: response.status,
+                status: 0
+            };
+        }
+    }
+    catch (error) {
+        console.error("fetch error:", error);
+        return {
+            statusCode: 500,
+            status: 0
+        }
+    }
+}
 
-export { addToFavorite, deleteMusicFromDB };
+export { addToFavorite, deleteMusicFromDB, addToHistory };
