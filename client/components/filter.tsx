@@ -7,22 +7,23 @@ interface Playlist {
     musicTitle: string;
     thumbnailUrl: string;
     musicArtist: string;
-    createdAt: Date | string; 
+    createdAt: Date;
 }
 
 type PlaylistData = {
     playlistName: string;
     playlists: Playlist[];
-    createdAt: Date | string;
+    createdAt: Date;
 };
 
 interface Props {
     playlist: PlaylistData[];
     setData: (data: PlaylistData[]) => void;
     playlistName: string;
+    closeFilter: () => void;
 }
 
-const FilterList: React.FC<Props> = ({ playlist, setData, playlistName }) => {
+const FilterList: React.FC<Props> = ({ playlist, setData, playlistName, closeFilter }) => {
 
 
     const toDate = (date: Date | string) => {
@@ -72,6 +73,7 @@ const FilterList: React.FC<Props> = ({ playlist, setData, playlistName }) => {
     };
 
     const handleSort = (type: string, order: 'asc' | 'desc') => {
+        closeFilter();
         let sortedData = [...playlist]; // Copy the playlist array to avoid direct mutation
 
         if (type === 'A-Z' || type === 'Z-A') {
@@ -91,7 +93,6 @@ const FilterList: React.FC<Props> = ({ playlist, setData, playlistName }) => {
                 sortedData = sortPlaylistsDataByDate(sortedData, actualOrder);
             }
         }
-
         setData(sortedData); // Update the state with the new sorted data
     };
 

@@ -13,22 +13,6 @@ interface Music {
     musicArtist: string;
 }
 
-const getMusicPath = (url: string) => {
-    const decodedURL = decodeURIComponent(url);
-    const parts = decodedURL.split('/');
-    const fileNameWithParams = parts[parts.length - 1];
-    const fileName = fileNameWithParams.split('?')[0];
-    return fileName;
-}
-
-const getthumbnilPath = (url: string) => {
-    const decodedURL = decodeURIComponent(url);
-    const parts = decodedURL.split('/');
-    const fileNameWithParams = parts[parts.length - 1];
-    const fileId = fileNameWithParams.split('?')[0];
-    return fileId;
-}
-
 async function deleteMusicFromDB(musicId: number, token: string): Promise<ReturnStatus> {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/${musicId}`, {
