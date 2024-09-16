@@ -1,5 +1,5 @@
-
 "use client"
+
 import React, { useEffect, useState } from "react";
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -73,6 +73,13 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         setOpenSearchBox(false)
         onClose();
     };
+
+    useEffect(() => {
+        if (searchString == "") {
+            setSearchString(null);
+            console.log("Search string changes to: ", searchString)
+        }
+    }, [searchString])
 
     useEffect(() => {
         if (data) {

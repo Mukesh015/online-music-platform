@@ -18,6 +18,8 @@ import Image from "next/image";
 import SettingsIcon from '@mui/icons-material/Settings';
 import CircularProgress from '@mui/material/CircularProgress';
 import { green } from "@mui/material/colors";
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import { Menu, MenuItem } from "@mui/material";
 
 interface MusicDetails {
     id: number;
@@ -39,6 +41,26 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
     const [volume, setVolume] = useState<number>(50);
     const [duration, setDuration] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
+    const previousVolumeRef = useRef<number>(volume);
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleOpenQualitySettings = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    }
+
+    const handleVolumeChange = () => {
+        if (volume === 0) {
+            setVolume(previousVolumeRef.current);
+        } else {
+            previousVolumeRef.current = volume;
+            setVolume(0);
+        }
+    }
 
     const togglePlayPause = () => {
         const music = musicRef.current;
@@ -77,6 +99,30 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
         return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const handleKeyPress = (event: KeyboardEvent) => {
+        console.log(event.code);
+        if (event.code === 'Space') {
+            event.preventDefault();
+            togglePlayPause();
+        }
+        if (event.code === 'ArrowLeft') {
+            handleSkip(-10);
+        }
+        if (event.code === 'ArrowRight') {
+            handleSkip(+10);
+        }
+        if (event.code === 'ArrowUp') {
+            setVolume(Math.min(100, volume + 5));
+        }
+        if (event.code === 'ArrowDown') {
+            setVolume(Math.max(0, volume - 5));
+        }
+        if (event.code === 'KeyL') {
+            setIsLooping(!isLooping);
+        }
+    };
+
     useEffect(() => {
         const music = musicRef.current;
         if (music) {
@@ -96,9 +142,17 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
         }
     }, [isPlaying, volume, isLooping, musicDetails]);
 
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyPress);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [handleKeyPress]);
+
     return (
         <>
-            <div className="fixed bottom-1 md:bottom-0 w-full right-0 h-20 text-white bg-slate-800 z-50">
+            <div className="font-Montserrat fixed bottom-1 md:bottom-0 w-full right-0 h-20 text-white bg-slate-800 z-50">
                 <audio autoPlay onLoadedData={() => setLoading(false)} ref={musicRef} src={musicDetails.musicUrl} />
                 <Slider
                     className="fixed bottom-16 md:bottom-[65px]"
@@ -109,6 +163,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                     onChange={handleSeek}
                     aria-label="Time"
                     valueLabelDisplay="auto"
+                    valueLabelFormat={formatTime}
                 />
                 <div className="md:pl-10 md:pr-10 pl-3 pr-3 mt-2 md:mt-5">
                     <div className="flex flex-row gap-2 items-center justify-between md:justify-normal">
@@ -230,10 +285,13 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
                             <Tooltip title="quality">
                                 <IconButton
-                                    color="primary"
-                                    aria-label="quality"
-                                    className="hover:rotate-90 hover:text-green-500 transition-transform duration-300 ease-in-out"
-                                >
+                                    onClick={(event) => handleOpenQualitySettings(event)}
+                                    aria-label="more"
+                                    id="long-button"
+                                    aria-controls={open ? 'long-menu' : undefined}
+                                    aria-expanded={open ? 'true' : undefined}
+                                    aria-haspopup="true"
+                                    color="primary">
                                     <SettingsIcon fontSize="medium" />
                                 </IconButton>
                             </Tooltip>
@@ -244,18 +302,29 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 onMouseLeave={() => setShowVolumeSlider(false)}
                             >
                                 <Tooltip title="volume">
-                                    <IconButton
-                                        color="primary"
-                                        aria-label="volume"
-                                        className="hover:scale-110 hover:text-purple-500 transition-transform duration-300 ease-in-out"
-                                    >
-                                        <VolumeUp />
-                                    </IconButton>
+                                    {volume === 0 ? (
+                                        <IconButton
+                                            onClick={() => handleVolumeChange()}
+                                            color="primary"
+                                            aria-label="volume"
+                                            className="hover:scale-110 hover:text-purple-500 transition-transform duration-300 ease-in-out"
+                                        >
+                                            <VolumeOffIcon />
+                                        </IconButton>
+                                    ) : (
+                                        <IconButton
+                                            onClick={() => handleVolumeChange()}
+                                            color="primary"
+                                            aria-label="volume"
+                                            className="hover:scale-110 hover:text-purple-500 transition-transform duration-300 ease-in-out"
+                                        >
+                                            <VolumeUp />
+                                        </IconButton>
+                                    )}
                                 </Tooltip>
-
                                 <div className={`absolute ${showVolumeSlider ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 items-center flex`}>
                                     <Slider
-                                        className="fixed right-10 w-20"
+                                        className="fixed right-6 w-20"
                                         size="small"
                                         value={volume}
                                         min={0}
@@ -271,6 +340,48 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                     </div>
                 </div >
             </div >
+            <Menu
+                className='font-Montserrat'
+                sx={{
+                    '& .MuiPaper-root': {
+                        backgroundColor: '#0F172A',
+                        color: '#ffffff',
+                    },
+                }}
+                id="long-menu"
+                MenuListProps={{
+                    'aria-labelledby': 'long-button',
+                }}
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                slotProps={{
+                    paper: {
+                        style: {
+                            width: '20ch',
+                        },
+                    },
+                }}
+            >
+                <MenuItem className='flex space-x-4 hover:bg-slate-800' onClick={handleClose}>
+                    <p className="space-x-2">
+                        <span>High Quality</span>
+                        <span className="text-slate-500 text-[12px]">256 kbps</span>
+                    </p>
+                </MenuItem>
+                <MenuItem className='flex space-x-4 hover:bg-slate-800' onClick={handleClose}>
+                    <p className="space-x-2">
+                        <span>Auto</span>
+                        <span className="text-slate-500 text-[12px]">Based on your speed</span>
+                    </p>
+                </MenuItem>
+                <MenuItem className='flex space-x-4 hover:bg-slate-800' onClick={handleClose}>
+                    <p className="space-x-2">
+                        <span>Low Quality</span>
+                        <span className="text-slate-500 text-[12px]">128 kbps</span>
+                    </p>
+                </MenuItem>
+            </Menu>
         </>
     );
 };

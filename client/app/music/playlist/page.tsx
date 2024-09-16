@@ -1,9 +1,9 @@
 "use client"
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { gql, useQuery } from '@apollo/client';
 import { RootState } from "@/lib/store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
@@ -25,9 +25,11 @@ import DownloadIcon from '@mui/icons-material/Download';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import dynamic from 'next/dynamic';
+import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
+import { addToFavorite, deleteMusicFromDB } from '@/lib/feature';
+import AlertPopup from '@/components/alert';
+import { deleteMusic } from '@/config/firebase/config';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
-
-
 
 const itemVariants = {
     visible: {
@@ -48,6 +50,7 @@ const itemVariants = {
 interface Playlist {
     id: number;
     musicUrl: string;
+    isFavourite: boolean;
     musicTitle: string;
     thumbnailUrl: string;
     musicArtist: string;
@@ -83,9 +86,49 @@ const PlaylistPage: React.FC = () => {
     const [backDisabled, setBackDisabled] = useState<boolean>(true);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [openFolderMenu, setOpenFolderMenu] = useState<string>("");
+    const [menuOperation, setMenuOperation] = useState<Playlist | null>(null);
+    const [severity, setSeverity] = useState<boolean>(false);
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [showAlert, setShowAlert] = useState<boolean>(false);
     const open = Boolean(anchorEl);
+    const dispatch = useDispatch();
 
-    const handleClick = (event: React.MouseEvent<HTMLElement>, menu: string) => {
+    const handleShowAlert = useCallback((msg: string) => {
+        setAlertMessage(msg);
+        setShowAlert(true);
+        refetch();
+        setTimeout(() => {
+            setShowAlert(false);
+        }, 3000);
+    }, [refetch]);
+
+    const handleAddToFav = useCallback(async () => {
+        handleClose();
+        if (menuOperation?.id && token) {
+            const response = await addToFavorite(menuOperation.id, token);
+            if (response.status === 1) {
+                handleShowAlert("Song added to favorite");
+                setSeverity(true);
+            } else {
+                setSeverity(false);
+                handleShowAlert("Something went wrong, please try again");
+                console.error("fetch error:", error);
+            }
+            refetch();
+        }
+        else {
+            console.error("Music Id not provided or auth token missing, operation cant permitted");
+        }
+    }, [menuOperation, token, refetch, handleShowAlert, error]);
+
+
+    const handlePlaySong = () => {
+        handleClose();
+        if (menuOperation) dispatch(setCurrentMusic(menuOperation));
+    }
+
+    const handleClick = (event: React.MouseEvent<HTMLElement>, menu: string, music: Playlist | null) => {
+        setMenuOperation(music);
         setOpenFolderMenu(menu)
         setAnchorEl(event.currentTarget);
     };
@@ -106,6 +149,56 @@ const PlaylistPage: React.FC = () => {
         setBackDisabled(true);
     }
 
+    const getMusicPath = (url: string) => {
+        const decodedURL = decodeURIComponent(url);
+        const parts = decodedURL.split('/');
+        const fileNameWithParams = parts[parts.length - 1];
+        const fileName = fileNameWithParams.split('?')[0];
+        return fileName;
+    }
+
+    const getthumbnilPath = (url: string) => {
+        const decodedURL = decodeURIComponent(url);
+        const parts = decodedURL.split('/');
+        const fileNameWithParams = parts[parts.length - 1];
+        const fileId = fileNameWithParams.split('?')[0];
+        return fileId;
+    }
+
+
+    const handleDeleteMusic = useCallback(async () => {
+        handleClose();
+        if (menuOperation?.id && token) {
+            const playlist = playlists.find(playlist => playlist.playlistName === playlistName);
+            if (playlist) {
+                const musicDetail = playlist.playlists.find((music: Playlist) => music.id === menuOperation.id);
+                if (musicDetail) {
+                    const musicPath = getMusicPath(musicDetail.musicUrl);
+                    const thumbnailPath = getthumbnilPath(musicDetail.thumbnailUrl);
+                    const response = await deleteMusicFromDB(menuOperation.id, token);
+
+                    if (response.statusCode === 1) {
+                        setAlertMessage("Song deleted successfully");
+                        setSeverity(true);
+                        await deleteMusic(musicPath, thumbnailPath);
+                    } else {
+                        setAlertMessage("Failed to delete song");
+                        setSeverity(false);
+                    }
+                    refetch();
+                } else {
+                    console.error("Music ID not found in the specified playlist.");
+                }
+            } else {
+                console.error("Playlist not found.");
+            }
+        } else {
+            console.error("Music ID not provided or auth token missing, operation cannot be performed.");
+        }
+    }, [menuOperation, playlistName, playlists, refetch, token]);
+
+
+
     useEffect(() => {
         if (data && data.getPlaylistByUserId) {
             setPlaylists(data.getPlaylistByUserId);
@@ -117,7 +210,7 @@ const PlaylistPage: React.FC = () => {
         if (token) {
             refetch();
         }
-    }, [data, error, token]);
+    }, [data, error, refetch, token]);
 
     return (
         <div className="bg-slate-950 h-screen w-screen font-Montserrat md:pt-28 md:pl-20 pt-20 pl-5">
@@ -147,7 +240,7 @@ const PlaylistPage: React.FC = () => {
 
                         <section className="text-slate-300 flex flex-col gap-5 md:p-7 p-5">
                             {playlists.map((playlist, index) => (
-                                <div className="flex flex-row items-center justify-between">
+                                <div key={index} className="flex flex-row items-center justify-between">
                                     <section className='flex-row flex space-x-4 items-center'>
                                         <LibraryMusicIcon fontSize="medium" />
                                         <p onClick={() => handleShowSongs(playlist.playlistName)} key={index} className="hover:text-teal-500 hover:underline cursor-pointer py-3 px-3 rounded-sm">
@@ -160,7 +253,7 @@ const PlaylistPage: React.FC = () => {
                                         aria-controls={open ? 'long-menu' : undefined}
                                         aria-expanded={open ? 'true' : undefined}
                                         aria-haspopup="true"
-                                        onClick={(e) => handleClick(e, "folder")} color="primary">
+                                        onClick={(e) => handleClick(e, "folder", null)} color="primary">
                                         <MoreHorizIcon fontSize="medium" />
                                     </IconButton>
                                 </div>
@@ -208,7 +301,7 @@ const PlaylistPage: React.FC = () => {
                                                 aria-controls={open ? 'long-menu' : undefined}
                                                 aria-expanded={open ? 'true' : undefined}
                                                 aria-haspopup="true"
-                                                onClick={(e) => handleClick(e, "song")} color="primary">
+                                                onClick={(e) => handleClick(e, "song", music)} color="primary">
                                                 <MoreHorizIcon fontSize="medium" />
                                             </IconButton>
                                             <div className="border border-slate-800"></div>
@@ -260,15 +353,15 @@ const PlaylistPage: React.FC = () => {
                     </>
                 ) : (
                     <>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4' onClick={() => handlePlaySong()}>
                             <PlayArrowIcon />
                             <span>Play</span>
                         </MenuItem>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4'>
                             <QueueMusicIcon />
                             <span>Add to queue</span>
                         </MenuItem>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4' onClick={() => handleAddToFav()}>
                             <FavoriteIcon />
                             <span>Add to Favorite</span>
                         </MenuItem>
@@ -280,13 +373,14 @@ const PlaylistPage: React.FC = () => {
                             <PlaylistRemoveIcon />
                             <span>Remove from playlist</span>
                         </MenuItem>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4' onClick={() => handleDeleteMusic()}>
                             <DeleteIcon />
                             <span>Delete</span>
                         </MenuItem>
                     </>
                 )}
             </Menu>
+            {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </div>
     );
 };
