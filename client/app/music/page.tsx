@@ -334,7 +334,7 @@ const MusicPage: React.FC = () => {
                 <div>
                     {error ? (
                         <div className='h-screen w-screen flex flex-col justify-center items-center bg-slate-950'>
-                            <Lottie className="h-80 md:h-96" animationData={notFoundAnimation} />
+                            <Lottie className="h-40 md:h-52" animationData={notFoundAnimation} />
                         </div>
                     ) : (
                         <div className="relative min-h-screen max-w-screen md:flex md:flex-row z-20 bg-slate-950 font-Montserrat">

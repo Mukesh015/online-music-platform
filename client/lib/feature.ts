@@ -79,4 +79,6 @@ async function addToFavorite(musicId: number, token: string): Promise<ReturnStat
     }
 }
 
+async function addToHistory (){}
+
 export { addToFavorite, deleteMusicFromDB };
