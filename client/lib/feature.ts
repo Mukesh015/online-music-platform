@@ -110,4 +110,72 @@ async function addToHistory(token: string, music: Music): Promise<ReturnStatus> 
     }
 }
 
-export { addToFavorite, deleteMusicFromDB, addToHistory };
+async function renamePlaylist(token: string, playlistName: string, newPlaylistName: string) {
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/rename/playlist`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                playlistName: playlistName,
+                newPlaylistName: newPlaylistName
+            })
+        });
+        if (response.ok) {
+            return {
+                statusCode: response.status,
+                status: 1
+            };
+        }
+        else {
+            return {
+                statusCode: response.status,
+                status: 0
+            };
+        }
+    }
+    catch (error) {
+        console.error("fetch error:", error);
+        return {
+            statusCode: 500,
+            status: 0
+        }
+    }
+}
+
+async function deleteplaylist(token: string, playlistName: string) {
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/delete/playlist`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                playlistName: playlistName
+            })
+        });
+        if (response.ok) {
+            return {
+                statusCode: response.status,
+                status: 1
+            };
+        }
+        else {
+            return {
+                statusCode: response.status,
+                status: 0
+            };
+        }
+    } catch (error) {
+        console.error("fetch error:", error);
+        return {
+            statusCode: 500,
+            status: 0
+        }
+    }
+}
+
+export { addToFavorite, deleteMusicFromDB, addToHistory, renamePlaylist, deleteplaylist };

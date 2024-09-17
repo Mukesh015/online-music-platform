@@ -26,7 +26,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import dynamic from 'next/dynamic';
 import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
-import { addToFavorite, addToHistory, deleteMusicFromDB } from '@/lib/feature';
+import { addToFavorite, addToHistory, deleteMusicFromDB, renamePlaylist, deleteplaylist } from '@/lib/feature';
 import AlertPopup from '@/components/alert';
 import { deleteMusic } from '@/config/firebase/config';
 import FilterList from '@/components/filter';
@@ -83,6 +83,8 @@ const GET_PLAYLIST = gql`
 
 const PlaylistPage: React.FC = () => {
     const token = useSelector((state: RootState) => state.authToken.token);
+    const [newPlaylistName, setNewPlaylistName] = useState<string | null>(null);
+    const [folderNameForRename, setFolderNameForRename] = useState<string | null>(null);
     const { loading, error, data, refetch } = useQuery(GET_PLAYLIST);
     const [playlists, setPlaylists] = useState<PlaylistData[]>([]);
     const [showPlaylistsFolders, setShowPlaylistsFolders] = useState<boolean>(true);
@@ -97,6 +99,11 @@ const PlaylistPage: React.FC = () => {
     const [showFilter, setShowFilter] = useState<boolean>(false);
     const open = Boolean(anchorEl);
     const dispatch = useDispatch();
+
+    const cleanup = () => {
+        setFolderNameForRename(null);
+        setMenuOperation(null);
+    }
 
     const setPlaylistData = (data: PlaylistData[]) => {
         setPlaylists(data);
@@ -153,8 +160,13 @@ const PlaylistPage: React.FC = () => {
         }
     }
 
-    const handleClick = (event: React.MouseEvent<HTMLElement>, menu: string, music: Playlist | null) => {
-        setMenuOperation(music);
+    const handleClick = (event: React.MouseEvent<HTMLElement>, menu: string, music: Playlist | null, playlistName: string | null) => {
+        if (music) {
+            setMenuOperation(music);
+        }
+        else if (playlistName) {
+            setFolderNameForRename(playlistName);
+        }
         setOpenFolderMenu(menu)
         setAnchorEl(event.currentTarget);
     };
@@ -191,6 +203,21 @@ const PlaylistPage: React.FC = () => {
         return fileId;
     }
 
+    const handleRenamePlaylist = useCallback(async () => {
+        const newPlaylistName = prompt("Enter new playlist name");
+        if (token && folderNameForRename && newPlaylistName) {
+            const response = await renamePlaylist(token, folderNameForRename, newPlaylistName);
+            if (response.status === 1) {
+                setSeverity(true);
+                handleShowAlert("Playlist renamed successfully");
+            }
+            else {
+                setSeverity(false);
+                handleShowAlert("Failed to rename playlist");
+                console.error("fetch error:", error);
+            }
+        }
+    }, [error, folderNameForRename, handleShowAlert, token]);
 
     const handleDeleteMusic = useCallback(async () => {
         handleClose();
@@ -223,7 +250,23 @@ const PlaylistPage: React.FC = () => {
         }
     }, [menuOperation, playlistName, playlists, refetch, token]);
 
-
+    const deletePlaylist = useCallback(async () => {
+        handleClose();
+        if (token && folderNameForRename) {
+            const response = await deleteplaylist(token, folderNameForRename);
+            if (response.status === 1) {
+                setSeverity(true);
+                handleShowAlert("Playlist deleted successfully");
+            }
+            else {
+                setSeverity(false);
+                handleShowAlert("Failed to delete playlist");
+                console.error("fetch error:", error);
+            }
+        } else {
+            console.error("Auth token missing, operation cannot be performed.");
+        }
+    }, [error, folderNameForRename, handleShowAlert, token])
 
     useEffect(() => {
         if (data && data.getPlaylistByUserId) {
@@ -278,7 +321,7 @@ const PlaylistPage: React.FC = () => {
                                         aria-controls={open ? 'long-menu' : undefined}
                                         aria-expanded={open ? 'true' : undefined}
                                         aria-haspopup="true"
-                                        onClick={(e) => handleClick(e, "folder", null)} color="primary">
+                                        onClick={(e) => handleClick(e, "folder", null, playlist.playlistName)} color="primary">
                                         <MoreHorizIcon fontSize="medium" />
                                     </IconButton>
                                 </div>
@@ -326,7 +369,7 @@ const PlaylistPage: React.FC = () => {
                                                 aria-controls={open ? 'long-menu' : undefined}
                                                 aria-expanded={open ? 'true' : undefined}
                                                 aria-haspopup="true"
-                                                onClick={(e) => handleClick(e, "song", music)} color="primary">
+                                                onClick={(e) => handleClick(e, "song", music, null)} color="primary">
                                                 <MoreHorizIcon fontSize="medium" />
                                             </IconButton>
                                             <div className="border border-slate-800"></div>
@@ -363,7 +406,7 @@ const PlaylistPage: React.FC = () => {
             >
                 {openFolderMenu === "folder" ? (
                     <>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4' onClick={() => handleRenamePlaylist()}>
                             <DriveFileRenameOutlineIcon />
                             <span>Rename</span>
                         </MenuItem>
@@ -371,7 +414,7 @@ const PlaylistPage: React.FC = () => {
                             <ShareIcon />
                             <span>Share playlist</span>
                         </MenuItem>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4' onClick={() => deletePlaylist()}>
                             <DeleteIcon />
                             <span>Delete</span>
                         </MenuItem>
