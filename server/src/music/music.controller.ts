@@ -153,7 +153,14 @@ export class MusicController {
           message: result.message,
           favoriteMusic: result.musicDetails,
         });
-      } else if (result.statusCode === 404) {
+      } 
+      else if (result.statusCode === 201) {
+        res.status(result.statusCode).json({
+          message: result.message,
+          favoriteMusic: result.musicDetails,
+        });
+      }
+      else if (result.statusCode === 404) {
         res.status(HttpStatus.NOT_FOUND).json({
           message: result.message,
           favoriteMusic: result.musicDetails,
@@ -361,6 +368,7 @@ export class MusicController {
 
     const userId = req['firebaseUserId'];
     const { playlistName } = deletePlaylistDto;
+    console.log(`deleting playlist ${playlistName}`)
     try {
       const response = await this.musicservice.deletePlaylist(userId, playlistName);
       if (response.statusCode === 500) {
