@@ -100,12 +100,6 @@ const Navbar: React.FC = () => {
                             <p>Music</p>
                         </li>
                     </Link>
-                    <Link href={"/news"}>
-                        <li className="items-center flex gap-1 cursor-pointer hover:text-blue-600 duration-300 ease-in-out transition-all">
-                            <ArticleIcon className="h-5 w-5" />
-                            <p>News</p>
-                        </li>
-                    </Link>
                 </ol>
                 <ol className="hidden md:flex">
                     {isloggedin ? (

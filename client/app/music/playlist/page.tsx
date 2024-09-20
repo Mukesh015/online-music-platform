@@ -9,7 +9,7 @@ import Breadcrumbs from '@mui/material/Breadcrumbs';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import SortIcon from '@mui/icons-material/Sort';
 import Link from "next/link";
-import { IconButton } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -28,9 +28,10 @@ import dynamic from 'next/dynamic';
 import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
 import { addToFavorite, addToHistory, deleteMusicFromDB, renamePlaylist, deleteplaylist } from '@/lib/feature';
 import AlertPopup from '@/components/alert';
-import { deleteMusic } from '@/config/firebase/config';
+import { deleteMusic, downLoadMusic } from '@/config/firebase/config';
 import FilterList from '@/components/filter';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
+import AddIcon from '@mui/icons-material/Add';
 
 const itemVariants = {
     visible: {
@@ -124,6 +125,14 @@ const PlaylistPage: React.FC = () => {
 
     const toggleOpenFiler = () => {
         setShowFilter(!showFilter);
+    }
+
+    const handleDowmloadMusic = async () => {
+        handleClose();
+        if (menuOperation) {
+            await downLoadMusic(menuOperation.musicUrl);
+        }
+        refetch();
     }
 
     const handleAddToFav = useCallback(async () => {
@@ -294,9 +303,18 @@ const PlaylistPage: React.FC = () => {
                     </Link>
                     {playlistName && <Typography className="text-blue-500" sx={{ color: 'text.primary' }}>{playlistName}</Typography>}
                 </Breadcrumbs>
-                <IconButton onClick={() => toggleOpenFiler()} color="primary">
-                    <SortIcon fontSize="medium" />
-                </IconButton>
+                <section className='space-x-5'>
+                    <Tooltip title="Add songs">
+                        <IconButton disabled={backDisabled} color="primary" aria-label="add">
+                            <AddIcon fontSize="medium" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Filter">
+                        <IconButton onClick={() => toggleOpenFiler()} color="primary">
+                            <SortIcon fontSize="medium" />
+                        </IconButton>
+                    </Tooltip>
+                </section>
             </div>
             {showPlaylistsFolders ? (
                 <div className="bg-slate-900 rounded-md w-[89vw] mt-5 overflow-x-hidden overflow-y-auto h-[72vh] md:h-[60vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full">
@@ -433,7 +451,7 @@ const PlaylistPage: React.FC = () => {
                             <FavoriteIcon />
                             <span>Add to Favorite</span>
                         </MenuItem>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4' onClick={() => handleDowmloadMusic()}>
                             <DownloadIcon />
                             <span>Download</span>
                         </MenuItem>

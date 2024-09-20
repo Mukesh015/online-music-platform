@@ -1,7 +1,8 @@
+import { Try } from "@mui/icons-material";
 
 interface ReturnStatus {
     statusCode: number;
-    status: 1 | 0;
+    status: 1 | 0 | 10 | 11;
 }
 
 interface Music {
@@ -11,6 +12,42 @@ interface Music {
     musicTitle: string;
     thumbnailUrl: string;
     musicArtist: string;
+}
+
+async function syncMusicDetails(token: string, musicUrl: string, musicTitle: string, musicArtist: string, thumbnailUrl: string): Promise<ReturnStatus> {
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                musicUrl: musicUrl,
+                musicTitle: musicTitle,
+                musicArtist: musicArtist,
+                thumbnailUrl: thumbnailUrl,
+            })
+        });
+        if (response.ok) {
+            return {
+                statusCode: response.status,
+                status: 1
+            };
+        }
+        else {
+            return {
+                statusCode: response.status,
+                status: 0
+            };
+        }
+    } catch (error) {
+        return {
+            statusCode: 500,
+            status: 0
+        };
+    }
+
 }
 
 async function deleteMusicFromDB(musicId: number, token: string): Promise<ReturnStatus> {
@@ -51,12 +88,19 @@ async function addToFavorite(musicId: number, token: string): Promise<ReturnStat
                 'Authorization': `Bearer ${token}`
             },
         });
-
         if (response.ok) {
-            return {
-                statusCode: response.status,
-                status: 1
-            };
+            if (response.status === 200) {
+                return {
+                    statusCode: response.status,
+                    status: 10
+                };
+            }
+            else {
+                return {
+                    statusCode: response.status,
+                    status: 11,
+                };
+            }
         } else {
             return {
                 statusCode: response.status,
@@ -110,7 +154,7 @@ async function addToHistory(token: string, music: Music): Promise<ReturnStatus> 
     }
 }
 
-async function renamePlaylist(token: string, playlistName: string, newPlaylistName: string) {
+async function renamePlaylist(token: string, playlistName: string, newPlaylistName: string): Promise<ReturnStatus> {
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/rename/playlist`, {
             method: 'PATCH',
@@ -178,4 +222,4 @@ async function deleteplaylist(token: string, playlistName: string) {
     }
 }
 
-export { addToFavorite, deleteMusicFromDB, addToHistory, renamePlaylist, deleteplaylist };
+export { addToFavorite, deleteMusicFromDB, addToHistory, renamePlaylist, deleteplaylist, syncMusicDetails };

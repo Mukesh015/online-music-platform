@@ -12,16 +12,30 @@ import { useSelector } from "react-redux";
 import dynamic from 'next/dynamic';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import loadinganimation from "@/lottie/suggestionloadinganimation.json";
+import FolderSpecialIcon from '@mui/icons-material/FolderSpecial';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Tooltip from '@mui/material/Tooltip';
 
 interface Props {
+    musics: MusicDetail[];
     openModal: boolean;
     onClose: () => void;
 }
 
 interface Suggestion {
+    id: number;
     musicTitle: string;
     musicArtist: string;
-    thumbnailUrl?: string; // Make thumbnailUrl optional
+    thumbnailUrl?: string;
+}
+
+interface MusicDetail {
+    id: number;
+    musicUrl: string;
+    isFavourite: boolean;
+    musicTitle: string;
+    thumbnailUrl: string;
+    musicArtist: string;
 }
 
 const style = {
@@ -29,7 +43,6 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    // width: 700,
     bgcolor: 'black',
     boxShadow: 24,
 };
@@ -81,7 +94,7 @@ query SearchMusic($searchQuery: String!){
 }
 `
 
-const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
+const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
     const [openSearchBox, setOpenSearchBox] = useState<boolean>(openModal);
     const [searchString, setSearchString] = useState<string | null>(null);
     const [currentSearchQuery, setCurrentSearchQuery] = useState<string | null>(null);
@@ -91,10 +104,11 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
 
     const { loading, error, data, refetch } = useQuery(SEARCH_QUERY, {
         variables: { searchString },
+        skip: !searchString,
     });
-
     const [saveSearchQuery] = useMutation(SAVE_SEARCH_QUERY);
     const [findSearchQuery] = useLazyQuery(FIND_SEARCH_QUERY);
+
     useEffect(() => {
         setOpenSearchBox(openModal);
     }, [openModal]);
@@ -105,54 +119,18 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
         onClose();
     };
 
-    useEffect(() => {
-        if (searchString == "") {
-            setSearchString(null);
-            console.log("Search string changes to: ", searchString)
-        }
-    }, [searchString])
-
-    useEffect(() => {
-        if (data) {
-            setSuggestions(data.search.suggestion || []);
-            console.log(data)
-        }
-        if (error) {
-            console.error("Error fetching data", error);
-        }
-        if (token) {
-            refetch();
-        }
-    }, [data, error, token, refetch]);
-
     const handleSaveSearchQuery = useCallback(async () => {
 
         if (currentSearchQuery) {
             try {
                 await saveSearchQuery({ variables: { searchQuery: currentSearchQuery } });
-                console.log("Search query saved successfully");
-                const { data } = await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
-                console.log("Search results:", data);
             } catch (error) {
                 console.error("Error saving search query", error);
+            } finally {
+                await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
             }
         }
     }, [currentSearchQuery, findSearchQuery, saveSearchQuery]);
-
-
-    useEffect(() => {
-        const handleKeyPress = (e: KeyboardEvent) => {
-            if (e.key === 'Enter' && currentSearchQuery) {
-                handleSaveSearchQuery();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyPress);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyPress);
-        };
-    }, [currentSearchQuery, handleSaveSearchQuery]);
 
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,18 +146,52 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
                 searchQuery = currentSearchQuery
             }
             searchQuery = musicTitle
-
             try {
                 await saveSearchQuery({ variables: { searchQuery: searchQuery } });
-                console.log("Search query saved successfully");
-                const { data } = await findSearchQuery({ variables: { searchQuery } });
-                console.log("Search results:", data);
             } catch (error) {
                 console.error("Error saving search query", error);
+            } finally {
+                await findSearchQuery({ variables: { searchQuery } });
             }
         }
-
     };
+
+    const handleSaveToPlaylist = useCallback(async (music: MusicDetail) => {
+        //----------------------------------------------------------------------------------------->>>>
+    }, [])
+
+    useEffect(() => {
+        if (data) {
+            setSuggestions(data.search.suggestion || []);
+            console.log(data)
+        }
+        if (error) {
+            console.error("Error fetching data", error);
+        }
+        if (token) {
+            refetch();
+        }
+    }, [data, error, token, refetch]);
+
+    useEffect(() => {
+        if (searchString == "") {
+            setSearchString(null);
+        }
+    }, [searchString])
+
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.key === 'Enter' && currentSearchQuery) {
+                handleSaveSearchQuery();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [currentSearchQuery, handleSaveSearchQuery]);
 
     useEffect(() => {
         if (openModal) {
@@ -190,8 +202,6 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
             }, 100);
         }
     }, [openModal]);
-    
-
 
     return (
         <div>
@@ -229,7 +239,7 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
                                 <div
                                     key={index}
                                     onClick={() => handleSearchAction(music.musicTitle)}
-                                    className="cursor-pointer font-Montserrat py-3 flex flex-row items-center hover:bg-slate-950 gap-5"
+                                    className="cursor-pointer font-Montserrat py-3 flex flex-row items-center gap-5"
                                 >
                                     <Image
                                         className="aspect-square"
@@ -238,7 +248,22 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose }) => {
                                         src={music.thumbnailUrl || "https://i.pinimg.com/736x/e8/6a/e3/e86ae31f3047146140e271721aedf1d7.jpg"}
                                         alt={music.musicTitle}
                                     />
-                                    <p className="whitespace-nowrap overflow-x-hidden">{music.musicTitle}</p>
+                                    <section className="flex flex-row justify-between items-center space-x-2">
+                                        <p className="whitespace-nowrap overflow-x-hidden max-w-[35rem]">{music.musicTitle}</p>
+                                        <section className="flex flex-row items-center">
+                                            {musics.find(savedMusic => savedMusic.id === music.id) ? (
+                                                <Tooltip title="Already saved">
+                                                    <FolderSpecialIcon className="ml-1.5" color="secondary" fontSize="medium" />
+                                                </Tooltip>
+                                            ) : (
+                                                <Tooltip title="Save to cloud">
+                                                    <IconButton color="primary" aria-label="search-icon" onClick={handleClose}>
+                                                        <CloudUploadIcon color="success" fontSize="medium" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
+                                        </section>
+                                    </section>
                                 </div>
                             ))}
                         </section>

@@ -9,6 +9,7 @@ import { useAuthToken } from "@/providers/authTokenProvider";
 import CircularProgress from '@mui/material/CircularProgress';
 import { gql, useQuery } from "@apollo/client";
 import RemoveIcon from '@mui/icons-material/Remove';
+import { syncMusicDetails } from "@/lib/feature";
 
 const getUserMusics = gql`{
     getMusicByUserId{
@@ -86,33 +87,19 @@ const FileInput: React.FC<Props> = ({ isOpen, cleanup, createPlaylist, onClose, 
         if (uploadFile && imageBlob) {
             try {
                 const metadata = await decodeMetaData(uploadFile);
-
-                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        musicUrl: link,
-                        musicTitle: metadata?.title || '',
-                        musicArtist: metadata?.artist || '',
-                        thumbnailUrl: thumbnailLink,
-                    }),
-                });
-                const responseData = await response.json();
-                if (response.ok) {
-                    console.log("Music details synced successfully", responseData);
+                if (token && metadata) {
+                    const response = await syncMusicDetails(token, link, metadata.title, metadata.artist, thumbnailLink)
+                    if (response.status === 1) {
+                        setSeverity(true);
+                        showAlert("Music Details synced successfully");
+                    } else {
+                        setSeverity(false);
+                        showAlert("Music Details synced failed");
+                    }
                     setUploadFile(null);
-                } else {
-                    console.error("Failed to sync music details, please try again", responseData);
-                    setUploadFile(null);
+                    handleClosePopup();
                 }
-                handleClosePopup();
-                setSeverity(true);
-                showAlert("Music Details synced successfully");
             } catch (e) {
-                console.error("Failed to send details, server error", e);
                 handleClosePopup();
                 setSeverity(false);
                 showAlert("Failed to send details, server error");

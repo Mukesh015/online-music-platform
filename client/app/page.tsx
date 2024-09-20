@@ -23,21 +23,13 @@ export default function Home() {
           <motion.p className="text-center text-sky-300 mt-5 relative z-20 ml-4 mr-4 md:max-w-[50vw]">
             Create albums with your favourite songs, then upload them to enjoy them for a lifetime. and take in the newest headlines while listening to music. Your interests with us may be easily categorised, and you will receive recommendations in your feeds.
           </motion.p>
-          <section className="ml-2 mr-2 mt-5 flex md:space-x-32 md:flex-row md:justify-around md:pt-8">
+          <section className="mt-5 flex flex-row justify-center w-full">
             <Link href={"/music"}>
               <button className="play-song">
                 <span className="circle" aria-hidden="true">
                   <span className="icon arrow"></span>
                 </span>
                 <span className="button-text">PLAY SONGS</span>
-              </button>
-            </Link>
-            <Link href={"/news"}>
-              <button className="read-news">
-                <span className="circle" aria-hidden="true">
-                  <span className="icon arrow"></span>
-                </span>
-                <span className="button-text">READ NEWS</span>
               </button>
             </Link>
           </section>

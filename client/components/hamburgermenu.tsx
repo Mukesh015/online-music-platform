@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import HomeIcon from '@mui/icons-material/Home';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
-import ArticleIcon from '@mui/icons-material/Article';
 import Button from "@mui/material/Button";
 import PersonIcon from '@mui/icons-material/Person';
 import LoginIcon from '@mui/icons-material/Login';
@@ -58,12 +57,6 @@ const HamburerMenu: React.FC<props> = ({ isOpen, closeMenu, showLoginForm, isLog
                             <li onClick={() => handleClosehambergerMenu()} className="space-x-2 hover:text-blue-600">
                                 <MusicNoteIcon />
                                 <span>Music</span>
-                            </li>
-                        </Link>
-                        <Link href={"/news"}>
-                            <li onClick={() => handleClosehambergerMenu()} className="space-x-2 hover:text-blue-600">
-                                <ArticleIcon />
-                                <span>News</span>
                             </li>
                         </Link>
                         <li>

@@ -73,6 +73,25 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
             setIsPlaying(!isPlaying);
         }
     };
+
+    // const handleAddToFav = useCallback(async () => {
+    //     if (selectedMusicIdForMenu && token) {
+    //         const response = await addToFavorite(selectedMusicIdForMenu, token);
+    //         if (response.status === 1) {
+    //             handleShowAlert("Song added to favorite");
+    //             setSeverity(true);
+    //         } else {
+    //             setSeverity(false);
+    //             handleShowAlert("Something went wrong, please try again");
+    //             console.error("fetch error:", error);
+    //         }
+    //         refetch();
+    //     }
+    //     else {
+    //         console.error("Music Id not provided or auth token missing, operation cant permitted");
+    //     }
+    // }, [handleClose, selectedMusicIdForMenu, token, refetch, handleShowAlert, error]);
+
     useEffect(() => {
         setLoading(true);
     }, [musicDetails, setLoading])
@@ -223,7 +242,6 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 }}
                             />
                         )}
-
                         <div className="hidden md:flex flex-row items-center gap-5 ml-32">
                             <Tooltip title="previous">
                                 <IconButton color="primary" aria-label="previous">
@@ -279,7 +297,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                     onClick={toggleFavorite}
                                     className="hover:scale-110 hover:text-red-500 transition-transform duration-300 ease-in-out"
                                 >
-                                    {isFavorite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
+                                    {musicDetails.isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
                                 </IconButton>
                             </Tooltip>
 

@@ -238,10 +238,15 @@ const MusicPage: React.FC = () => {
         handleClose();
         if (selectedMusicIdForMenu && token) {
             const response = await addToFavorite(selectedMusicIdForMenu, token);
-            if (response.status === 1) {
-                handleShowAlert("Song added to favorite");
+            if (response.status === 11) {
                 setSeverity(true);
-            } else {
+                handleShowAlert("Song added to favorite");
+            }
+            else if (response.status === 10) {
+                setSeverity(true);
+                handleShowAlert("Song removed from favorite");
+            }
+            else {
                 setSeverity(false);
                 handleShowAlert("Something went wrong, please try again");
                 console.error("fetch error:", error);
@@ -380,10 +385,10 @@ const MusicPage: React.FC = () => {
                                                     <SearchIcon fontSize="medium" />
                                                 </IconButton>
                                             </Tooltip>
-                                            <Button onClick={() => setIsSearchBoxOpen(true)} variant="text">
+                                            <Button className='rounded-3xl' onClick={() => setIsSearchBoxOpen(true)} variant="text">
                                                 <div className='border border-gray-700 px-5 py-1.5 rounded-3xl flex flex-row gap-3 items-center'>
                                                     <SearchIcon color='secondary' fontSize="medium" />
-                                                    Search musics ...
+                                                    Search / ctrl + k
                                                 </div>
                                             </Button>
                                             <Tooltip title="upload songs">
@@ -492,16 +497,25 @@ const MusicPage: React.FC = () => {
                                                             <MoreVertIcon />
                                                         </IconButton>
                                                         <Menu
+                                                            className='font-Montserrat'
+                                                            sx={{
+                                                                '& .MuiPaper-root': {
+                                                                    backgroundColor: '#0F172A',
+                                                                    color: '#ffffff',
+                                                                },
+                                                            }}
+                                                            id="long-menu"
                                                             MenuListProps={{
                                                                 'aria-labelledby': 'long-button',
                                                             }}
                                                             anchorEl={showMenu}
                                                             open={open}
                                                             onClose={handleClose}
-                                                            sx={{
-                                                                '& .MuiPaper-root': {
-                                                                    backgroundColor: '#0F172A',
-                                                                    color: '#ffffff',
+                                                            slotProps={{
+                                                                paper: {
+                                                                    style: {
+                                                                        width: '20ch',
+                                                                    },
                                                                 },
                                                             }}
                                                         >
@@ -509,7 +523,7 @@ const MusicPage: React.FC = () => {
                                                                 <QueueMusicIcon />
                                                                 <span>Add to queue</span>
                                                             </MenuItem>
-                                                            <MenuItem onClick={() => { handleAddToFav() }} className="flex flex-row gap-2 items-center">
+                                                            <MenuItem onClick={() => handleAddToFav()} className="flex flex-row gap-2 items-center">
                                                                 <FavoriteIcon />
                                                                 <span>Add to Favorite</span>
                                                             </MenuItem>
@@ -547,7 +561,7 @@ const MusicPage: React.FC = () => {
                 createPlaylist={handleCreatePlaylsit}
                 cleanup={cleanup}
             />
-            <SearchBox openModal={isSearchBoxOpen} onClose={handleCloseSearchBox} />
+            <SearchBox musics={musicDetails} openModal={isSearchBoxOpen} onClose={handleCloseSearchBox} />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );
