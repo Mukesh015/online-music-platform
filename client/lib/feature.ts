@@ -156,7 +156,7 @@ async function addToHistory(token: string, music: Music): Promise<ReturnStatus> 
 
 async function renamePlaylist(token: string, playlistName: string, newPlaylistName: string): Promise<ReturnStatus> {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/rename/playlist`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/rename/playlist`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ async function renamePlaylist(token: string, playlistName: string, newPlaylistNa
 
 async function deleteplaylist(token: string, playlistName: string) {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/delete/playlist`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/delete/playlist`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

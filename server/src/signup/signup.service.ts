@@ -62,15 +62,10 @@ export class SignupService {
 
   async addToLastHistory(addToLastHistoryDto: Prisma.lasthistoryCreateInput, userId: string) {
     try {
-
       const lasthistory = await this.dbService.lasthistory.upsert({
-        where: {
-          userId_musicId: {
-            userId: userId,
-            musicId: addToLastHistoryDto.musicId,
-          },
-        },
+        where: { userId: userId },
         update: {
+          musicId: addToLastHistoryDto.musicId,
           musicUrl: addToLastHistoryDto.musicUrl,
           thumbnailUrl: addToLastHistoryDto.thumbnailUrl,
           musicTitle: addToLastHistoryDto.musicTitle,
@@ -93,8 +88,8 @@ export class SignupService {
       console.error("Error adding to last history:", error);
       return { statusCode: 500, message: "An error occurred while adding to last history", error: error.message };
     }
-
   }
+  
 
 
   async findLastHistory(userId: string): Promise<LastHistory | null> {

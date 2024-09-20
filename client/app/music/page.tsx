@@ -346,7 +346,7 @@ const MusicPage: React.FC = () => {
         if (token) {
             refetch();
         }
-    }, [error, refetch, token, data, history]);
+    }, [error, refetch, token, data, history,setHistory]);
 
     useEffect(() => {
         if (musicDetails) {
