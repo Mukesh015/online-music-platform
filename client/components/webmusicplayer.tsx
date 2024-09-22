@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
@@ -20,6 +20,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { green } from "@mui/material/colors";
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import { Menu, MenuItem } from "@mui/material";
+import { addToFavorite } from "@/lib/feature";
+import AlertPopup from "./alert";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 interface MusicDetails {
     id: number;
@@ -32,26 +36,20 @@ interface MusicDetails {
 
 const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
+    const token = useSelector((state: RootState) => state.authToken.token);
     const musicRef = useRef<HTMLAudioElement | null>(null);
     const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(true);
     const [isLooping, setIsLooping] = useState<boolean>(false);
-    const [isFavorite, setIsFavorite] = useState<boolean>(false);
     const [currentTime, setCurrentTime] = useState<number>(0);
     const [volume, setVolume] = useState<number>(50);
     const [duration, setDuration] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const previousVolumeRef = useRef<number>(volume);
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
+    const [severity, setSeverity] = useState<boolean>(false);
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [showAlert, setShowAlert] = useState<boolean>(false);
 
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
-    const handleOpenQualitySettings = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
-    }
 
     const handleVolumeChange = () => {
         if (volume === 0) {
@@ -74,23 +72,31 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
         }
     };
 
-    // const handleAddToFav = useCallback(async () => {
-    //     if (selectedMusicIdForMenu && token) {
-    //         const response = await addToFavorite(selectedMusicIdForMenu, token);
-    //         if (response.status === 1) {
-    //             handleShowAlert("Song added to favorite");
-    //             setSeverity(true);
-    //         } else {
-    //             setSeverity(false);
-    //             handleShowAlert("Something went wrong, please try again");
-    //             console.error("fetch error:", error);
-    //         }
-    //         refetch();
-    //     }
-    //     else {
-    //         console.error("Music Id not provided or auth token missing, operation cant permitted");
-    //     }
-    // }, [handleClose, selectedMusicIdForMenu, token, refetch, handleShowAlert, error]);
+    const handleShowAlert = useCallback((msg: string) => {
+        setAlertMessage(msg);
+        setShowAlert(true);
+        setTimeout(() => {
+            setShowAlert(false);
+        }, 3000);
+    }, []);
+
+    const handleAddToFav = useCallback(async () => {
+        // setIsFavorite(!isFavorite);
+        if (musicDetails.id && token) {
+            const response = await addToFavorite(musicDetails.id, token);
+            if (response.status === 1) {
+                handleShowAlert("Song added to favorite");
+                setSeverity(true);
+            } else {
+                setSeverity(false);
+                handleShowAlert("Something went wrong, please try again");
+                console.error("Something went wrong, please try again");
+            }
+        }
+        else {
+            console.error("Music Id not provided or auth token missing, operation cant permitted");
+        }
+    }, [handleShowAlert, musicDetails.id, token]);
 
     useEffect(() => {
         setLoading(true);
@@ -110,7 +116,6 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
         }
     };
 
-    const toggleFavorite = () => setIsFavorite(!isFavorite);
 
     const formatTime = (time: number) => {
         const minutes = Math.floor(time / 60);
@@ -120,7 +125,6 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleKeyPress = (event: KeyboardEvent) => {
-        console.log(event.code);
         if (event.code === 'Space') {
             event.preventDefault();
             togglePlayPause();
@@ -219,8 +223,8 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 />
                             </div>
                         </section>
-                        <IconButton className="md:hidden" color="primary" aria-label="favorite" onClick={toggleFavorite}>
-                            {musicDetails.isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
+                        <IconButton className="md:hidden" color="primary" aria-label="favorite" onClick={() => handleAddToFav()}>
+                            {musicDetails.isFavourite? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
                         </IconButton>
                         <IconButton className="md:hidden" color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
                             {isLooping ? (
@@ -294,23 +298,10 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 <IconButton
                                     color="primary"
                                     aria-label="favorite"
-                                    onClick={toggleFavorite}
+                                    onClick={() => handleAddToFav()}
                                     className="hover:scale-110 hover:text-red-500 transition-transform duration-300 ease-in-out"
                                 >
-                                    {musicDetails.isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
-                                </IconButton>
-                            </Tooltip>
-
-                            <Tooltip title="quality">
-                                <IconButton
-                                    onClick={(event) => handleOpenQualitySettings(event)}
-                                    aria-label="more"
-                                    id="long-button"
-                                    aria-controls={open ? 'long-menu' : undefined}
-                                    aria-expanded={open ? 'true' : undefined}
-                                    aria-haspopup="true"
-                                    color="primary">
-                                    <SettingsIcon fontSize="medium" />
+                                    {musicDetails.isFavourite?<FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
                                 </IconButton>
                             </Tooltip>
 
@@ -342,7 +333,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 </Tooltip>
                                 <div className={`absolute ${showVolumeSlider ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 items-center flex`}>
                                     <Slider
-                                        className="fixed right-6 w-20"
+                                        className="fixed right-20 w-20"
                                         size="small"
                                         value={volume}
                                         min={0}
@@ -357,49 +348,8 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                         </div>
                     </div>
                 </div >
-            </div >
-            <Menu
-                className='font-Montserrat'
-                sx={{
-                    '& .MuiPaper-root': {
-                        backgroundColor: '#0F172A',
-                        color: '#ffffff',
-                    },
-                }}
-                id="long-menu"
-                MenuListProps={{
-                    'aria-labelledby': 'long-button',
-                }}
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                slotProps={{
-                    paper: {
-                        style: {
-                            width: '20ch',
-                        },
-                    },
-                }}
-            >
-                <MenuItem className='flex space-x-4 hover:bg-slate-800' onClick={handleClose}>
-                    <p className="space-x-2">
-                        <span>High Quality</span>
-                        <span className="text-slate-500 text-[12px]">256 kbps</span>
-                    </p>
-                </MenuItem>
-                <MenuItem className='flex space-x-4 hover:bg-slate-800' onClick={handleClose}>
-                    <p className="space-x-2">
-                        <span>Auto</span>
-                        <span className="text-slate-500 text-[12px]">Based on your speed</span>
-                    </p>
-                </MenuItem>
-                <MenuItem className='flex space-x-4 hover:bg-slate-800' onClick={handleClose}>
-                    <p className="space-x-2">
-                        <span>Low Quality</span>
-                        <span className="text-slate-500 text-[12px]">128 kbps</span>
-                    </p>
-                </MenuItem>
-            </Menu>
+            </div>
+            {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );
 };

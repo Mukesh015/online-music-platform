@@ -106,6 +106,7 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
         variables: { searchString },
         skip: !searchString,
     });
+
     const [saveSearchQuery] = useMutation(SAVE_SEARCH_QUERY);
     const [findSearchQuery] = useLazyQuery(FIND_SEARCH_QUERY);
 
@@ -127,7 +128,8 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
             } catch (error) {
                 console.error("Error saving search query", error);
             } finally {
-                await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
+                const data = await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
+                console.log(data);
             }
         }
     }, [currentSearchQuery, findSearchQuery, saveSearchQuery]);
@@ -172,12 +174,6 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
             refetch();
         }
     }, [data, error, token, refetch]);
-
-    useEffect(() => {
-        if (searchString == "") {
-            setSearchString(null);
-        }
-    }, [searchString])
 
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
