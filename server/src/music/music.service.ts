@@ -120,12 +120,12 @@ export class MusicService {
           where: { userId: userId },
         });
 
-     
+
         if (lastHistoryEntry && lastHistoryEntry.musicId === musicId) {
-          
+
           const previousMusic = await this.dbService.music.findFirst({
             where: { userId: userId, NOT: { id: musicId } },
-            orderBy: { createdAt: 'desc' }, 
+            orderBy: { createdAt: 'desc' },
           });
 
           if (previousMusic) {
@@ -137,11 +137,11 @@ export class MusicService {
                 thumbnailUrl: previousMusic.thumbnailUrl,
                 musicTitle: previousMusic.musicTitle,
                 musicArtist: previousMusic.musicArtist,
-                lastPlayedAt: new Date(), 
+                lastPlayedAt: new Date(),
               },
             });
           } else {
-           
+
             await this.dbService.lasthistory.delete({
               where: { userId: userId },
             });
@@ -377,64 +377,33 @@ export class MusicService {
   }
 
 
-  async removeFromPlaylist(removeFromPlaylistDto: removeFromPlaylistDto, userId: string) {
+  async removeMusicFromPlaylist(musicId: number, playlistName: string, userId: string) {
+    
     try {
-      const { musicId, playlistName } = removeFromPlaylistDto
-      const playlistEntry = await this.dbService.playlist.findUnique({
-        where: {
-          userId_musicId_playlistName: {
-            userId,
-            musicId,
-            playlistName,
-          },
-        },
-      });
-
+      const playlistEntry = this.dbService.playlist.findUnique({
+        where: { userId_musicId_playlistName: { userId, musicId, playlistName } },
+      })
 
       if (!playlistEntry) {
-        return {
-          message: 'Music ID not found in playlist for the specified playlist name',
-          statusCode: 404,
-          musicDetails: { musicId, userId, playlistName },
-        };
+        return { message: 'Music ID not found in playlist for the specified playlist name', statusCode: 404, musicDetails: { musicId, userId, playlistName } }
       }
-
-
-      if (playlistEntry.userId !== userId) {
-        return {
-          message: 'User does not match',
-          statusCode: 400,
-          musicDetails: { musicId, userId, playlistName },
-        };
+      
+      if ((await playlistEntry).userId!== userId) {
+        return { message: 'User does not match', statusCode: 400, musicDetails: { musicId, userId, playlistName } }
       }
-
 
       await this.dbService.playlist.delete({
-        where: {
-          userId_musicId_playlistName: {
-            userId,
-            musicId,
-            playlistName,
-          },
-        },
-      });
-
-      return {
-        message: 'Music removed from playlist successfully',
-        statusCode: 200,
-        musicDetails: { musicId, userId, playlistName },
-      };
-    } catch (error) {
-      console.error('Error removing music from playlist:', error);
-      return {
-        message: 'An error occurred while removing music from playlist',
-        statusCode: 500,
-        error: error.message,
-      };
+        where: { userId_musicId_playlistName: { userId, musicId, playlistName } },
+      })
+      
+      return { message: 'Music removed from playlist successfully', statusCode: 200, musicDetails: { musicId, userId, playlistName } }
     }
+    catch (error) {
+      console.error('Error removing music from playlist:', error)
+      return { message: 'An error occurred while removing music from playlist', statusCode: 500, error: error.message }
+    }
+
   }
-
-
 
   async updatePlaylistName(userId: string, renamePlaylistDto: renamePlaylistDto) {
     const { playlistName, newPlaylistName } = renamePlaylistDto;

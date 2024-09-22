@@ -271,6 +271,7 @@ export class MusicController {
     @Req() req: Request,
     @Res() res: Response
   ) {
+    console.log("fetching ")
     const userId = req['firebaseUserId'];
 
     try {
@@ -296,19 +297,21 @@ export class MusicController {
       });
     }
   }
-  @Delete('removefromplaylist')
-  async removeFromPlaylist(
-    @Body() removeFromPlaylistDto: removeFromPlaylistDto,
+
+
+
+  @Patch("/remove/playlist/:musicId")
+  async deleteMusicFromPlaylist(
+    @Param('musicId') musicId: number,
+    @Body() playListName: {playlistName: string},
     @Req() req: Request,
     @Res() res: Response
   ) {
+    const {playlistName} =playListName;
     const userId = req['firebaseUserId'];
-  
-
-    try {
-      const response = await this.musicservice.removeFromPlaylist(removeFromPlaylistDto, userId);
+    try{
+      const response = await this.musicservice.removeMusicFromPlaylist(musicId, playlistName, userId);
       if (response.statusCode === 500) {
-
         return res.status(response.statusCode).json({
           message: response.message,
           error: response.error,
@@ -318,15 +321,17 @@ export class MusicController {
         "message": response.message,
         "details": response.musicDetails
       });
-    } catch (error) {
-      console.error('Error in removeFromPlaylist controller:', error)
-
+    }
+    catch (error) {
+      console.error('Error in deleteMusicFromPlaylist controller:', error)
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Internal Server Error',
         error: error.message,
       });
     }
   }
+
+
 
   @Patch('/rename/playlist')
   async updatePlaylisName(
