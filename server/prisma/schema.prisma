@@ -14,6 +14,11 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
+
+
+
+
+
 model User {
   userId String  @id @unique
   email  String  @unique
@@ -33,8 +38,9 @@ model Music {
   musicArtist  String
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  playlist     Playlist[]
-  user         User          @relation(fields: [userId], references: [userId])
+  playlist     Playlist[]    
+
+  user         User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@unique([userId, musicUrl])
 }
@@ -44,25 +50,21 @@ model IsFavourite {
   id          Int
   isFavourite Boolean
 
-  music Music @relation(fields: [id], references: [id])
+  music Music @relation(fields: [id], references: [id], onDelete: Cascade)
 
   @@id([userId, id])
 }
 
-
 model Playlist {
   userId         String
   musicId        Int
-
   playlistName   String
 
-  createdAt     DateTime @default(now())
-  Music          Music?   @relation(fields: [musicId], references: [id])
+  createdAt      DateTime @default(now())
+  Music          Music?   @relation(fields: [musicId], references: [id], onDelete: Cascade)
   
-  @@id([userId, musicId,playlistName])
+  @@id([userId, musicId, playlistName])
 }
-
-
 
 model lasthistory {
   userId String @id
@@ -73,13 +75,13 @@ model lasthistory {
   musicArtist String
   lastPlayedAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [userId])
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
 
   @@unique([userId])
 }
 
-
-model SearchHistory{
+model SearchHistory {
   userId String
   searchQuery String
   searchHistoryAt DateTime @default(now())

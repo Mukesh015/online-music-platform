@@ -255,7 +255,7 @@ export class MusicController {
         });
       }
 
-      // Handle unexpected status codes
+ 
       throw new HttpException('Unexpected error occurred', HttpStatus.INTERNAL_SERVER_ERROR);
     } catch (error) {
       console.error('Error in updatePlaylist controller:', error);

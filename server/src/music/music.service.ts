@@ -114,20 +114,51 @@ export class MusicService {
 
       if (musicEntry.userId === userId) {
 
+
+
+        const lastHistoryEntry = await this.dbService.lasthistory.findUnique({
+          where: { userId: userId },
+        });
+
+     
+        if (lastHistoryEntry && lastHistoryEntry.musicId === musicId) {
+          
+          const previousMusic = await this.dbService.music.findFirst({
+            where: { userId: userId, NOT: { id: musicId } },
+            orderBy: { createdAt: 'desc' }, 
+          });
+
+          if (previousMusic) {
+            await this.dbService.lasthistory.update({
+              where: { userId: userId },
+              data: {
+                musicId: previousMusic.id,
+                musicUrl: previousMusic.musicUrl,
+                thumbnailUrl: previousMusic.thumbnailUrl,
+                musicTitle: previousMusic.musicTitle,
+                musicArtist: previousMusic.musicArtist,
+                lastPlayedAt: new Date(), 
+              },
+            });
+          } else {
+           
+            await this.dbService.lasthistory.delete({
+              where: { userId: userId },
+            });
+          }
+        }
+
         await this.dbService.music.delete({
           where: { id: musicId },
         });
         return { message: "Music removed successfully", statusCode: 200, musicDetails: musicEntry };
       } else {
-
         return { message: "You cannot delete this music", statusCode: 403, musicDetails: musicEntry };
       }
     } catch (error) {
-
       console.error("Error removing music:", error);
       return { message: "An error occurred while removing music", statusCode: 500, error: error.message };
     }
-
   }
 
 
