@@ -15,11 +15,9 @@ import VolumeUp from '@mui/icons-material/VolumeUp';
 import RepeatOneIcon from '@mui/icons-material/RepeatOne';
 import Tooltip from '@mui/material/Tooltip';
 import Image from "next/image";
-import SettingsIcon from '@mui/icons-material/Settings';
 import CircularProgress from '@mui/material/CircularProgress';
 import { green } from "@mui/material/colors";
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
-import { Menu, MenuItem } from "@mui/material";
 import { addToFavorite } from "@/lib/feature";
 import AlertPopup from "./alert";
 import { useSelector } from "react-redux";
@@ -192,10 +190,13 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                     <div className="flex flex-row gap-2 items-center justify-between md:justify-normal">
                         <section className="flex flex-row gap-1 items-center md:gap-3">
                             <Image className="rounded-md" height={40} width={40} src={musicDetails.thumbnailUrl} alt="Thumbnail" />
-                            <p className="flex flex-col md:w-[25rem] w-[9rem] overflow-x-hidden whitespace-nowrap">
-                                <span className="md:text-[20px] text-[14px]">{musicDetails.musicTitle}</span>
-                                <span className="text-slate-500 text-[10px]">Artist : {musicDetails.musicArtist}</span>
-                            </p>
+                            <section className="flex flex-col md:w-[25rem] w-[9rem] overflow-x-hidden whitespace-nowrap">
+                                <p className="flex flex-row">
+                                    <span className="md:text-[16px] text-[14px]">{musicDetails.musicTitle}
+                                    </span>
+                                </p>
+                                <span className="text-slate-500 text-[12px]">Artist : {musicDetails.musicArtist}</span>
+                            </section>
                         </section>
                         <section
                             className="flex flex-row items-center gap-2 relative md:hidden"
@@ -224,7 +225,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                             </div>
                         </section>
                         <IconButton className="md:hidden" color="primary" aria-label="favorite" onClick={() => handleAddToFav()}>
-                            {musicDetails.isFavourite? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
+                            {musicDetails.isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
                         </IconButton>
                         <IconButton className="md:hidden" color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
                             {isLooping ? (
@@ -301,7 +302,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                     onClick={() => handleAddToFav()}
                                     className="hover:scale-110 hover:text-red-500 transition-transform duration-300 ease-in-out"
                                 >
-                                    {musicDetails.isFavourite?<FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
+                                    {musicDetails.isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
                                 </IconButton>
                             </Tooltip>
 

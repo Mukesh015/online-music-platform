@@ -8,18 +8,26 @@ import { IconButton } from "@mui/material";
 import Image from "next/image";
 import { gql, useQuery, useMutation, useLazyQuery } from "@apollo/client";
 import { RootState } from "@/lib/store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import dynamic from 'next/dynamic';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import loadinganimation from "@/lottie/suggestionloadinganimation.json";
 import FolderSpecialIcon from '@mui/icons-material/FolderSpecial';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Tooltip from '@mui/material/Tooltip';
+import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
+import HistoryIcon from '@mui/icons-material/History';
+
 
 interface Props {
     musics: MusicDetail[];
     openModal: boolean;
     onClose: () => void;
+}
+
+interface history {
+    searchQuery: string;
+    searchHistoryAt: Date;
 }
 
 interface Suggestion {
@@ -95,16 +103,20 @@ query SearchMusic($searchQuery: String!){
 `
 
 const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
+
+    const dispatch = useDispatch();
     const [openSearchBox, setOpenSearchBox] = useState<boolean>(openModal);
     const [searchString, setSearchString] = useState<string | null>(null);
     const [currentSearchQuery, setCurrentSearchQuery] = useState<string | null>(null);
+    const [history, setHistory] = useState<history[]>([]);
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+
     const inputRef = useRef<HTMLInputElement>(null);
     const token = useSelector((state: RootState) => state.authToken.token);
 
     const { loading, error, data, refetch } = useQuery(SEARCH_QUERY, {
         variables: { searchString },
-        skip: !searchString,
+        // skip: !searchString,
     });
 
     const [saveSearchQuery] = useMutation(SAVE_SEARCH_QUERY);
@@ -121,19 +133,16 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
     };
 
     const handleSaveSearchQuery = useCallback(async () => {
-
         if (currentSearchQuery) {
             try {
                 await saveSearchQuery({ variables: { searchQuery: currentSearchQuery } });
             } catch (error) {
                 console.error("Error saving search query", error);
             } finally {
-                const data = await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
-                console.log(data);
+                await findSearchQuery({ variables: { searchQuery: currentSearchQuery } });
             }
         }
     }, [currentSearchQuery, findSearchQuery, saveSearchQuery]);
-
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
@@ -153,19 +162,20 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
             } catch (error) {
                 console.error("Error saving search query", error);
             } finally {
-                await findSearchQuery({ variables: { searchQuery } });
+                const data = await findSearchQuery({ variables: { searchQuery } });
+                dispatch(setCurrentMusic(data.data.searchMusic[0]))
             }
         }
     };
 
     const handleSaveToPlaylist = useCallback(async (music: MusicDetail) => {
         //----------------------------------------------------------------------------------------->>>>
-    }, [])
+    }, []);
 
     useEffect(() => {
         if (data) {
             setSuggestions(data.search.suggestion || []);
-            console.log(data)
+            setHistory(data.search.previousSearch)
         }
         if (error) {
             console.error("Error fetching data", error);
@@ -231,38 +241,64 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
                         <section
                             className="overflow-y-auto w-[80vw] md:w-[45vw] text-slate-400 p-5 flex flex-col [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-300 [&::-webkit-scrollbar-thumb]:bg-gray-500 [&::-webkit-scrollbar-track]:rounded-full h-[50vh]"
                         >
-                            {suggestions.map((music: Suggestion, index: number) => (
-                                <div
-                                    key={index}
-                                    onClick={() => handleSearchAction(music.musicTitle)}
-                                    className="cursor-pointer font-Montserrat py-3 flex flex-row items-center gap-5"
-                                >
-                                    <Image
-                                        className="aspect-square"
-                                        height={30}
-                                        width={30}
-                                        src={music.thumbnailUrl || "https://i.pinimg.com/736x/e8/6a/e3/e86ae31f3047146140e271721aedf1d7.jpg"}
-                                        alt={music.musicTitle}
-                                    />
-                                    <section className="flex flex-row justify-between items-center space-x-2">
-                                        <p className="whitespace-nowrap overflow-x-hidden max-w-[35rem]">{music.musicTitle}</p>
-                                        <section className="flex flex-row items-center">
-                                            {musics.find(savedMusic => savedMusic.id === music.id) ? (
-                                                <Tooltip title="Already saved">
-                                                    <FolderSpecialIcon className="ml-1.5" color="secondary" fontSize="medium" />
-                                                </Tooltip>
-                                            ) : (
-                                                <Tooltip title="Save to cloud">
-                                                    <IconButton color="primary" aria-label="search-icon" onClick={handleClose}>
-                                                        <CloudUploadIcon color="success" fontSize="medium" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
-                                        </section>
-                                    </section>
+                            {suggestions && suggestions.length > 0 ? (
+                                <div>
+                                    {suggestions.map((music: Suggestion, index: number) => (
+                                        <div
+                                            key={index}
+                                            className="cursor-pointer font-Montserrat py-3 flex flex-row items-center gap-5"
+                                        >
+                                            <Image
+                                                className="aspect-square"
+                                                height={30}
+                                                width={30}
+                                                src={music.thumbnailUrl || "https://i.pinimg.com/736x/e8/6a/e3/e86ae31f3047146140e271721aedf1d7.jpg"}
+                                                alt={music.musicTitle}
+                                            />
+                                            <section className="flex flex-row justify-between items-center space-x-2">
+                                                <p onClick={() => handleSearchAction(music.musicTitle)} className="whitespace-nowrap overflow-x-hidden max-w-[35rem]">{music.musicTitle}</p>
+                                                <section className="flex flex-row items-center">
+                                                    {musics.find(savedMusic => savedMusic.id === music.id) ? (
+                                                        <Tooltip title="Already saved">
+                                                            <FolderSpecialIcon className="ml-1.5" color="secondary" fontSize="medium" />
+                                                        </Tooltip>
+                                                    ) : (
+                                                        <Tooltip title="Save to cloud">
+                                                            <IconButton color="primary" aria-label="save-to-cloud-icon">
+                                                                <CloudUploadIcon color="success" fontSize="medium" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    )}
+                                                </section>
+                                            </section>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            ) : (
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-3">Search History</h3>
+                                    {history.length > 0 ? (
+                                        history.map((item, index) => (
+                                            <div
+                                                key={index}
+                                                className="cursor-pointer flex flex-row space-x-1 py-2 border-b border-slate-700"
+                                                onClick={() => handleSearchAction(item.searchQuery)}
+                                            >
+                                                <HistoryIcon />
+                                                <p className="text-blue-600 whitespace-nowrap overflow-x-hidden max-w-[36rem]">
+                                                    {item.searchQuery}
+                                                </p>
+                                                <p className="text-blue-600">...</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-slate-500">No search history available</p>
+                                    )}
+                                </div>
+                            )}
                         </section>
+
+
                     )}
                 </Box>
             </Modal>

@@ -47,7 +47,41 @@ async function syncMusicDetails(token: string, musicUrl: string, musicTitle: str
             status: 0
         };
     }
+}
 
+async function removeFromPlaylist(token: string, playlistName: string, musicId: number): Promise<ReturnStatus> {
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/removefromplaylist`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                playlistName: playlistName,
+                musicId: musicId
+            })
+        });
+        if (response.ok) {
+            return {
+                statusCode: response.status,
+                status: 1
+            };
+        }
+        else {
+            return {
+                statusCode: response.status,
+                status: 0
+            };
+        }
+    }
+    catch (error) {
+        console.error('Error removing music from playlist:', error);
+        return {
+            statusCode: 500,
+            status: 0
+        };
+    }
 }
 
 async function deleteMusicFromDB(musicId: number, token: string): Promise<ReturnStatus> {
@@ -222,4 +256,4 @@ async function deleteplaylist(token: string, playlistName: string) {
     }
 }
 
-export { addToFavorite, deleteMusicFromDB, addToHistory, renamePlaylist, deleteplaylist, syncMusicDetails };
+export { addToFavorite, deleteMusicFromDB, addToHistory, renamePlaylist, deleteplaylist, syncMusicDetails, removeFromPlaylist };

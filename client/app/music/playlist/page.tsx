@@ -1,6 +1,6 @@
 "use client"
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-import React, { KeyboardEvent, useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { gql, useQuery } from '@apollo/client';
 import { RootState } from "@/lib/store";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,12 +26,13 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import dynamic from 'next/dynamic';
 import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
-import { addToFavorite, addToHistory, deleteMusicFromDB, renamePlaylist, deleteplaylist } from '@/lib/feature';
+import { addToFavorite, addToHistory, deleteMusicFromDB, renamePlaylist, deleteplaylist, removeFromPlaylist } from '@/lib/feature';
 import AlertPopup from '@/components/alert';
 import { deleteMusic, downLoadMusic } from '@/config/firebase/config';
 import FilterList from '@/components/filter';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import AddIcon from '@mui/icons-material/Add';
+import FileInput from '@/components/fileInput';
 
 const itemVariants = {
     visible: {
@@ -227,6 +228,25 @@ const PlaylistPage: React.FC = () => {
             }
         }
     }, [error, folderNameForRename, handleShowAlert, token]);
+
+    const handleRemoveFromPlaylist = async () => {
+        handleClose();
+        if (menuOperation && playlistName && token) {
+            const response = await removeFromPlaylist(token, playlistName, menuOperation.id)
+            if (response.status === 1) {
+                setSeverity(true);
+                handleShowAlert("Song removed from playlist successfully");
+            }
+            else {
+                setSeverity(false);
+                handleShowAlert("Failed to remove song from playlist");
+                console.error("fetch error:", error);
+            }
+        } else {
+            console.error("Music ID not provided or auth token missing, operation cannot be performed");
+        }
+
+    }
 
     const handleDeleteMusic = useCallback(async () => {
         handleClose();
@@ -456,7 +476,7 @@ const PlaylistPage: React.FC = () => {
                             <DownloadIcon />
                             <span>Download</span>
                         </MenuItem>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4' onClick={() => handleRemoveFromPlaylist()}>
                             <PlaylistRemoveIcon />
                             <span>Remove from playlist</span>
                         </MenuItem>
