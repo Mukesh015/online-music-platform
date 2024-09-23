@@ -50,16 +50,18 @@ async function syncMusicDetails(token: string, musicUrl: string, musicTitle: str
 }
 
 async function removeFromPlaylist(token: string, playlistName: string, musicId: number): Promise<ReturnStatus> {
+    console.log(playlistName)
+
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/removefromplaylist`, {
-            method: 'DELETE',
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/api/music/remove/playlist/${musicId}`, {
+            method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 playlistName: playlistName,
-                musicId: musicId
+  
             })
         });
         if (response.ok) {
