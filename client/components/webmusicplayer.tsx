@@ -20,8 +20,12 @@ import { green } from "@mui/material/colors";
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import { addToFavorite } from "@/lib/feature";
 import AlertPopup from "./alert";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
+import queueService from "@/lib/queue";
+import { setCurrentMusic } from "@/lib/resolvers/currentMusic";
+import QueuePopup from "./queuepopup";
 
 interface MusicDetails {
     id: number;
@@ -36,8 +40,9 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
     const token = useSelector((state: RootState) => state.authToken.token);
     const musicRef = useRef<HTMLAudioElement | null>(null);
+    const dispatch = useDispatch();
     const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
-    const [isPlaying, setIsPlaying] = useState<boolean>(true);
+    const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const [isLooping, setIsLooping] = useState<boolean>(false);
     const [currentTime, setCurrentTime] = useState<number>(0);
     const [volume, setVolume] = useState<number>(50);
@@ -47,7 +52,8 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
     const [severity, setSeverity] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [showAlert, setShowAlert] = useState<boolean>(false);
-
+    const [showQueue, setShowQueue] = useState<boolean>(false);
+    const [playsong, setPlaySong] = useState<boolean>(false);
 
     const handleVolumeChange = () => {
         if (volume === 0) {
@@ -59,6 +65,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
     }
 
     const togglePlayPause = () => {
+        setPlaySong(true);
         const music = musicRef.current;
         if (music) {
             if (isPlaying) {
@@ -100,6 +107,12 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
         setLoading(true);
     }, [musicDetails, setLoading])
 
+    useEffect(() => {
+        if (musicDetails) {
+            queueService.addToHistory(musicDetails);
+        }
+    }, [musicDetails])
+
     const handleSkip = (seconds: number) => {
         const music = musicRef.current;
         if (music) {
@@ -114,6 +127,19 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
         }
     };
 
+    const closeQueue = () => {
+        setShowQueue(false);
+    }
+
+    const handlePlayNextSong = () => {
+        const song = queueService.playNextSong(musicDetails.id);
+        if (song) dispatch(setCurrentMusic(song));
+    }
+
+    const handlePlayPrevSong = () => {
+        const song = queueService.playPreviousSong(musicDetails.id);
+        if (song) dispatch(setCurrentMusic(song));
+    }
 
     const formatTime = (time: number) => {
         const minutes = Math.floor(time / 60);
@@ -148,7 +174,6 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
         const music = musicRef.current;
         if (music) {
             music.volume = volume / 100;
-            music.loop = isLooping;
 
             const handleTimeUpdate = () => setCurrentTime(music.currentTime);
             const handleLoadedMetadata = () => setDuration(music.duration);
@@ -161,7 +186,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                 music.removeEventListener("loadedmetadata", handleLoadedMetadata);
             };
         }
-    }, [isPlaying, volume, isLooping, musicDetails]);
+    }, [isPlaying, volume, musicDetails]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleKeyPress);
@@ -174,7 +199,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
     return (
         <>
             <div className="font-Montserrat fixed bottom-1 md:bottom-0 w-full right-0 h-20 text-white bg-slate-800 z-50">
-                <audio autoPlay onLoadedData={() => setLoading(false)} ref={musicRef} src={musicDetails.musicUrl} />
+                <audio loop={isLooping} autoPlay={playsong} onEnded={handlePlayNextSong} onLoadedData={() => setLoading(false)} ref={musicRef} src={musicDetails.musicUrl} />
                 <Slider
                     className="fixed bottom-16 md:bottom-[65px]"
                     size="small"
@@ -229,8 +254,9 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                         </IconButton>
                         <IconButton className="md:hidden" color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
                             {isLooping ? (
-                                <RepeatIcon fontSize="medium" color="primary" />) : (
                                 <RepeatOneIcon fontSize="medium" color="primary" />
+                            ) : (
+                                <RepeatIcon fontSize="medium" color="primary" />
                             )}
                         </IconButton>
                         <IconButton className="md:hidden" onClick={togglePlayPause} color="primary" aria-label="play / pause">
@@ -249,7 +275,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                         )}
                         <div className="hidden md:flex flex-row items-center gap-5 ml-32">
                             <Tooltip title="previous">
-                                <IconButton color="primary" aria-label="previous">
+                                <IconButton onClick={handlePlayPrevSong} color="primary" aria-label="previous">
                                     <SkipPreviousIcon fontSize="medium" />
                                 </IconButton>
                             </Tooltip>
@@ -269,7 +295,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 </IconButton>
                             </Tooltip>
                             <Tooltip title="next">
-                                <IconButton color="primary" aria-label="next">
+                                <IconButton onClick={handlePlayNextSong} color="primary" aria-label="next">
                                     <SkipNextIcon fontSize="medium" />
                                 </IconButton>
                             </Tooltip>
@@ -288,13 +314,17 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                     className="hover:scale-110 hover:text-blue-600 transition-transform duration-300 ease-in-out"
                                 >
                                     {isLooping ? (
-                                        <RepeatIcon fontSize="medium" color="primary" />
-                                    ) : (
                                         <RepeatOneIcon fontSize="medium" color="primary" />
+                                    ) : (
+                                        <RepeatIcon fontSize="medium" color="primary" />
                                     )}
                                 </IconButton>
                             </Tooltip>
-
+                            <Tooltip title="Queued music">
+                                <IconButton onClick={() => setShowQueue(true)} color="primary">
+                                    <QueueMusicIcon fontSize="medium" color="primary" />
+                                </IconButton>
+                            </Tooltip>
                             <Tooltip title="Add to favorite">
                                 <IconButton
                                     color="primary"
@@ -334,7 +364,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 </Tooltip>
                                 <div className={`absolute ${showVolumeSlider ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 items-center flex`}>
                                     <Slider
-                                        className="fixed right-20 w-20"
+                                        className="fixed right-7 w-20"
                                         size="small"
                                         value={volume}
                                         min={0}
@@ -351,9 +381,9 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                 </div >
             </div>
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
+            {showQueue && <QueuePopup close={closeQueue} />}
         </>
     );
 };
 
 export default WebMusicPlayer;
-

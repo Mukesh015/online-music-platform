@@ -26,6 +26,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "app.croptracker.com",
       },
+      {
+        protocol: "https",
+        hostname: "static.india.com",
+      },
     ],
   },
 };

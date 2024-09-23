@@ -1,18 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authTokenReducer from "./resolvers/auth"
+import authTokenReducer from "./resolvers/auth";
 import currentMusicReducer from './resolvers/currentMusic';
-import userPlaylistReducer from "./resolvers/userplaylist"
-
+import userPlaylistReducer from "./resolvers/userplaylist";
 
 export const makeStore = () => {
-    return configureStore({
-        reducer: {
-            authToken: authTokenReducer,
-            currentMusic: currentMusicReducer,
-            userPlaylist: userPlaylistReducer,
-            // Add more reducers here as needed...
-        },
-    });
+  return configureStore({
+    reducer: {
+      authToken: authTokenReducer,
+      currentMusic: currentMusicReducer,
+      userPlaylist: userPlaylistReducer,
+    },
+  });
 };
 
 // Infer the type of makeStore

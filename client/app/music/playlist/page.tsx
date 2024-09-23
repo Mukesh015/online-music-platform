@@ -31,8 +31,7 @@ import AlertPopup from '@/components/alert';
 import { deleteMusic, downLoadMusic } from '@/config/firebase/config';
 import FilterList from '@/components/filter';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
-import AddIcon from '@mui/icons-material/Add';
-import FileInput from '@/components/fileInput';
+import queueService from '@/lib/queue';
 
 const itemVariants = {
     visible: {
@@ -101,6 +100,11 @@ const PlaylistPage: React.FC = () => {
     const [showFilter, setShowFilter] = useState<boolean>(false);
     const open = Boolean(anchorEl);
     const dispatch = useDispatch();
+
+    const addToQueue = () => {
+        if (menuOperation) queueService.addSong(menuOperation);
+        handleClose();
+    }
 
     const cleanup = () => {
         setFolderNameForRename(null);
@@ -325,11 +329,6 @@ const PlaylistPage: React.FC = () => {
                     {playlistName && <Typography className="text-blue-500" sx={{ color: 'text.primary' }}>{playlistName}</Typography>}
                 </Breadcrumbs>
                 <section className='space-x-5'>
-                    <Tooltip title="Add songs">
-                        <IconButton disabled={backDisabled} color="primary" aria-label="add">
-                            <AddIcon fontSize="medium" />
-                        </IconButton>
-                    </Tooltip>
                     <Tooltip title="Filter">
                         <IconButton onClick={() => toggleOpenFiler()} color="primary">
                             <SortIcon fontSize="medium" />
@@ -464,7 +463,7 @@ const PlaylistPage: React.FC = () => {
                             <PlayArrowIcon />
                             <span>Play</span>
                         </MenuItem>
-                        <MenuItem className='flex space-x-4'>
+                        <MenuItem onClick={addToQueue} className='flex space-x-4'>
                             <QueueMusicIcon />
                             <span>Add to queue</span>
                         </MenuItem>
