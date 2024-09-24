@@ -35,6 +35,7 @@ import { Button } from '@mui/material';
 import SearchBox from '@/components/searchbox';
 import { setUserPlaylist } from '@/lib/resolvers/userplaylist';
 import { addToFavorite, addToHistory, deleteMusicFromDB } from '@/lib/feature';
+import queueService from '@/lib/queue';
 
 const itemVariants = {
     visible: {
@@ -134,12 +135,17 @@ const MusicPage: React.FC = () => {
     const [musicDetails, setMusicDetails] = useState<MusicDetail[]>([]);
     const [favoriteMusicDetails, setFavoriteMusicDetails] = useState<MusicDetail[]>([]);
     const [currentPlayingMusicDetails, setCurrentPlayingMusicDetails] = useState<MusicDetail[]>([]);
-    const [selectedMusicIdForMenu, setSelectedMusicIdForMenu] = useState<number | null>(null);
+    const [selectedMusicForMenu, setSelectedMusicForMenu] = useState<MusicDetail | null>(null);
     const [idForplaylist, setIdForplaylist] = useState<number[]>([]);
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [isSearchBoxOpen, setIsSearchBoxOpen] = useState<boolean>(false);
     const [severity, setSeverity] = useState<boolean>(false);
     const open = Boolean(showMenu);
+
+    const handleAddToQueue = () => {
+        if (selectedMusicForMenu) queueService.addSong(selectedMusicForMenu);
+        handleClose();
+    };
 
     const handleCloseSearchBox = () => {
         setIsSearchBoxOpen(false);
@@ -149,17 +155,13 @@ const MusicPage: React.FC = () => {
         setIdForplaylist(prevState => prevState.filter(item => item !== id));
     };
 
-    const handleAddToQueue = () => {
-        console.log("Added to queue")
-    };
-
     const handleSetSeverty = (severity: boolean) => {
         setSeverity(severity);
     }
 
-    const handleClick = (event: React.MouseEvent<HTMLElement>, id: number) => {
+    const handleClick = (event: React.MouseEvent<HTMLElement>, music: MusicDetail) => {
         setshowMenu(event.currentTarget);
-        setSelectedMusicIdForMenu(id);
+        setSelectedMusicForMenu(music);
     };
 
     const handleClose = useCallback(() => {
@@ -181,7 +183,6 @@ const MusicPage: React.FC = () => {
     }
 
     const cleanup = useCallback(() => {
-        console.log("Cleanup called");
         idForplaylist.splice(0, idForplaylist.length);
     }, [idForplaylist]);
 
@@ -189,7 +190,6 @@ const MusicPage: React.FC = () => {
         if (!idForplaylist.includes(id)) {
             setIdForplaylist(prevState => [...prevState, id]);
         }
-        console.log("Added to playlist", idForplaylist)
     };
 
     const closeUploadPopup = () => {
@@ -236,8 +236,8 @@ const MusicPage: React.FC = () => {
 
     const handleAddToFav = useCallback(async () => {
         handleClose();
-        if (selectedMusicIdForMenu && token) {
-            const response = await addToFavorite(selectedMusicIdForMenu, token);
+        if (selectedMusicForMenu && token) {
+            const response = await addToFavorite(selectedMusicForMenu.id, token);
             if (response.status === 11) {
                 setSeverity(true);
                 handleShowAlert("Song added to favorite");
@@ -256,7 +256,7 @@ const MusicPage: React.FC = () => {
         else {
             console.error("Music Id not provided or auth token missing, operation cant permitted");
         }
-    }, [handleClose, selectedMusicIdForMenu, token, refetch, handleShowAlert, error]);
+    }, [handleClose, selectedMusicForMenu, token, refetch, handleShowAlert, error]);
 
     const handleCreatePlaylsit = useCallback(async (playlistName: string) => {
         handleClose();
@@ -307,12 +307,12 @@ const MusicPage: React.FC = () => {
     }
 
     const handleDeleteMusic = useCallback(async () => {
-        if (selectedMusicIdForMenu && token) {
-            const musicDetail = musicDetails.find(music => music.id === selectedMusicIdForMenu);
+        if (selectedMusicForMenu && token) {
+            const musicDetail = musicDetails.find(music => music.id === selectedMusicForMenu.id);
             if (musicDetail) {
                 const musicPath = getMusicPath(musicDetail.musicUrl);
                 const thumbnilPath = getthumbnilPath(musicDetail.thumbnailUrl);
-                const response = await deleteMusicFromDB(selectedMusicIdForMenu, token)
+                const response = await deleteMusicFromDB(selectedMusicForMenu.id, token)
                 if (response.statusCode === 1) {
                     setAlertMessage("Song deleted successfully");
                     setSeverity(true);
@@ -329,7 +329,7 @@ const MusicPage: React.FC = () => {
         } else {
             console.error("No music ID selected");
         }
-    }, [musicDetails, refetch, selectedMusicIdForMenu, token]);
+    }, [musicDetails, refetch, selectedMusicForMenu, token]);
 
     const displayedMusic = showFavoriteSongs ? favoriteMusicDetails : musicDetails;
 
@@ -346,7 +346,7 @@ const MusicPage: React.FC = () => {
         if (token) {
             refetch();
         }
-    }, [error, refetch, token, data, history,setHistory]);
+    }, [error, refetch, token, data, history, setHistory]);
 
     useEffect(() => {
         if (musicDetails) {
@@ -492,7 +492,7 @@ const MusicPage: React.FC = () => {
                                                             aria-controls={open ? 'long-menu' : undefined}
                                                             aria-expanded={open ? 'true' : undefined}
                                                             aria-haspopup="true"
-                                                            onClick={(event) => handleClick(event, music.id)}
+                                                            onClick={(event) => handleClick(event, music)}
                                                         >
                                                             <MoreVertIcon />
                                                         </IconButton>

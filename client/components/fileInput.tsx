@@ -166,14 +166,14 @@ const FileInput: React.FC<Props> = ({ isOpen, cleanup, createPlaylist, onClose, 
                     ) : (
                         <div className="font-Montserrat rounded-md fixed left-1/2 top-72 md:top-0 z-50 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center my-20 md:h-[73vh] bg-white w-[85vw] sm:rounded-lg sm:shadow-xl md:left-[26rem] md:translate-x-0 md:translate-y-0 md:w-[45vw]">
                             <div className="mt-10 mb-10 text-center">
-                                <h2 className="text-2xl font-semibold mb-2">Create new playlist</h2>
+                                <h2 className="text-2xl font-semibold mb-2">Create new playlist / Add into playlist</h2>
                                 <p className="text-xs text-gray-500">Folder name must be unique</p>
                             </div>
                             <section className="flex flex-row gap-10">
                                 <TextField onChange={(e) => setNewPlaylistName(e.target.value)} id="outlined-basic" label="Enter playlist name" variant="outlined" />
                             </section>
                             <section className="max-w-[75vw] overflow-y-auto mt-5 flex flex-col bg-gray-100 md:w-[40vw] rounded-md h-[40vh] p-1.5">
-                                <h3 className="text-red-500 text-sm mb-3">wanna add some music</h3>
+                                <h3 className="text-red-500 text-sm mb-3">Please write the same playlist name to add music into existing playlist</h3>
                                 {musicDetails.map((music: MusicDetail) => (
                                     <div key={music.id} className="flex flex-row gap-2 items-center justify-between">
                                         <p className="max-w-[60vw] overflow-hidden whitespace-nowrap ">{music.musicTitle}</p>
