@@ -79,6 +79,12 @@ type SearchHistory {
   searchHistoryAt: DateTime!
 }
 
+type saveMusic {
+  code: String!
+  status: Float!
+  message: String!
+}
+
 type MusicDetails {
   id: Float!
   musicUrl: String!
@@ -104,6 +110,7 @@ type Query {
 type Mutation {
   create(createSignupInput: CreateSignupInput!): SignupResponse!
   saveSearchQuery(searchQuery: String!): SearchHistory!
+  saveMusic(musicId: Float!): saveMusic!
 }
 
 input CreateSignupInput {
