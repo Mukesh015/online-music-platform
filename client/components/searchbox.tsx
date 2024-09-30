@@ -17,6 +17,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Tooltip from '@mui/material/Tooltip';
 import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
 import HistoryIcon from '@mui/icons-material/History';
+import { syncMusicDetails } from "@/lib/feature";
 
 
 interface Props {
@@ -131,6 +132,12 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
         setOpenSearchBox(false)
         onClose();
     };
+
+    const saveToCloud = async (music: MusicDetail) => {
+        if (token) {
+            const response = await syncMusicDetails(token, music.musicUrl, music.musicTitle, music.musicArtist, music.thumbnailUrl);
+        }
+    }
 
     const handleSaveSearchQuery = useCallback(async () => {
         if (currentSearchQuery) {

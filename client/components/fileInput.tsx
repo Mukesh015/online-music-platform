@@ -119,11 +119,18 @@ const FileInput: React.FC<Props> = ({ isOpen, cleanup, createPlaylist, onClose, 
                 const thumbnailPath = thumbnail.ref.fullPath;
                 const thumbnailLink = await getDownloadLink(thumbnailPath);
                 handleSentMusicDetails(musicLink, thumbnailLink);
+                setSeverity(true);
+                showAlert("Music has been successfully uploaded");
+            } else {
+                setSeverity(false);
+                showAlert("This file is corrupted, reverting the process");
             }
         } catch (e) {
+            setSeverity(false);
+            showAlert("Something went wrong, please try again");
             console.error("File uploading failed", e);
         }
-    }, [handleSentMusicDetails, uploadFile, imageBlob]);
+    }, [uploadFile, imageBlob, handleSentMusicDetails, setSeverity, showAlert]);
 
     useEffect(() => {
         if (data && data.getMusicByUserId) {

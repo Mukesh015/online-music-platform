@@ -1,6 +1,6 @@
 "use client"
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { gql, useQuery } from '@apollo/client';
 import { RootState } from "@/lib/store";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,7 +10,7 @@ import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import SortIcon from '@mui/icons-material/Sort';
 import Link from "next/link";
 import { IconButton, Tooltip } from "@mui/material";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Menu from '@mui/material/Menu';
@@ -32,6 +32,7 @@ import { deleteMusic, downLoadMusic } from '@/config/firebase/config';
 import FilterList from '@/components/filter';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import queueService from '@/lib/queue';
+import RenameInputBox from '@/components/renameInput';
 
 const itemVariants = {
     visible: {
@@ -84,7 +85,8 @@ const GET_PLAYLIST = gql`
 
 const PlaylistPage: React.FC = () => {
     const token = useSelector((state: RootState) => state.authToken.token);
-    const [newPlaylistName, setNewPlaylistName] = useState<string | null>(null);
+    const [newPlaylistName, newPlaylistArtist] = useState<string | null>(null);
+    const [showRenamepopup, setShowRenamepopup] = useState<boolean>(false);
     const [folderNameForRename, setFolderNameForRename] = useState<string | null>(null);
     const { loading, error, data, refetch } = useQuery(GET_PLAYLIST);
     const [playlists, setPlaylists] = useState<PlaylistData[]>([]);
@@ -104,6 +106,8 @@ const PlaylistPage: React.FC = () => {
     const addToQueue = () => {
         if (menuOperation) queueService.addSong(menuOperation);
         handleClose();
+        setSeverity(true);
+        handleShowAlert("Song added to queue");
     }
 
     const cleanup = () => {
@@ -144,10 +148,15 @@ const PlaylistPage: React.FC = () => {
         handleClose();
         if (menuOperation?.id && token) {
             const response = await addToFavorite(menuOperation.id, token);
-            if (response.status === 1) {
-                handleShowAlert("Song added to favorite");
+            if (response.status === 11) {
                 setSeverity(true);
-            } else {
+                handleShowAlert("Song added to favorite");
+            }
+            else if (response.status === 10) {
+                setSeverity(true);
+                handleShowAlert("Song removed from favorite");
+            }
+            else {
                 setSeverity(false);
                 handleShowAlert("Something went wrong, please try again");
                 console.error("fetch error:", error);
@@ -217,8 +226,13 @@ const PlaylistPage: React.FC = () => {
         return fileId;
     }
 
+    const openRenamePopup = () => {
+        handleClose();
+        setShowRenamepopup(true)
+    }
+
     const handleRenamePlaylist = useCallback(async () => {
-        const newPlaylistName = prompt("Enter new playlist name");
+        setShowRenamepopup(false)
         if (token && folderNameForRename && newPlaylistName) {
             const response = await renamePlaylist(token, folderNameForRename, newPlaylistName);
             if (response.status === 1) {
@@ -231,7 +245,8 @@ const PlaylistPage: React.FC = () => {
                 console.error("fetch error:", error);
             }
         }
-    }, [error, folderNameForRename, handleShowAlert, token]);
+        handleClose();
+    }, [error, folderNameForRename, handleShowAlert, newPlaylistName, token]);
 
     const handleRemoveFromPlaylist = async () => {
         handleClose();
@@ -444,7 +459,7 @@ const PlaylistPage: React.FC = () => {
             >
                 {openFolderMenu === "folder" ? (
                     <>
-                        <MenuItem className='flex space-x-4' onClick={() => handleRenamePlaylist()}>
+                        <MenuItem className='flex space-x-4' onClick={openRenamePopup}>
                             <DriveFileRenameOutlineIcon />
                             <span>Rename</span>
                         </MenuItem>
@@ -488,8 +503,11 @@ const PlaylistPage: React.FC = () => {
             </Menu>
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
             {showFilter && <FilterList playlist={playlists} closeFilter={closeFilter} setData={setPlaylistData} playlistName={playlistName} />}
+            {showRenamepopup && <RenameInputBox newPlaylistArtist={newPlaylistArtist} handleRenamePlaylist={handleRenamePlaylist} />}
         </div>
     );
 };
+
+
 
 export default PlaylistPage;

@@ -144,6 +144,8 @@ const MusicPage: React.FC = () => {
 
     const handleAddToQueue = () => {
         if (selectedMusicForMenu) queueService.addSong(selectedMusicForMenu);
+        setSeverity(true);
+        handleShowAlert("Song added to queue");
         handleClose();
     };
 
@@ -307,29 +309,32 @@ const MusicPage: React.FC = () => {
     }
 
     const handleDeleteMusic = useCallback(async () => {
+        handleClose();
         if (selectedMusicForMenu && token) {
             const musicDetail = musicDetails.find(music => music.id === selectedMusicForMenu.id);
             if (musicDetail) {
                 const musicPath = getMusicPath(musicDetail.musicUrl);
                 const thumbnilPath = getthumbnilPath(musicDetail.thumbnailUrl);
                 const response = await deleteMusicFromDB(selectedMusicForMenu.id, token)
-                if (response.statusCode === 1) {
-                    setAlertMessage("Song deleted successfully");
-                    setSeverity(true);
+                if (response.status === 1) {
                     const result = await deleteMusic(musicPath, thumbnilPath);
+                    setSeverity(true);
+                    handleShowAlert("Song deleted successfully");
                 }
                 else {
-                    setAlertMessage("Failed to delete song");
                     setSeverity(false);
+                    handleShowAlert("Failed to delete song");
                 }
                 refetch();
             } else {
                 console.error("Music Id not provided or auth token missing, operation cant permitted");
+                setSeverity(false);
+                handleShowAlert("Something went wrong, please try again");
             }
         } else {
             console.error("No music ID selected");
         }
-    }, [musicDetails, refetch, selectedMusicForMenu, token]);
+    }, [handleClose, selectedMusicForMenu, token, musicDetails, refetch, handleShowAlert]);
 
     const displayedMusic = showFavoriteSongs ? favoriteMusicDetails : musicDetails;
 
@@ -388,7 +393,7 @@ const MusicPage: React.FC = () => {
                                             <Button className='rounded-3xl' onClick={() => setIsSearchBoxOpen(true)} variant="text">
                                                 <div className='border border-gray-700 px-5 py-1.5 rounded-3xl flex flex-row gap-3 items-center'>
                                                     <SearchIcon color='secondary' fontSize="medium" />
-                                                    Search / ctrl + k
+                                                    Search songs ...
                                                 </div>
                                             </Button>
                                             <Tooltip title="upload songs">

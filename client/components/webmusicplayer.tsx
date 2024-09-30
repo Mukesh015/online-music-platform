@@ -5,8 +5,6 @@ import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import RepeatIcon from '@mui/icons-material/Repeat';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import IconButton from '@mui/material/IconButton';
 import FastForwardIcon from '@mui/icons-material/FastForward';
 import FastRewindIcon from '@mui/icons-material/FastRewind';
@@ -18,10 +16,8 @@ import Image from "next/image";
 import CircularProgress from '@mui/material/CircularProgress';
 import { green } from "@mui/material/colors";
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
-import { addToFavorite } from "@/lib/feature";
 import AlertPopup from "./alert";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
+import { useDispatch } from "react-redux";
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import queueService from "@/lib/queue";
 import { setCurrentMusic } from "@/lib/resolvers/currentMusic";
@@ -38,7 +34,6 @@ interface MusicDetails {
 
 const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
-    const token = useSelector((state: RootState) => state.authToken.token);
     const musicRef = useRef<HTMLAudioElement | null>(null);
     const dispatch = useDispatch();
     const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
@@ -84,24 +79,6 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
             setShowAlert(false);
         }, 3000);
     }, []);
-
-    const handleAddToFav = useCallback(async () => {
-        // setIsFavorite(!isFavorite);
-        if (musicDetails.id && token) {
-            const response = await addToFavorite(musicDetails.id, token);
-            if (response.status === 1) {
-                handleShowAlert("Song added to favorite");
-                setSeverity(true);
-            } else {
-                setSeverity(false);
-                handleShowAlert("Something went wrong, please try again");
-                console.error("Something went wrong, please try again");
-            }
-        }
-        else {
-            console.error("Music Id not provided or auth token missing, operation cant permitted");
-        }
-    }, [handleShowAlert, musicDetails.id, token]);
 
     useEffect(() => {
         setLoading(true);
@@ -249,9 +226,6 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 />
                             </div>
                         </section>
-                        <IconButton className="md:hidden" color="primary" aria-label="favorite" onClick={() => handleAddToFav()}>
-                            {musicDetails.isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
-                        </IconButton>
                         <IconButton className="md:hidden" color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
                             {isLooping ? (
                                 <RepeatOneIcon fontSize="medium" color="primary" />
@@ -325,16 +299,6 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                     <QueueMusicIcon fontSize="medium" color="primary" />
                                 </IconButton>
                             </Tooltip>
-                            <Tooltip title="Add to favorite">
-                                <IconButton
-                                    color="primary"
-                                    aria-label="favorite"
-                                    onClick={() => handleAddToFav()}
-                                    className="hover:scale-110 hover:text-red-500 transition-transform duration-300 ease-in-out"
-                                >
-                                    {musicDetails.isFavourite ? <FavoriteIcon fontSize="medium" color="secondary" /> : <FavoriteBorderIcon fontSize="medium" />}
-                                </IconButton>
-                            </Tooltip>
 
                             <section
                                 className="flex flex-row items-center relative"
@@ -364,7 +328,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 </Tooltip>
                                 <div className={`absolute ${showVolumeSlider ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 items-center flex`}>
                                     <Slider
-                                        className="fixed right-7 w-20"
+                                        className="fixed right-7 w-32"
                                         size="small"
                                         value={volume}
                                         min={0}
@@ -381,7 +345,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                 </div >
             </div>
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
-            {showQueue && <QueuePopup close={closeQueue} />}
+            {showQueue && <QueuePopup close={closeQueue} setSeverity={setSeverity} handleShowAlert={handleShowAlert} />}
         </>
     );
 };

@@ -34,7 +34,7 @@ export const decodeMetaData = (file: File): Promise<any> => {
   });
 }
 
-export const decodeMetaDataToBlob = (file: File): Promise<Blob> => {
+export const decodeMetaDataToBlob = (file: File): Promise<Blob | null> => {
   return new Promise((resolve, reject) => {
     jsmediatags.read(file, {
       onSuccess({ tags }: any) {
@@ -51,7 +51,8 @@ export const decodeMetaDataToBlob = (file: File): Promise<Blob> => {
           const musicBlob = base64ToBlob(imageUri, picture.format);
           resolve(musicBlob); // Resolve with the Blob
         } else {
-          reject(new Error("No picture available in the metadata."));
+          console.warn("No picture available in the metadata.");
+          resolve(null)
         }
       },
       onError(error: Error) {
