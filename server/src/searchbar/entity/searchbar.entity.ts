@@ -79,6 +79,20 @@ export class SearchHistoryError {
 
 
 @ObjectType()
+export class saveMusic {
+  @Field()
+  code: string;
+
+  @Field()
+  status: number;
+
+  @Field()
+  message: string;
+}
+
+
+
+@ObjectType()
 export class MusicDetails {
 
   @Field()
@@ -89,7 +103,7 @@ export class MusicDetails {
 
   @Field()
   musicTitle: string;
-  
+
   @Field()
   thumbnailUrl: string;
 
@@ -98,7 +112,7 @@ export class MusicDetails {
 
   @Field()
   createdAt: Date;
-  
+
   @Field()
   isFavourite: boolean;
 

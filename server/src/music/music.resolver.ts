@@ -1,7 +1,7 @@
 import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql';
 import { MusicService } from './music.service';
 
-import { Music,Playlist} from './entities/music.entity';
+import { Music, Playlist } from './entities/music.entity';
 
 import { Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../authguard/authguard.service'
@@ -60,6 +60,8 @@ export class MusicResolver {
     }
     return this.musicService.getPlaylistByUserId(userId)
   }
+
+
 
 
 

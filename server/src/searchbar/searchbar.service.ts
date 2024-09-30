@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Favourite, PreviousSearch, Suggestion, SearchResponse, SearchHistory, MusicDetails } from './entity/searchbar.entity';
+import { Favourite, PreviousSearch, Suggestion, SearchResponse, SearchHistory, MusicDetails, saveMusic } from './entity/searchbar.entity';
 import { DatabaseService } from '../database/database.service';
 
 @Injectable()
@@ -227,7 +227,7 @@ export class SearchbarService {
         const sanitizedTitle = this.sanitizeSearchString(result.musicTitle);
         const sanitizedArtist = this.sanitizeSearchString(result.musicArtist);
 
-    
+
         return sanitizedTitle.startsWith(sanitizedSearchString.slice(0, 3)) ||
           sanitizedArtist.startsWith(sanitizedSearchString.slice(0, 3));
       });
@@ -252,6 +252,27 @@ export class SearchbarService {
         ? userFavourites.some(fav => fav.id === music.id && fav.isFavourite)
         : false,
     }));
+  }
+
+  async saveMusic(musicId: number, userId: string): Promise<saveMusic> {
+
+    const musicDetails = await this.dbService.music.findFirst({ where: { id: musicId } });
+
+    if (!musicDetails) {
+      throw new Error(`Music with id ${musicId} not found`);
+    }
+
+    await this.dbService.music.create({
+      data: {
+        userId: userId,
+        musicUrl: musicDetails.musicUrl,
+        thumbnailUrl: musicDetails.thumbnailUrl,
+        musicTitle: musicDetails.musicTitle,
+        musicArtist: musicDetails.musicArtist
+      },
+
+    });
+    return { code: "success", status: 200, message: 'Music saved successfully' };
   }
 
 }

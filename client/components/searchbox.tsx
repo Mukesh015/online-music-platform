@@ -103,6 +103,17 @@ query SearchMusic($searchQuery: String!){
 }
 `
 
+const SaveMusic_Cloud = gql`
+mutation SaveMusic($musicId: Float!){
+    saveMusic(musicId: $musicId) {
+        code
+        status
+        message
+
+    }
+}
+`
+
 const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
 
     const dispatch = useDispatch();
@@ -122,6 +133,8 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
 
     const [saveSearchQuery] = useMutation(SAVE_SEARCH_QUERY);
     const [findSearchQuery] = useLazyQuery(FIND_SEARCH_QUERY);
+    const [SaveMusicToCloud] = useMutation(SaveMusic_Cloud);
+
 
     useEffect(() => {
         setOpenSearchBox(openModal);
@@ -175,9 +188,20 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
         }
     };
 
-    const handleSaveToPlaylist = useCallback(async (music: MusicDetail) => {
+    const handleSaveToPlaylist = useCallback(async (musicId: number) => {
         //----------------------------------------------------------------------------------------->>>>
-    }, []);
+        console.log(musicId)
+        if (token) {
+            SaveMusicToCloud({ variables: { musicId:musicId } })
+                .then(response => {
+                    console.log(response.data);
+                    
+                })
+                .catch(err => {
+                    console.error(err);
+                });
+        }
+    }, [token]);
 
     useEffect(() => {
         if (data) {
@@ -271,7 +295,7 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
                                                         </Tooltip>
                                                     ) : (
                                                         <Tooltip title="Save to cloud">
-                                                            <IconButton color="primary" aria-label="save-to-cloud-icon">
+                                                            <IconButton color="primary" aria-label="save-to-cloud-icon" onClick={() => handleSaveToPlaylist(music.id)}>
                                                                 <CloudUploadIcon color="success" fontSize="medium" />
                                                             </IconButton>
                                                         </Tooltip>
