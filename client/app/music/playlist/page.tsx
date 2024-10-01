@@ -28,12 +28,13 @@ import dynamic from 'next/dynamic';
 import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
 import { addToFavorite, addToHistory, deleteMusicFromDB, renamePlaylist, deleteplaylist, removeFromPlaylist } from '@/lib/feature';
 import AlertPopup from '@/components/alert';
-import { deleteMusic, downLoadMusic } from '@/config/firebase/config';
+import { auth, deleteMusic, downLoadMusic } from '@/config/firebase/config';
 import FilterList from '@/components/filter';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import queueService from '@/lib/queue';
 import RenameInputBox from '@/components/renameInput';
 import Share from '@/components/share';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 const itemVariants = {
     visible: {
@@ -85,6 +86,7 @@ const GET_PLAYLIST = gql`
 `;
 
 const PlaylistPage: React.FC = () => {
+    const [user] = useAuthState(auth);
     const token = useSelector((state: RootState) => state.authToken.token);
     const [newPlaylistName, newPlaylistArtist] = useState<string | null>(null);
     const [showRenamepopup, setShowRenamepopup] = useState<boolean>(false);
@@ -519,7 +521,7 @@ const PlaylistPage: React.FC = () => {
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
             {showFilter && <FilterList playlist={playlists} closeFilter={closeFilter} setData={setPlaylistData} playlistName={playlistName} />}
             {showRenamepopup && <RenameInputBox close={handleCloseRenamePopup} newPlaylistArtist={newPlaylistArtist} handleRenamePlaylist={handleRenamePlaylist} />}
-            {showSharePopup && folderNameForRename && <Share close={closeSharePopup} playlistName={folderNameForRename} />}
+            {showSharePopup && folderNameForRename && user && <Share userId={user.uid} close={closeSharePopup} playlistName={folderNameForRename} />}
         </div>
     );
 };

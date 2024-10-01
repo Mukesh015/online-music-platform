@@ -175,10 +175,10 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
     return (
         <>
-            <div className="font-Montserrat fixed bottom-1 md:bottom-0 w-full right-0 h-20 text-white bg-slate-800 z-50">
+            <div className="font-Montserrat fixed bottom-0 w-full right-0 md:h-20 h-28 text-white bg-slate-800 z-50">
                 <audio loop={isLooping} autoPlay={playsong} onEnded={handlePlayNextSong} onLoadedData={() => setLoading(false)} ref={musicRef} src={musicDetails.musicUrl} />
                 <Slider
-                    className="fixed bottom-16 md:bottom-[65px]"
+                    className="fixed bottom-[90px] md:bottom-[65px]"
                     size="small"
                     value={currentTime}
                     min={0}
@@ -189,10 +189,10 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                     valueLabelFormat={formatTime}
                 />
                 <div className="md:pl-10 md:pr-10 pl-3 pr-3 mt-2 md:mt-5">
-                    <div className="flex flex-row gap-2 items-center justify-between md:justify-normal">
+                    <div className="flex flex-col md:flex-row md:gap-2 items-center justify-around md:justify-normal">
                         <section className="flex flex-row gap-1 items-center md:gap-3">
                             <Image className="rounded-md" height={40} width={40} src={musicDetails.thumbnailUrl} alt="Thumbnail" />
-                            <section className="flex flex-col md:w-[25rem] w-[9rem] overflow-x-hidden whitespace-nowrap">
+                            <section className="flex flex-col md:w-[25rem] w-[95vw] overflow-x-hidden whitespace-nowrap">
                                 <p className="flex flex-row">
                                     <span className="md:text-[16px] text-[14px]">{musicDetails.musicTitle}
                                     </span>
@@ -200,45 +200,79 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                                 <span className="text-slate-500 text-[12px]">Artist : {musicDetails.musicArtist}</span>
                             </section>
                         </section>
-                        <section
-                            className="flex flex-row items-center gap-2 relative md:hidden"
-                            onMouseEnter={() => setShowVolumeSlider(true)}
-                            onMouseLeave={() => setShowVolumeSlider(false)}
-                        >
-                            <Tooltip title="volume">
-                                <IconButton color="primary" aria-label="volume">
-                                    <VolumeUp />
+                        <section className="flex flex-row items-center gap-1 relative md:hidden">
+                            <div className="text-sm">
+                                <span className="text-xs text-gray-500">{`${formatTime(currentTime)} / ${formatTime(duration)}`}</span>
+                            </div>
+                            <Tooltip title="previous">
+                                <IconButton onClick={handlePlayPrevSong} color="primary" aria-label="previous">
+                                    <SkipPreviousIcon fontSize="medium" />
                                 </IconButton>
                             </Tooltip>
+                            <Tooltip title="-10 sec">
+                                <IconButton color="primary" aria-label="fastrewind" onClick={() => handleSkip(-10)}>
+                                    <FastRewindIcon fontSize="medium" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="play / pause">
+                                <IconButton color="primary" aria-label="play" onClick={togglePlayPause}>
+                                    {isPlaying ? <PauseCircleIcon fontSize="large" /> : <PlayCircleIcon fontSize="large" />}
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="+10 sec">
+                                <IconButton color="primary" aria-label="fastforward" onClick={() => handleSkip(10)}>
+                                    <FastForwardIcon fontSize="medium" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="next">
+                                <IconButton onClick={handlePlayNextSong} color="primary" aria-label="next">
+                                    <SkipNextIcon fontSize="medium" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="toggle loop">
+                                <IconButton
+                                    color="primary"
+                                    aria-label="repeat"
+                                    onClick={() => setIsLooping(!isLooping)}
+                                    className="hover:scale-110 hover:text-blue-600 transition-transform duration-300 ease-in-out"
+                                >
+                                    {isLooping ? (
+                                        <RepeatOneIcon fontSize="medium" color="primary" />
+                                    ) : (
+                                        <RepeatIcon fontSize="medium" color="primary" />
+                                    )}
+                                </IconButton>
+                            </Tooltip>
+                            <section
+                                className="flex flex-row items-center gap-2 relative"
+                                onMouseEnter={() => setShowVolumeSlider(true)}
+                                onMouseLeave={() => setShowVolumeSlider(false)}
+                            >
+                                <Tooltip title="volume">
+                                    <IconButton color="primary" aria-label="volume">
+                                        <VolumeUp />
+                                    </IconButton>
+                                </Tooltip>
 
-                            <div className={`absolute ${showVolumeSlider ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 items-center flex`}>
-                                <Slider
-                                    orientation="vertical"
-                                    className="h-20 fixed bottom-14"
-                                    size="small"
-                                    value={volume}
-                                    min={0}
-                                    max={100}
-                                    step={1}
-                                    onChange={(event, newValue) => setVolume(typeof newValue === "number" ? newValue : 50)}
-                                    aria-label="Volume"
-                                    valueLabelDisplay="auto"
-                                />
-                            </div>
+                                <div className={`absolute ${showVolumeSlider ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 items-center flex`}>
+                                    <Slider
+                                        orientation="vertical"
+                                        className="h-20 fixed bottom-14"
+                                        size="small"
+                                        value={volume}
+                                        min={0}
+                                        max={100}
+                                        step={1}
+                                        onChange={(event, newValue) => setVolume(typeof newValue === "number" ? newValue : 50)}
+                                        aria-label="Volume"
+                                        valueLabelDisplay="auto"
+                                    />
+                                </div>
+                            </section>
                         </section>
-                        <IconButton className="md:hidden" color="primary" aria-label="repeat" onClick={() => setIsLooping(!isLooping)}>
-                            {isLooping ? (
-                                <RepeatOneIcon fontSize="medium" color="primary" />
-                            ) : (
-                                <RepeatIcon fontSize="medium" color="primary" />
-                            )}
-                        </IconButton>
-                        <IconButton className="md:hidden" onClick={togglePlayPause} color="primary" aria-label="play / pause">
-                            {isPlaying ? <PauseCircleIcon fontSize="medium" /> : <PlayCircleIcon fontSize="medium" />}
-                        </IconButton>
                         {loading && (
                             <CircularProgress
-                                className="md:ml-[44.9rem] ml-[19rem]"
+                                className="mt-11 -ml-7 md:ml-[44.9rem] md:mt-0"
                                 size={32}
                                 sx={{
                                     color: green[500],
@@ -275,7 +309,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
                             </Tooltip>
                         </div>
 
-                        <div className="ml-16 md:w-20">
+                        <div className="hidden md:flex md:ml-16 md:w-20">
                             <span className="text-sm">{`${formatTime(currentTime)} / ${formatTime(duration)}`}</span>
                         </div>
 
