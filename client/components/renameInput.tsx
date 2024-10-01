@@ -1,12 +1,15 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState } from "react";
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
 
 interface Props {
     newPlaylistArtist: (name: string) => void;
     handleRenamePlaylist: () => void;
+    close: () => void
 }
 
-const RenameInputBox: React.FC<Props> = ({ newPlaylistArtist, handleRenamePlaylist }) => {
+const RenameInputBox: React.FC<Props> = ({ newPlaylistArtist, handleRenamePlaylist, close }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [renamedPlaylist, setRenamedPlaylist] = useState<string>("");
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +46,12 @@ const RenameInputBox: React.FC<Props> = ({ newPlaylistArtist, handleRenamePlayli
                     variants={inputBoxVariants}
                     transition={{ duration: 0.4 }}
                 >
-                    <h2 className="text-white text-lg font-bold mb-4">Rename Playlist</h2>
+                    <section className="flex flex-row justify-between items-center mb-5">
+                        <h2 className="text-white text-lg font-bold">Rename Playlist</h2>
+                        <IconButton onClick={close} color="primary">
+                            <CloseIcon fontSize="medium" />
+                        </IconButton>
+                    </section>
                     <input
                         ref={inputRef}
                         placeholder="Enter new playlist name..."

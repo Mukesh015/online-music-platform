@@ -566,7 +566,7 @@ const MusicPage: React.FC = () => {
                 createPlaylist={handleCreatePlaylsit}
                 cleanup={cleanup}
             />
-            <SearchBox musics={musicDetails} openModal={isSearchBoxOpen} onClose={handleCloseSearchBox} />
+            <SearchBox setSeverity={handleSetSeverty} showAlert={handleShowAlert} musics={musicDetails} openModal={isSearchBoxOpen} onClose={handleCloseSearchBox} />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
         </>
     );

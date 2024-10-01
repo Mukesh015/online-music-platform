@@ -126,7 +126,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleKeyPress = (event: KeyboardEvent) => {
-        if (event.code === 'Space') {
+        if (event.code === 'KeyP' && event.altKey) {
             event.preventDefault();
             togglePlayPause();
         }
@@ -142,7 +142,7 @@ const WebMusicPlayer = ({ musicDetails }: { musicDetails: MusicDetails }) => {
         if (event.code === 'ArrowDown') {
             setVolume(Math.max(0, volume - 5));
         }
-        if (event.code === 'KeyL') {
+        if (event.code === 'KeyL' && event.altKey) {
             setIsLooping(!isLooping);
         }
     };

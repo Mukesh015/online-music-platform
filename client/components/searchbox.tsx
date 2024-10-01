@@ -17,13 +17,13 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Tooltip from '@mui/material/Tooltip';
 import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
 import HistoryIcon from '@mui/icons-material/History';
-import { syncMusicDetails } from "@/lib/feature";
-
 
 interface Props {
     musics: MusicDetail[];
     openModal: boolean;
     onClose: () => void;
+    showAlert: (msg: string) => void;
+    setSeverity: (severity: boolean) => void;
 }
 
 interface history {
@@ -114,7 +114,7 @@ mutation SaveMusic($musicId: Float!){
 }
 `
 
-const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
+const SearchBox: React.FC<Props> = ({ openModal, onClose, musics,setSeverity,showAlert }) => {
 
     const dispatch = useDispatch();
     const [openSearchBox, setOpenSearchBox] = useState<boolean>(openModal);
@@ -127,8 +127,7 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
     const token = useSelector((state: RootState) => state.authToken.token);
 
     const { loading, error, data, refetch } = useQuery(SEARCH_QUERY, {
-        variables: { searchString },
-        // skip: !searchString,
+        variables: { searchString }
     });
 
     const [saveSearchQuery] = useMutation(SAVE_SEARCH_QUERY);
@@ -145,12 +144,6 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
         setOpenSearchBox(false)
         onClose();
     };
-
-    const saveToCloud = async (music: MusicDetail) => {
-        if (token) {
-            const response = await syncMusicDetails(token, music.musicUrl, music.musicTitle, music.musicArtist, music.thumbnailUrl);
-        }
-    }
 
     const handleSaveSearchQuery = useCallback(async () => {
         if (currentSearchQuery) {
@@ -189,19 +182,20 @@ const SearchBox: React.FC<Props> = ({ openModal, onClose, musics }) => {
     };
 
     const handleSaveToPlaylist = useCallback(async (musicId: number) => {
-        //----------------------------------------------------------------------------------------->>>>
-        console.log(musicId)
         if (token) {
-            SaveMusicToCloud({ variables: { musicId:musicId } })
+            SaveMusicToCloud({ variables: { musicId: musicId } })
                 .then(response => {
-                    console.log(response.data);
-                    
+                    console.log("music saved", response);
+                    setSeverity(true);
+                    showAlert("Music saved to cloud");
                 })
                 .catch(err => {
                     console.error(err);
+                    setSeverity(true);
+                    showAlert("Could not save to cloud, please try again");
                 });
         }
-    }, [token]);
+    }, [SaveMusicToCloud, setSeverity, showAlert, token]);
 
     useEffect(() => {
         if (data) {

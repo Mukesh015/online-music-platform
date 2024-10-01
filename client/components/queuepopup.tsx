@@ -145,7 +145,7 @@ const QueuePopup: React.FC<Props> = ({ close, handleShowAlert, setSeverity }) =>
                                             </section>
                                         </section>
                                         <section className="flex flex-row space-x-2 items-center">
-                                            {currentQueueMusic?.id === music.id &&
+                                            {currentQueueMusic?.id == music.id &&
                                                 <Tooltip title="Playing...">
                                                     <PauseIcon color="primary" fontSize="medium" />
                                                 </Tooltip>

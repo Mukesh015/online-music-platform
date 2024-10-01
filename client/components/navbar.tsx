@@ -85,7 +85,7 @@ const Navbar: React.FC = () => {
             <nav className="flex bg-transparent fixed w-full py-5 md:py-2 justify-between pl-3 pr-3 md:pl-0 md:pr-0  md:justify-around top-0 z-30 font-Montserrat text-white text-lg items-center">
                 <ol className="flex items-center space-x-3 cursor-pointer">
                     <Image className="h-8 w-8 rounded-full" src={logo} alt={"logo"} />
-                    <span className="font-bold">MUSICALLY</span>
+                    <span className="font-bold text-lime-500">MUSICALLY</span>
                 </ol>
                 <ol className="hidden md:flex md:flex-row md:gap-16 md:py-5">
                     <Link href={"/"}>

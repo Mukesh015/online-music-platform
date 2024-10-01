@@ -33,6 +33,7 @@ import FilterList from '@/components/filter';
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 import queueService from '@/lib/queue';
 import RenameInputBox from '@/components/renameInput';
+import Share from '@/components/share';
 
 const itemVariants = {
     visible: {
@@ -100,6 +101,7 @@ const PlaylistPage: React.FC = () => {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [showFilter, setShowFilter] = useState<boolean>(false);
+    const [showSharePopup, setShowSharePopup] = useState<boolean>(false);
     const open = Boolean(anchorEl);
     const dispatch = useDispatch();
 
@@ -108,6 +110,10 @@ const PlaylistPage: React.FC = () => {
         handleClose();
         setSeverity(true);
         handleShowAlert("Song added to queue");
+    }
+
+    const closeSharePopup = () => {
+        setShowSharePopup(false);
     }
 
     const cleanup = () => {
@@ -121,6 +127,15 @@ const PlaylistPage: React.FC = () => {
 
     const closeFilter = () => {
         setShowFilter(false);
+    }
+
+    const handleCloseRenamePopup = () => {
+        setShowRenamepopup(false);
+    }
+
+    const handleSharePlaylist = () => {
+        setShowSharePopup(true);
+        handleClose();
     }
 
     const handleShowAlert = useCallback((msg: string) => {
@@ -463,7 +478,7 @@ const PlaylistPage: React.FC = () => {
                             <DriveFileRenameOutlineIcon />
                             <span>Rename</span>
                         </MenuItem>
-                        <MenuItem className='flex space-x-4' onClick={handleClose}>
+                        <MenuItem className='flex space-x-4' onClick={handleSharePlaylist}>
                             <ShareIcon />
                             <span>Share playlist</span>
                         </MenuItem>
@@ -503,11 +518,11 @@ const PlaylistPage: React.FC = () => {
             </Menu>
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
             {showFilter && <FilterList playlist={playlists} closeFilter={closeFilter} setData={setPlaylistData} playlistName={playlistName} />}
-            {showRenamepopup && <RenameInputBox newPlaylistArtist={newPlaylistArtist} handleRenamePlaylist={handleRenamePlaylist} />}
+            {showRenamepopup && <RenameInputBox close={handleCloseRenamePopup} newPlaylistArtist={newPlaylistArtist} handleRenamePlaylist={handleRenamePlaylist} />}
+            {showSharePopup && folderNameForRename && <Share close={closeSharePopup} playlistName={folderNameForRename} />}
         </div>
     );
 };
-
 
 
 export default PlaylistPage;
