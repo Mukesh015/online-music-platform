@@ -378,7 +378,7 @@ export class MusicService {
 
 
   async removeMusicFromPlaylist(musicId: number, playlistName: string, userId: string) {
-    
+
     try {
       const playlistEntry = this.dbService.playlist.findUnique({
         where: { userId_musicId_playlistName: { userId, musicId, playlistName } },
@@ -387,15 +387,15 @@ export class MusicService {
       if (!playlistEntry) {
         return { message: 'Music ID not found in playlist for the specified playlist name', statusCode: 404, musicDetails: { musicId, userId, playlistName } }
       }
-      
-      if ((await playlistEntry).userId!== userId) {
+
+      if ((await playlistEntry).userId !== userId) {
         return { message: 'User does not match', statusCode: 400, musicDetails: { musicId, userId, playlistName } }
       }
 
       await this.dbService.playlist.delete({
         where: { userId_musicId_playlistName: { userId, musicId, playlistName } },
       })
-      
+
       return { message: 'Music removed from playlist successfully', statusCode: 200, musicDetails: { musicId, userId, playlistName } }
     }
     catch (error) {
@@ -667,6 +667,74 @@ export class MusicService {
   }
 
 
+
+  async getSharedPlaylistDetails(userID: string, playlistName: string, ownUserId: string): Promise<Music[] | string> {
+    try {
+
+      const playlists = await this.dbService.playlist.findMany({
+        where: {
+          userId: userID,
+          playlistName,
+        },
+      });
+
+
+      if (!playlists || playlists.length === 0) {
+        return 'No data found';
+      }
+
+      const musicDetails = await Promise.all(playlists.map(async (playlist) => {
+
+        const music = await this.dbService.music.findUnique({
+          where: { id: playlist.musicId },
+        });
+
+        const favourite = await this.dbService.isFavourite.findUnique({
+          where: {
+            userId_id: { userId: ownUserId, id: playlist.musicId },
+            isFavourite: true,
+
+          },
+        });
+
+
+        if (music) {
+          if (ownUserId === undefined) {
+            return {
+              id: music.id,
+              musicUrl: music.musicUrl,
+              thumbnailUrl: music.thumbnailUrl,
+              musicTitle: music.musicTitle,
+              musicArtist: music.musicArtist,
+              createdAt: music.createdAt,
+              isFavourite: 'false',
+            };
+          }
+          else {
+            return {
+              id: music.id,
+              musicUrl: music.musicUrl,
+              thumbnailUrl: music.thumbnailUrl,
+              musicTitle: music.musicTitle,
+              musicArtist: music.musicArtist,
+              createdAt: music.createdAt,
+              isFavourite: favourite ? 'true' : 'false',
+            };
+          }
+
+        }
+
+        return null;
+      }));
+
+
+      return musicDetails;
+
+    } catch (error) {
+      console.error(error);
+      return 'An error occurred while fetching playlist details';
+    }
+  }
 
   // async getMp3Stream(youtubeUrl: string): Promise<Readable> {
   //   try {

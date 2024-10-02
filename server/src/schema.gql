@@ -102,6 +102,7 @@ type Query {
   getFavoriteMusicByUserId: [Music!]!
   getPlaylistNameByUserId: [String!]!
   getPlaylistByUserId: [Playlist!]!
+  getSharedPlaylistDetails(userId: String!, playlistName: String!): [Music!]!
   getLastHistory: LastHistory
   search(searchString: String): SearchResponse!
   searchMusic(searchQuery: String!): [MusicDetails!]!

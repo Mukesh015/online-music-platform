@@ -8,6 +8,12 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ShareIcon from '@mui/icons-material/Share';
+import { useSearchParams } from "next/navigation";
+
+
+import { useEffect, useState } from "react";
+import { gql, useQuery } from "@apollo/client";
+
 
 const itemVariants = {
     visible: {
@@ -37,11 +43,57 @@ const containerVariants = {
     }
 };
 
+interface Props {
+    params: {
+        playlistName: string;
+    };
+}
 
-const SharePage: React.FC = () => {
+const sharedPlaylistDetails = gql`
+    query GetSharedPlaylistDetails($userId: String!, $playlistName: String!) {
+        getSharedPlaylistDetails(userId: $userId, playlistName: $playlistName){
+     
+            id
+            musicUrl
+            isFavourite
+            musicTitle
+            thumbnailUrl
+            musicArtist
+            createdAt
+        }
+    }
+
+`
+
+
+const SharePage: React.FC<Props> = ({ params }) => {
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [decodedUId, setDecodeuId] = useState<string>('')
     const open = Boolean(anchorEl);
+
+
+
+    const playlistName = decodeURIComponent(params.playlistName);
+    const searchParams = useSearchParams();
+
+    const userId = searchParams.get("uID");
+
+    const { loading, data, error, refetch } = useQuery(sharedPlaylistDetails, {
+        variables: { userId: userId, playlistName: playlistName },
+    });
+    useEffect(() => {
+
+        console.log("UserId : ", userId, "PlaylistName : ", playlistName);
+        if (data) {
+            // setDecodeuId(data.getSharedPlaylistDetails[0].userId);
+            console.log(data);
+        }
+    }, [userId, playlistName, data]);
+
+
+
+
 
     const handleClose = () => {
         setAnchorEl(null);

@@ -62,7 +62,25 @@ export class MusicResolver {
   }
 
 
+  @Query(returns => [Music])
+  @UseGuards(AuthGuard)
+  async getSharedPlaylistDetails(
+    @Args('userId') userId: string, // Add @Args decorator
+    @Args('playlistName') playlistName: string, // Add @Args decorator
+    @Context() context
+  ): Promise<Partial<Music>[] | string | []> {
+    const ownUserId = context.req['firebaseUserId'];
 
+    if (!userId || userId === "null" || userId === "invalid") {
+      return this.musicService.getSharedPlaylistDetails(userId, playlistName, undefined);
+
+    }
+    if (!playlistName) {
+      throw new Error("Playlist not found");
+    }
+
+    return this.musicService.getSharedPlaylistDetails(userId, playlistName, ownUserId);
+  }
 
 
 }

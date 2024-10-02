@@ -5,6 +5,8 @@ import IconButton from '@mui/material/IconButton';
 import { Tooltip } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 
+import { useCallback } from "react";
+
 interface Props {
     close: () => void;
     playlistName: string;
@@ -16,17 +18,31 @@ const Share: React.FC<Props> = ({ close, playlistName, userId }) => {
 
     const [showCopied, setShowCopied] = useState<boolean>(false);
 
-    const handleLinkCopy = () => {
-        navigator.clipboard.writeText("https://musicapp.example.com/playlist/12345");
+
+    const [shareUrl, setShareUrl] = useState<string>('');
+
+
+
+
+
+
+    const handleLinkCopy = useCallback(() => {
+        navigator.clipboard.writeText(shareUrl);
+
         setShowCopied(true);
         setTimeout(() => setShowCopied(false), 2000);
-    }
+    }, [shareUrl]);
 
     const handleClose = () => {
         close();
     }
 
-    useEffect(()=>{console.log(playlistName,userId)},[playlistName, userId])
+
+    useEffect(() => {
+        if (playlistName) {
+            setShareUrl(`${process.env.NEXT_PUBLIC_CLIENT_DOMAIN}/share/${playlistName}?uID=${userId}`);
+        }
+    }, [playlistName,userId]);
 
     return (
         <>
@@ -52,30 +68,30 @@ const Share: React.FC<Props> = ({ close, playlistName, userId }) => {
                     </div>
 
                     <div className="md:flex md:justify-around font-Montserrat grid grid-cols-3 gap-5">
-                        <WhatsappShareButton className="flex flex-col items-center" url={"https://example.com"}>
+                        <WhatsappShareButton className="flex flex-col items-center" url={shareUrl}>
                             <WhatsappIcon className="rounded-full" />
                             <span>WhatsApp</span>
                         </WhatsappShareButton>
-                        <FacebookShareButton className="flex flex-col items-center" url={"https://example.com"}>
+                        <FacebookShareButton className="flex flex-col items-center" url={shareUrl}>
                             <FacebookIcon className="rounded-full" />
                             <span>Facebook</span>
                         </FacebookShareButton>
-                        <TwitterShareButton className="flex flex-col items-center" url={"https://example.com"}>
+                        <TwitterShareButton className="flex flex-col items-center" url={shareUrl}>
                             <TwitterIcon className="rounded-full" />
                             <span>Twitter</span>
                         </TwitterShareButton>
-                        <TelegramShareButton className="flex flex-col items-center" url={"https://example.com"}>
+                        <TelegramShareButton className="flex flex-col items-center" url={shareUrl}>
                             <TelegramIcon className="rounded-full" />
                             <span>Telegram</span>
                         </TelegramShareButton>
-                        <EmailShareButton className="flex flex-col items-center" url={"https://example.com"}>
+                        <EmailShareButton className="flex flex-col items-center" url={shareUrl}>
                             <EmailIcon className="rounded-full" />
                             <span>Email</span>
                         </EmailShareButton>
                     </div>
                     <div className="mx-5 mt-5 font-Montserrat">
                         <section className="border bg-gray-100 w-full h-10 rounded-sm px-3 items-center flex flex-row justify-between">
-                            <span className="md:w-[31rem] w-[16rem] whitespace-nowrap overflow-x-hidden">https://localhost:3000/playlist/share/12/mukesh</span>
+                            <span className="md:w-[31rem] w-[16rem] whitespace-nowrap overflow-x-hidden">{shareUrl}</span>
                             {showCopied ? (
                                 <svg height="24px" width="24px" viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M5.5 12.5L10.167 17L19.5 8" stroke="#0541f5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
                             ) : (
