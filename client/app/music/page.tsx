@@ -2,7 +2,7 @@
 import { useDispatch } from 'react-redux';
 import { setCurrentMusic } from '@/lib/resolvers/currentMusic';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
-import { deleteMusic, downLoadMusic } from '@/config/firebase/config';
+import { auth, deleteMusic, downLoadMusic } from '@/config/firebase/config';
 import Tooltip from '@mui/material/Tooltip';
 import React, { useCallback, useEffect, useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
@@ -36,6 +36,9 @@ import SearchBox from '@/components/searchbox';
 import { setUserPlaylist } from '@/lib/resolvers/userplaylist';
 import { addToFavorite, addToHistory, deleteMusicFromDB } from '@/lib/feature';
 import queueService from '@/lib/queue';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import LoginForm from '@/components/loginform';
+import { useRouter } from 'next/navigation';
 
 const itemVariants = {
     visible: {
@@ -69,6 +72,10 @@ const MusicQuery = gql`
     {
         musics{
             id
+            musicUrl
+            musicTitle
+            thumbnailUrl
+            musicArtist
         }
         index
         getMusicByUserId{
@@ -122,6 +129,8 @@ interface MusicDetail {
 
 const MusicPage: React.FC = () => {
 
+    const router = useRouter();
+    const [user] = useAuthState(auth);
     const dispatch = useDispatch();
     const token = useSelector((state: RootState) => state.authToken.token);
     const [history, setHistory] = useState<LastMusic | null>(null);
@@ -140,6 +149,8 @@ const MusicPage: React.FC = () => {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [isSearchBoxOpen, setIsSearchBoxOpen] = useState<boolean>(false);
     const [severity, setSeverity] = useState<boolean>(false);
+    const [allMusic, setAllMusic] = useState<MusicDetail[]>([]);
+    const [showLoginForm, setShowLoginForm] = useState<boolean>(false);
     const open = Boolean(showMenu);
 
     const handleAddToQueue = () => {
@@ -166,22 +177,38 @@ const MusicPage: React.FC = () => {
         setSelectedMusicForMenu(music);
     };
 
+    const handleRedirectToPlaylist = () => {
+        if (user) router.push("/music/playlist");
+        else setShowLoginForm(true);
+    }
+
     const handleClose = useCallback(() => {
         setshowMenu(null);
     }, []);
 
     const handleToggleFileInputPopup = () => {
-        setIsOpenFileInput(!isOpenFileInput);
-        setFileInputVisibleProps("fileInput");
+        if (user) {
+            setIsOpenFileInput(!isOpenFileInput);
+            setFileInputVisibleProps("fileInput");
+        }
+        else {
+            setShowLoginForm(true);
+        }
     }
 
     const handleOpenCreatePlaylistPopup = () => {
-        setIsOpenFileInput(!isOpenFileInput);
-        setFileInputVisibleProps("createPlaylist");
+        if (user) {
+            setIsOpenFileInput(!isOpenFileInput);
+            setFileInputVisibleProps("createPlaylist");
+        }
+        else {
+            setShowLoginForm(true);
+        }
     }
 
     const toggleFavoriteSongs = () => {
-        setShowFavoriteSongs(!showFavoriteSongs);
+        if (user) setShowFavoriteSongs(!showFavoriteSongs);
+        else setShowLoginForm(true);
     }
 
     const cleanup = useCallback(() => {
@@ -238,27 +265,31 @@ const MusicPage: React.FC = () => {
 
     const handleAddToFav = useCallback(async () => {
         handleClose();
-        if (selectedMusicForMenu && token) {
-            const response = await addToFavorite(selectedMusicForMenu.id, token);
-            if (response.status === 11) {
-                setSeverity(true);
-                handleShowAlert("Song added to favorite");
-            }
-            else if (response.status === 10) {
-                setSeverity(true);
-                handleShowAlert("Song removed from favorite");
+        if (user) {
+            if (selectedMusicForMenu && token) {
+                const response = await addToFavorite(selectedMusicForMenu.id, token);
+                if (response.status === 11) {
+                    setSeverity(true);
+                    handleShowAlert("Song added to favorite");
+                }
+                else if (response.status === 10) {
+                    setSeverity(true);
+                    handleShowAlert("Song removed from favorite");
+                }
+                else {
+                    setSeverity(false);
+                    handleShowAlert("Something went wrong, please try again");
+                    console.error("fetch error:", error);
+                }
+                refetch();
             }
             else {
-                setSeverity(false);
-                handleShowAlert("Something went wrong, please try again");
-                console.error("fetch error:", error);
+                console.error("Music Id not provided or auth token missing, operation cant permitted");
             }
-            refetch();
+        } else {
+            setShowLoginForm(true);
         }
-        else {
-            console.error("Music Id not provided or auth token missing, operation cant permitted");
-        }
-    }, [handleClose, selectedMusicForMenu, token, refetch, handleShowAlert, error]);
+    }, [handleClose, selectedMusicForMenu, token, refetch, handleShowAlert, error, user]);
 
     const handleCreatePlaylsit = useCallback(async (playlistName: string) => {
         handleClose();
@@ -336,11 +367,12 @@ const MusicPage: React.FC = () => {
         }
     }, [handleClose, selectedMusicForMenu, token, musicDetails, refetch, handleShowAlert]);
 
-    const displayedMusic = showFavoriteSongs ? favoriteMusicDetails : musicDetails;
+    const displayedMusic = user ? (showFavoriteSongs ? favoriteMusicDetails : musicDetails) : allMusic;
 
     useEffect(() => {
 
         if (data) {
+            setAllMusic(data.musics);
             setMusicDetails(data.getMusicByUserId);
             setFavoriteMusicDetails(data.getFavoriteMusicByUserId)
             setHistory(data.getLastHistory);
@@ -351,7 +383,7 @@ const MusicPage: React.FC = () => {
         if (token) {
             refetch();
         }
-    }, [error, refetch, token, data, history, setHistory]);
+    }, [error, refetch, token, data, history, setHistory, setAllMusic]);
 
     useEffect(() => {
         if (musicDetails) {
@@ -413,11 +445,9 @@ const MusicPage: React.FC = () => {
                                                 )}
                                             </Tooltip>
                                             <Tooltip title="playlists">
-                                                <Link href={"/music/playlist"}>
-                                                    <IconButton color="secondary">
-                                                        <LibraryMusicIcon fontSize="medium" />
-                                                    </IconButton>
-                                                </Link>
+                                                <IconButton onClick={handleRedirectToPlaylist} color="secondary">
+                                                    <LibraryMusicIcon fontSize="medium" />
+                                                </IconButton>
                                             </Tooltip>
                                             <Tooltip title="create new playlist">
                                                 <IconButton onClick={() => handleOpenCreatePlaylistPopup()} color="secondary" aria-label="add">
@@ -446,11 +476,9 @@ const MusicPage: React.FC = () => {
                                                 <IconButton onClick={() => handleOpenCreatePlaylistPopup()} color="secondary" aria-label="add">
                                                     <AddIcon fontSize="small" />
                                                 </IconButton>
-                                                <Link href={"/music/playlist"}>
-                                                    <IconButton color="secondary">
-                                                        <LibraryMusicIcon fontSize="medium" />
-                                                    </IconButton>
-                                                </Link>
+                                                <IconButton onClick={handleRedirectToPlaylist} color="secondary">
+                                                    <LibraryMusicIcon fontSize="medium" />
+                                                </IconButton>
                                             </section>
                                         }
                                         <IconButton onClick={() => handleToggleMobileMenu()}>
@@ -530,7 +558,7 @@ const MusicPage: React.FC = () => {
                                                             </MenuItem>
                                                             <MenuItem onClick={() => handleAddToFav()} className="flex flex-row gap-2 items-center">
                                                                 <FavoriteIcon />
-                                                                <span>Add to Favorite</span>
+                                                                <span>Add to Favorite</span>    
                                                             </MenuItem>
                                                             <MenuItem onClick={() => downLoadMusic(music.musicUrl)} className="flex flex-row gap-2 items-center">
                                                                 <FileDownloadIcon />
@@ -568,6 +596,7 @@ const MusicPage: React.FC = () => {
             />
             <SearchBox setSeverity={handleSetSeverty} showAlert={handleShowAlert} musics={musicDetails} openModal={isSearchBoxOpen} onClose={handleCloseSearchBox} />
             {showAlert && <AlertPopup severity={severity} message={alertMessage} />}
+            {showLoginForm && <LoginForm closeForm={() => setShowLoginForm(false)} />}
         </>
     );
 };
