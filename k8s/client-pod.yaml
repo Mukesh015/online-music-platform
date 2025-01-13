@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-music-app-client
+spec:
+  containers:
+  - name: client-container
+    image: mukeshgupta007/musically-client:latest
+    ports:
+    - containerPort: 3000

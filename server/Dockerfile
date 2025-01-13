@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -15,30 +15,30 @@ COPY . .
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Build the NestJS app
+# Build the Next.js app
 RUN yarn build
 
 # Stage 2: Create the production image
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Set environment variables
-ENV NODE_ENV=production
+# Uncomment and set these as needed
+# ENV NODE_ENV=production
 
 # Set working directory
 WORKDIR /app
 
 # Install only production dependencies
 COPY package*.json ./
-COPY prisma ./prisma
 RUN yarn install --production
 
-# Copy source files and build output from builder
-COPY . .
-COPY --from=builder /app/dist ./dist
+# Copy build output and necessary files from the builder
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Start the application using npm start
-CMD ["yarn", "start:prod"]
+# Start the application
+CMD ["yarn", "start"]

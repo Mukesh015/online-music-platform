@@ -14,6 +14,7 @@ import { AuthguardModule } from './authguard/authguard.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SearchbarModule } from './searchbar/searchbar.module';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 // Determine schema file path and load schema if in production
 const schemaFilePath = process.env.NODE_ENV === 'production'
@@ -26,6 +27,7 @@ const schema = schemaFilePath ? makeExecutableSchema({
 
 @Module({
   imports: [
+    PrometheusModule.register(),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: process.env.NODE_ENV === 'production' ? false : join(process.cwd(), './src/schema.gql'),
@@ -39,8 +41,7 @@ const schema = schemaFilePath ? makeExecutableSchema({
     MyLoggerModule,
     MiddlewareModule,
     AuthguardModule,
-    SearchbarModule,
-    
+    SearchbarModule,   
   ],
   providers: [
     AppResolver,

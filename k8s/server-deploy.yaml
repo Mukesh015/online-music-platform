@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: musically-server-deployment
+  labels:
+    app: musically-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: musically-server  # Ensure this matches the pod label
+  template:
+    metadata:
+      labels:
+        app: musically-server  # Ensure this matches the selector
+    spec:
+      containers:
+      - name: musically-server  # Updated container name
+        image: mukeshgupta007/musically-server:latest  # Your actual application image
+        ports:
+        - containerPort: 8080  # Adjust this to your server's port
+      

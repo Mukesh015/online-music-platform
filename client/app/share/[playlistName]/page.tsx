@@ -5,10 +5,8 @@ import loadingAnimation from "@/lottie/Animation - 1725478247574.json"
 import { motion } from "framer-motion";
 import React from "react";
 import Image from "next/image";
-import { IconButton, Menu, MenuItem } from "@mui/material";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { IconButton} from "@mui/material";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ShareIcon from '@mui/icons-material/Share';
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -78,7 +76,6 @@ const sharedPlaylistDetails = gql`
 
 `
 
-
 const SharePage: React.FC<Props> = ({ params }) => {
 
     const [currentPlayMusic, setCurrentPlayMusic] = useState<string | null>(null);
@@ -102,6 +99,7 @@ const SharePage: React.FC<Props> = ({ params }) => {
             setPlaylistSongs(data.getSharedPlaylistDetails)
         }
     }, [data, setPlaylistSongs]);
+
 
     return (
         <div className="bg-slate-950 h-screen w-screen pb-20">
